@@ -1,0 +1,10 @@
+*.exe
+*.o
+*.class
+*.dll
+*.txt
+include/
+lib/
+SDL2_*.c
+Makefile
+.vscode
