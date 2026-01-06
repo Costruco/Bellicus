@@ -1,5 +1,3 @@
-#include "SDL2/SDL.h"
-
 #include "Game.hpp"
 
 Game * game = nullptr;
@@ -7,12 +5,22 @@ Game * game = nullptr;
 int main(int argc, char * argv[]) {
 	game = new Game();
 	
-	game->init("Bellicus",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,800,600,true);
+	game->init("Bellicus",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,800,600,60,false);
 	
+	int updateCounter = 0;
 	while (game->running()) {
-		game->handleEvents();
-		game->update();
-		game->render();
+		
+		if (SDL_GetTicks()%1000 == 0) {
+			std::cout << updateCounter << std::endl;
+			updateCounter = 0;
+		}
+		
+		if (game->frameDue()) {
+			updateCounter++;
+			game->handleEvents();
+			game->update();
+			game->render();
+		}
 	}
 	
 	game->clean();
