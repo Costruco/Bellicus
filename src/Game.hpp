@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "FrameManager.hpp"
+#include "TextureManager.hpp"
 
 class Game {
 	public:
@@ -21,11 +22,8 @@ class Game {
 		void clean();
 		
 		bool running();
-		bool frameDue();
 		
 	private:
-		FrameManager * frameManager;
-		
 		int updateCounter;
 		bool isRunning;
 		SDL_Window * win;

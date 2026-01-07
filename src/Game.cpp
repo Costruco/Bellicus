@@ -36,11 +36,10 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, i
 		isRunning = false;
 		
 	//inicializa o frameManager
-	frameManager = new FrameManager(targetFPS);
+	FrameManager::init(targetFPS);
 	
-	SDL_Surface * tmpSurface = IMG_Load("assets/textures/entities/T-34/chassi_com_sombra.png");
-	playerTex = SDL_CreateTextureFromSurface(ren,tmpSurface);
-	SDL_FreeSurface(tmpSurface);
+	//inicializa texturas
+	playerTex = TextureManager::LoadTexture(ren,"assets/textures/entities/T-34/chassi_com_sombra.png");
 }
 
 void Game::handleEvents() {
@@ -76,11 +75,4 @@ void Game::clean() {
 
 bool Game::running() {
 	return isRunning;
-}
-
-bool Game::frameDue() {
-	if (frameManager->frameDue()) {
-		return true;
-	} else
-		return false;
 }

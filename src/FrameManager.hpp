@@ -1,21 +1,19 @@
 #ifndef FRAMEMANAGER_HPP
 #define FRAMEMANAGER_HPP
 
-#include "SDL2/SDL.h"
+#include "Game.hpp"
 
 class FrameManager {
 	public:
-		FrameManager(int targetFPS);
-		~FrameManager();
-		
-		bool frameDue();
+		static void init(int targetFPS);		
+		static bool frameDue();
 		
 	private:
-		int targetFPS,
-			trueWait,
-			currentWait,
-			wait,
-			frameStart;		
+		static int targetFPS;
+		static int trueWait;
+		static int currentWait;
+		static int wait;
+		static int frameStart;		
 };
 
 #endif
