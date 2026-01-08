@@ -5,6 +5,7 @@ int FrameManager::trueWait = 0;
 int FrameManager::currentWait = 0;
 int FrameManager::wait = 0;
 int FrameManager::frameStart = 0;
+int FrameManager::deltaTime = 0;
 
 void FrameManager::init(int targetFPS) {
 	FrameManager::targetFPS = targetFPS;
@@ -13,8 +14,14 @@ void FrameManager::init(int targetFPS) {
 	frameStart = SDL_GetTicks();
 }
 
+int FrameManager::getDt() {
+	return deltaTime;
+}
+
 bool FrameManager::frameDue() {
-	if (SDL_GetTicks()-frameStart >= wait) {
+	int dt = SDL_GetTicks()-frameStart;
+	if (dt >= wait) {
+		deltaTime = dt;
 		frameStart = SDL_GetTicks();
 		currentWait += trueWait-wait*1000;
 		wait = currentWait/1000;
