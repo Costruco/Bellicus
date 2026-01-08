@@ -1,7 +1,6 @@
 #include "Game.hpp"
 
-SDL_Texture * playerTex;
-SDL_Rect srcR,destR;
+GameObject * player;
 
 Game::Game() {
 	updateCounter = 0;
@@ -11,7 +10,7 @@ Game::~Game() {
 
 }
 
-void Game::init(const char * title, int xpos, int ypos, int width, int height, int targetFPS, bool fullscreen) {
+void Game::init(const char * title, int xpos, int ypos, int width, int height, bool fullscreen) {
 	//inicializa as flags
 	int flags = 0;
 	if (fullscreen)
@@ -26,7 +25,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, i
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,0);
 			if (ren) {
-				SDL_SetRenderDrawColor(ren,0,0,0,255);
+				SDL_SetRenderDrawColor(ren,255,255,255,255);
 				std::cout << "Renderer created...\n" << "Game started..." << std::endl;
 				
 				isRunning = true;
@@ -34,12 +33,9 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, i
 		}
 	} else
 		isRunning = false;
-		
-	//inicializa o frameManager
-	FrameManager::init(targetFPS);
 	
 	//inicializa texturas
-	playerTex = TextureManager::LoadTexture(ren,"assets/textures/entities/T-34/chassi_com_sombra.png");
+	player = new GameObject(ren,"assets/textures/entities/T-34/chassi_com_sombra.png",100,100);
 }
 
 void Game::handleEvents() {
@@ -55,14 +51,12 @@ void Game::handleEvents() {
 }
 
 void Game::update() {
-	updateCounter++;
-	destR.w = 203;
-	destR.h = 104;
+	player->update();
 }
 
 void Game::render() {
 	SDL_RenderClear(ren);
-	SDL_RenderCopy(ren,playerTex,NULL,&destR);
+	player->render();
 	SDL_RenderPresent(ren);
 }
 
