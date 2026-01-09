@@ -1,12 +1,11 @@
 #include "GameObject.hpp"
 
-GameObject::GameObject(SDL_Renderer * ren, const char * fileName, int x, int y) {
-	this->ren = ren;
-	texture = TextureManager::LoadTexture(ren, fileName);
+GameObject::GameObject(const char * fileName, int x, int y) {
+	texture = TextureManager::loadTexture(fileName);
 	
 	local = {x,y};
-	srcRect = {0,0,203,104};
-	dstRect = {x,y,203,104};
+	src = {0,0,203,104};
+	dst = {x,y,203,104};
 }
 
 GameObject::~GameObject() {
@@ -16,10 +15,10 @@ GameObject::~GameObject() {
 void GameObject::update() {
 	local.x++;
 	local.y++;
-	dstRect.x = local.x;
-	dstRect.y = local.y;
+	dst.x = local.x;
+	dst.y = local.y;
 }
 
 void GameObject::render() {
-	SDL_RenderCopy(ren,texture,&srcRect,&dstRect);
+	SDL_RenderCopy(Game::ren,texture,&src,&dst);
 }

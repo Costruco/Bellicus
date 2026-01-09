@@ -1,6 +1,10 @@
 #include "Game.hpp"
 
+Map * map;
+
 GameObject * player;
+
+SDL_Renderer * Game::ren = nullptr;
 
 Game::Game() {
 	updateCounter = 0;
@@ -35,7 +39,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		isRunning = false;
 	
 	//inicializa texturas
-	player = new GameObject(ren,"assets/textures/entities/T-34/chassi_com_sombra.png",100,100);
+	player = new GameObject("assets/textures/entities/T-34/chassi_com_sombra.png",100,100);
+	map = new Map();
 }
 
 void Game::handleEvents() {
@@ -56,6 +61,7 @@ void Game::update() {
 
 void Game::render() {
 	SDL_RenderClear(ren);
+	map->render();
 	player->render();
 	SDL_RenderPresent(ren);
 }

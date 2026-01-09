@@ -8,10 +8,13 @@
 
 #include "FrameManager.hpp"
 #include "GameObject.hpp"
+#include "Map.hpp"
 #include "TextureManager.hpp"
 
 class Game {
 	public:
+		static SDL_Renderer * ren;
+		
 		Game();
 		~Game();
 		
@@ -28,7 +31,6 @@ class Game {
 		int updateCounter;
 		bool isRunning;
 		SDL_Window * win;
-		SDL_Renderer * ren;
 };
 
 #endif

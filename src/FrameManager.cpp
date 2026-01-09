@@ -1,11 +1,11 @@
 #include "FrameManager.hpp"
 
-int FrameManager::targetFPS = 0;
-int FrameManager::trueWait = 0;
-int FrameManager::currentWait = 0;
-int FrameManager::wait = 0;
-int FrameManager::frameStart = 0;
-int FrameManager::deltaTime = 0;
+int FrameManager::targetFPS = 0,
+	FrameManager::trueWait = 0,
+	FrameManager::currentWait = 0,
+    FrameManager::wait = 0,
+    FrameManager::frameStart = 0,
+    FrameManager::deltaTime = 0;
 
 void FrameManager::init(int targetFPS) {
 	FrameManager::targetFPS = targetFPS;
@@ -14,7 +14,7 @@ void FrameManager::init(int targetFPS) {
 	frameStart = SDL_GetTicks();
 }
 
-int FrameManager::getDt() {
+int FrameManager::getDeltaTime() {
 	return deltaTime;
 }
 

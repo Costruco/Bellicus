@@ -5,7 +5,7 @@ Game * game = nullptr;
 int main(int argc, char * argv[]) {
 	//inicializa o jogo
 	game = new Game();
-	game->init("Bellicus",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,800,600,false);
+	game->init("Bellicus",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,800,640,false);
 	
 	//inicializa o frameManager
 	FrameManager::init(60);

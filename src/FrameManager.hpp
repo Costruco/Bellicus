@@ -8,15 +8,15 @@ class FrameManager {
 		static void init(int targetFPS);		
 		static bool frameDue();
 		
-		static int getDt(); 
+		static int getDeltaTime(); 
 		
 	private:
-		static int targetFPS;
-		static int trueWait;
-		static int currentWait;
-		static int wait;
-		static int frameStart;	
-		static int deltaTime;	
+		static int targetFPS,
+				   trueWait,
+				   currentWait,
+				   wait,
+				   frameStart,	
+		           deltaTime;
 };
 
 #endif
