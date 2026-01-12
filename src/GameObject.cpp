@@ -3,7 +3,9 @@
 GameObject::GameObject(const char * fileName, int x, int y) {
 	texture = TextureManager::loadTexture(fileName);
 	
-	local = {x,y};
+	xpos = x;
+	ypos = y;
+	
 	src = {0,0,203,104};
 	dst = {x,y,203,104};
 }
@@ -13,12 +15,12 @@ GameObject::~GameObject() {
 }
 
 void GameObject::update() {
-	local.x++;
-	local.y++;
-	dst.x = local.x;
-	dst.y = local.y;
+	xpos++;
+	ypos++;
+	dst.x = xpos;
+	dst.y = ypos;
 }
 
-void GameObject::render() {
+void GameObject::draw() {
 	SDL_RenderCopy(Game::ren,texture,&src,&dst);
 }

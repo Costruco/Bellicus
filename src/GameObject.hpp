@@ -9,10 +9,11 @@ class GameObject {
 		~GameObject();
 		
 		void update();
-		void render();
+		void draw();
 		
 	private:
-		SDL_Point local;
+		int xpos,
+			ypos;
 		
 		SDL_Texture * texture;
 		SDL_Rect src,

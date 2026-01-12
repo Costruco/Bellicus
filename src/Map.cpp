@@ -43,7 +43,7 @@ void Map::loadMap(int arr[20][20]) {
 	}
 }
 
-void Map::render() {	 
+void Map::draw() {	 
 	for (int i = 0; i < 20; i++) {
 		dst.x = i*100;
 		for (int j = 0; j < 20; j++) {

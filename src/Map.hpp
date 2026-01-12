@@ -9,7 +9,7 @@ class Map {
 		~Map();
 		
 		void loadMap(int arr[20][20]);
-		void render();
+		void draw();
 		
 	private:
 		SDL_Rect src,

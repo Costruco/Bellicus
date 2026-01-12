@@ -10,6 +10,8 @@
 #include "GameObject.hpp"
 #include "Map.hpp"
 #include "TextureManager.hpp"
+#include "EntityComponentSystem.hpp"
+#include "Components.hpp"
 
 class Game {
 	public:
