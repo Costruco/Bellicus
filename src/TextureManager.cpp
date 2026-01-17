@@ -1,4 +1,5 @@
 #include "TextureManager.hpp"
+#include "Game.hpp"
 
 SDL_Texture * TextureManager::loadTexture(const char * fileName) {
 	SDL_Texture * tex = IMG_LoadTexture(Game::ren,fileName);

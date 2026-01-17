@@ -47,7 +47,14 @@ class Component {
 		}
 };
 
-class Entity {
+class Entity {	
+	private:
+		bool active = true;
+		std::vector<std::unique_ptr<Component>> components;
+		
+		ComponentArray componentArray;
+		ComponentBitSet componentBitSet;
+		
 	public:
 		void update() {
 			for (auto& c : components) {
@@ -89,17 +96,13 @@ class Entity {
 		template <typename T> T& getComponent() const {
 			auto ptr(componentArray[getComponentTypeID<T>()]);
 			return * static_cast<T*>(ptr);
-		}
-		
-	private:
-		bool active = true;
-		std::vector<std::unique_ptr<Component>> components;
-		
-		ComponentArray componentArray;
-		ComponentBitSet componentBitSet;		
+		}		
 };
 
 class Manager {
+	private:
+		std::vector<std::unique_ptr<Entity>> entities;
+		
 	public:
 		void update() {
 			for (auto& e : entities) {
@@ -127,9 +130,6 @@ class Manager {
 			entities.emplace_back(std::move(uPtr));
 			return *e;
 		}
-		
-	private:
-		std::vector<std::unique_ptr<Entity>> entities;
 };
 
 #endif

@@ -4,13 +4,6 @@
 #include "Game.hpp"
 
 class GameObject {
-	public:
-		GameObject(const char * fileName, int x, int y);
-		~GameObject();
-		
-		void update();
-		void draw();
-		
 	private:
 		int xpos,
 			ypos;
@@ -18,6 +11,13 @@ class GameObject {
 		SDL_Texture * texture;
 		SDL_Rect src,
 				 dst;
+				 
+	public:
+		GameObject(const char * fileName, int x, int y);
+		~GameObject();
+		
+		void update();
+		void draw();
 };
 
 #endif

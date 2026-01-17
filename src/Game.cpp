@@ -2,8 +2,6 @@
 
 Map * map;
 
-GameObject * player;
-
 SDL_Renderer * Game::ren = nullptr;
 
 Manager manager;
@@ -42,10 +40,10 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		isRunning = false;
 	
 	//inicializa texturas
-	player = new GameObject("assets/textures/entities/T-34/chassi_com_sombra.png",100,100);
 	map = new Map();
 	
-	newPlayer.addComponent<PositionComponent>();
+	newPlayer.addComponent<PositionComponent>(100,100);
+	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
 }
 
 void Game::handleEvents() {
@@ -61,16 +59,14 @@ void Game::handleEvents() {
 }
 
 void Game::update() {
-	player->update();
+	manager.refresh();
 	manager.update();
-	std::cout << newPlayer.getComponent<PositionComponent>().x() << std::endl;
-	std::cout << newPlayer.getComponent<PositionComponent>().y() << std::endl;
 }
 
 void Game::render() {
 	SDL_RenderClear(ren);
 	map->draw();
-	player->draw();
+	manager.draw();
 	SDL_RenderPresent(ren);
 }
 

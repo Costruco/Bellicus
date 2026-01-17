@@ -7,13 +7,16 @@
 #include <iostream>
 
 #include "FrameManager.hpp"
-#include "GameObject.hpp"
 #include "Map.hpp"
 #include "TextureManager.hpp"
-#include "EntityComponentSystem.hpp"
-#include "Components.hpp"
+#include "EntityComponentSystem/Components.hpp"
 
 class Game {
+	private:
+		int updateCounter;
+		bool isRunning;
+		SDL_Window * win;
+		
 	public:
 		static SDL_Renderer * ren;
 		
@@ -28,11 +31,6 @@ class Game {
 		void clean();
 		
 		bool running();
-		
-	private:
-		int updateCounter;
-		bool isRunning;
-		SDL_Window * win;
 };
 
 #endif

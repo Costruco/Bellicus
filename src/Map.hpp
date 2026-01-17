@@ -4,13 +4,6 @@
 #include "Game.hpp"
 
 class Map {
-	public:
-		Map();
-		~Map();
-		
-		void loadMap(int arr[20][20]);
-		void draw();
-		
 	private:
 		SDL_Rect src,
 				 dst;
@@ -19,6 +12,13 @@ class Map {
 					* tile2;
 		
 		int map[20][20];
+		
+	public:
+		Map();
+		~Map();
+		
+		void loadMap(int arr[20][20]);
+		void draw();	
 };
 
 #endif
