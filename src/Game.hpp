@@ -6,10 +6,12 @@
 
 #include <iostream>
 
+#include "EntityComponentSystem/Components.hpp"
 #include "FrameManager.hpp"
 #include "Map.hpp"
 #include "TextureManager.hpp"
-#include "EntityComponentSystem/Components.hpp"
+#include "Vector2D.hpp"
+
 
 class Game {
 	private:

@@ -42,7 +42,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	//inicializa texturas
 	map = new Map();
 	
-	newPlayer.addComponent<PositionComponent>(100,100);
+	newPlayer.addComponent<TransformComponent>();
 	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
 }
 
