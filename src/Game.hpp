@@ -2,16 +2,6 @@
 #define GAME_HPP
 
 #include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
-
-#include <iostream>
-
-#include "EntityComponentSystem/Components.hpp"
-#include "FrameManager.hpp"
-#include "Map.hpp"
-#include "TextureManager.hpp"
-#include "Vector2D.hpp"
-
 
 class Game {
 	private:
@@ -21,6 +11,7 @@ class Game {
 		
 	public:
 		static SDL_Renderer * ren;
+		static SDL_Event evt;
 		
 		Game();
 		~Game();

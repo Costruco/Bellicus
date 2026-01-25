@@ -1,4 +1,14 @@
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
+
+#include <iostream>
+
 #include "Game.hpp"
+#include "FrameManager.hpp"
+#include "EntityComponentSystem/Components.hpp"
+#include "Map.hpp"
+#include "TextureManager.hpp"
+#include "Vector2D.hpp"
 
 Game * game = nullptr;
 

@@ -1,7 +1,7 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-#include "Game.hpp"
+#include "SDL2/SDL.h"
 
 class Map {
 	private:

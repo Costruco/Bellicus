@@ -1,22 +1,20 @@
 #ifndef FRAMEMANAGER_HPP
 #define FRAMEMANAGER_HPP
 
-#include "Game.hpp"
-
 class FrameManager {
+	private:
+		static int targetFPS;
+		static int trueWait;
+		static int currentWait;
+		static int wait;
+		static int frameStart;
+		static int deltaTime;
+		
 	public:
 		static void init(int targetFPS);		
 		static bool frameDue();
 		
 		static int getDeltaTime(); 
-		
-	private:
-		static int targetFPS,
-				   trueWait,
-				   currentWait,
-				   wait,
-				   frameStart,	
-		           deltaTime;
 };
 
 #endif

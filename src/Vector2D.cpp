@@ -1,75 +1,107 @@
 #include "Vector2D.hpp"
 
+#include <cmath>
+
 Vector2D::Vector2D() {
 	x = 0.0f;
 	y = 0.0f;
 }
 
+//metodos gerais
 Vector2D::Vector2D(float x, float y) {
 	this->x = x;
 	this->y = y;
 }
+float Vector2D::getModule() {
+	return sqrt(this->x*this->x+this->y*this->y);
+}
+float Vector2D::getDistance(const Vector2D& v) {
+	return (*this-v).getModule();
+}
+Vector2D Vector2D::getDirection() {
+	float module = this->getModule();
+	if (module)
+		return (*this)/module;
+	else
+		return Vector2D();
+}
+void Vector2D::normalize() {
+	*this = this->getDirection();
+}
 
+//metodos membro
 Vector2D& Vector2D::add(const Vector2D& v) {
 	this->x += v.x;
 	this->y += v.y;
 	
 	return *this;
 }
-
 Vector2D& Vector2D::sub(const Vector2D& v) {
 	this->x -= v.x;
 	this->y -= v.y;
 	
 	return *this;
 }
-
 Vector2D& Vector2D::mult(const Vector2D& v) {
 	this->x *= v.x;
 	this->y *= v.y;
 	
 	return *this;
 }
-
 Vector2D& Vector2D::divide(const Vector2D& v) {
 	this->x /= v.x;
 	this->y /= v.y;
 	
 	return *this;
 }
-
-Vector2D& operator+(Vector2D& v1, const Vector2D& v2) {
-	return v1.add(v2);
+Vector2D& Vector2D::scale(float x) {
+	this->x *= x;
+	this->y *= x;
+	
+	return *this;
 }
 
-Vector2D& operator-(Vector2D& v1, const Vector2D& v2) {
-	return v1.sub(v2);
+//operadores
+Vector2D operator+(const Vector2D& v1, const Vector2D& v2) {
+	return Vector2D(v1.x+v2.x,v1.y+v2.y);
+}
+Vector2D operator-(const Vector2D& v1, const Vector2D& v2) {
+	return Vector2D(v1.x-v2.x,v1.y-v2.y);
+}
+Vector2D operator*(const Vector2D& v1, const Vector2D& v2) {
+	return Vector2D(v1.x*v2.x,v1.y*v2.y);
+}
+Vector2D operator/(const Vector2D& v1, const Vector2D& v2) {
+	return Vector2D(v1.x/v2.x,v1.y/v2.y);
+}
+Vector2D operator*(const Vector2D& v, float x) {
+	return Vector2D(v.x*x,v.y*x);
+}
+Vector2D operator/(const Vector2D& v, float x) {
+	return Vector2D(v.x/x,v.y/x);
 }
 
-Vector2D& operator*(Vector2D& v1, const Vector2D& v2) {
-	return v1.mult(v2);
-}
-
-Vector2D& operator/(Vector2D& v1, const Vector2D& v2) {
-	return v1.divide(v2);
-}
-
+//operadores de atribuição
 Vector2D& Vector2D::operator+=(const Vector2D& v) {
 	return this->add(v);
 }
-
 Vector2D& Vector2D::operator-=(const Vector2D& v) {
 	return this->sub(v);
 }
-
 Vector2D& Vector2D::operator*=(const Vector2D& v) {
 	return this->mult(v);
 }
-
 Vector2D& Vector2D::operator/=(const Vector2D& v) {
 	return this->divide(v);
 }
+Vector2D& Vector2D::operator*=(float x) {
+	return this->scale(x);
+}
+Vector2D& Vector2D::operator/=(float x) {
+	return this->scale(1/x);
+}
 
+//string
 std::ostream& operator<<(std::ostream& stream, const Vector2D& v) {
 	stream << "\"" <<v.x << "," << v.y << "\"";
 	return stream;

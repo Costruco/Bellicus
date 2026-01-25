@@ -7,17 +7,27 @@
 class TransformComponent : public Component {
 	public:
 		Vector2D position;
+		Vector2D direction;
+		float speed;
 			  
-		TransformComponent() : position() {
+		TransformComponent() : 
+			position(),
+			direction() {
+			speed = 0;
+		}
+
+		TransformComponent(float xpos, float ypos, float xdir, float ydir, float v) : 
+			position(xpos,ypos),
+			direction(xdir,ydir) {
+			speed = v;
+		}
 		
+		void init() override {
+			direction.normalize();
 		}
-
-		TransformComponent(int x, int y) : position(x,y) {
-			
-		}
-
+		
 		void update() override {
-		
+			position += direction*speed;
 		}	
 };
 
