@@ -3,32 +3,28 @@
 
 #include "Components.hpp"
 #include "Vector2D.hpp"
+#include "MovementInput.hpp"
 
 class TransformComponent : public Component {
 	public:
 		Vector2D position;
-		Vector2D direction;
-		float speed;
+		float direction;
+		MovementDirection moveIntent;
+		TurnDirection turnIntent;
 			  
-		TransformComponent() : 
-			position(),
-			direction() {
-			speed = 0;
-		}
-
-		TransformComponent(float xpos, float ypos, float xdir, float ydir, float v) : 
-			position(xpos,ypos),
-			direction(xdir,ydir) {
-			speed = v;
+		TransformComponent() :
+			position() {
+			direction = 0;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
 		}
 		
-		void init() override {
-			direction.normalize();
+		TransformComponent(float xpos, float ypos, float angle) :
+			position(xpos,ypos) {
+			direction = angle;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
 		}
-		
-		void update() override {
-			position += direction*speed;
-		}	
 };
 
 #endif

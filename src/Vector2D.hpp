@@ -11,6 +11,8 @@ class Vector2D {
 		Vector2D();
 		Vector2D(float x, float y);
 		
+		static Vector2D fromPolar(float module, float angle);
+		
 		float getModule();
 		float getDistance(const Vector2D& v);
 		Vector2D getDirection();

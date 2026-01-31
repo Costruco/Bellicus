@@ -35,7 +35,7 @@ class SpriteComponent : public Component {
 			dst.y = (int)transform->position.y;
 		}
 		void draw() override {
-			TextureManager::drawTexture(texture,&src,&dst);
+			TextureManager::drawTexture(texture,&src,&dst,transform->direction,nullptr,SDL_FLIP_NONE);
 		}
 };
 

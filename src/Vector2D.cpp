@@ -1,17 +1,20 @@
 #include "Vector2D.hpp"
 
-#include <cmath>
+#include "Math.hpp"
 
 Vector2D::Vector2D() {
 	x = 0.0f;
 	y = 0.0f;
 }
-
-//metodos gerais
 Vector2D::Vector2D(float x, float y) {
 	this->x = x;
 	this->y = y;
 }
+Vector2D Vector2D::fromPolar(float module, float angle) {
+ 	return Vector2D(cosd(angle)*module,sind(angle)*module);
+}
+ 
+//metodos gerais
 float Vector2D::getModule() {
 	return sqrt(this->x*this->x+this->y*this->y);
 }

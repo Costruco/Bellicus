@@ -52,10 +52,10 @@ void Map::draw() {
 			dst.y = j*100;
 			switch (map[i][j]) {
 				case 0:
-					TextureManager::drawTexture(tile1,&src,&dst);
+					TextureManager::drawTexture(tile1,&src,&dst,0,nullptr,SDL_FLIP_NONE);
 					break;
 				case 1:
-					TextureManager::drawTexture(tile2,&src,&dst);
+					TextureManager::drawTexture(tile2,&src,&dst,0,nullptr,SDL_FLIP_NONE);
 					break;
 				default:
 					break;

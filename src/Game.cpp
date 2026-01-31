@@ -54,8 +54,9 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	//inicializa texturas
 	map = new Map();
 	
-	newPlayer.addComponent<TransformComponent>(100,100,1,2,0.7f);
+	newPlayer.addComponent<TransformComponent>(100,100,0.3f);
 	newPlayer.addComponent<KeyboardController>();
+	newPlayer.addComponent<SimpleMovementComponent>(100,50);
 	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
 }
 
@@ -73,7 +74,7 @@ void Game::handleEvents() {
 void Game::update() {
 	manager.refresh();
 	//std::cout << newPlayer.getComponent<TransformComponent>().position << std::endl;
-	std::cout << newPlayer.getComponent<TransformComponent>().direction << std::endl;
+	//std::cout << newPlayer.getComponent<TransformComponent>().direction << std::endl;
 	manager.update();
 }
 
