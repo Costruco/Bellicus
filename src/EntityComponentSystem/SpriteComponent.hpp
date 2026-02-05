@@ -18,6 +18,9 @@ class SpriteComponent : public Component {
 		SpriteComponent(const char * path) {
 			setTexture(path);
 		}
+		~SpriteComponent() {
+			TextureManager::destroyTexture(texture);
+		}
 		
 		void setTexture(const char * path) {
 			texture = TextureManager::loadTexture(path);

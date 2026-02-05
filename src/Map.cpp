@@ -2,7 +2,9 @@
 
 #include "TextureManager.hpp"
 
-int testLvl[20][20] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+float dragTable[] = {0.25f,0.17f};
+
+int testLvl[MAX_MAP_X][MAX_MAP_y] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -37,18 +39,26 @@ Map::~Map() {
 
 }
 
-void Map::loadMap(int arr[20][20]) {
-	for (int i = 0; i < 20; i++) {
-		for (int j = 0; j < 20; j++) {
+void Map::loadMap(int arr[MAX_MAP_X][MAX_MAP_y]) {
+	for (int i = 0; i < MAX_MAP_X; i++) {
+		for (int j = 0; j < MAX_MAP_y; j++) {
 			map[i][j] = arr[i][j];
 		}
 	}
 }
 
+int Map::getTile(int x, int y) {
+	return this->map[x][y];
+}
+
+float getTileDrag(int x, int y) {
+	return dragTable[x][y];
+}
+
 void Map::draw() {	 
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < MAX_MAP_X; i++) {
 		dst.x = i*100;
-		for (int j = 0; j < 20; j++) {
+		for (int j = 0; j < MAX_MAP_y; j++) {
 			dst.y = j*100;
 			switch (map[i][j]) {
 				case 0:

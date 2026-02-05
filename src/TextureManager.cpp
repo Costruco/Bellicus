@@ -1,5 +1,6 @@
 #include "TextureManager.hpp"
 
+#include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 
 #include "Game.hpp"
@@ -15,4 +16,8 @@ void TextureManager::drawTexture(SDL_Texture * tex, SDL_Rect * src, SDL_Rect * d
 
 void TextureManager::drawTexture(SDL_Texture * tex, SDL_Rect * src, SDL_Rect * dst) {
 	SDL_RenderCopy(Game::ren,tex,src,dst);
+}
+
+void TextureManager::destroyTexture(SDL_Texture * tex) {
+	SDL_DestroyTexture(tex);
 }
