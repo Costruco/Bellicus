@@ -4,7 +4,7 @@
 
 float dragTable[] = {0.25f,0.17f};
 
-int testLvl[MAX_MAP_X][MAX_MAP_y] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+int testLvl[MAX_MAP_X][MAX_MAP_Y] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -39,9 +39,9 @@ Map::~Map() {
 
 }
 
-void Map::loadMap(int arr[MAX_MAP_X][MAX_MAP_y]) {
+void Map::loadMap(int arr[MAX_MAP_X][MAX_MAP_Y]) {
 	for (int i = 0; i < MAX_MAP_X; i++) {
-		for (int j = 0; j < MAX_MAP_y; j++) {
+		for (int j = 0; j < MAX_MAP_Y; j++) {
 			map[i][j] = arr[i][j];
 		}
 	}
@@ -51,14 +51,14 @@ int Map::getTile(int x, int y) {
 	return this->map[x][y];
 }
 
-float getTileDrag(int x, int y) {
-	return dragTable[x][y];
+float Map::getTileDrag(int x, int y) {
+	return dragTable[this->getTile(x,y)];
 }
 
 void Map::draw() {	 
 	for (int i = 0; i < MAX_MAP_X; i++) {
 		dst.x = i*100;
-		for (int j = 0; j < MAX_MAP_y; j++) {
+		for (int j = 0; j < MAX_MAP_Y; j++) {
 			dst.y = j*100;
 			switch (map[i][j]) {
 				case 0:

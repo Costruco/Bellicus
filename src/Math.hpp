@@ -3,6 +3,9 @@
 
 #include <cmath>
 
+#define MAX(a,b) (a>b)?a:b
+#define MIN(a,b) (a<b)?a:b
+
 constexpr float toRad = M_PI/180.0f;
 
 inline float cosd(float angle) {
@@ -37,6 +40,26 @@ inline bool clockLimit(float& n, float floor, float ceil) {
 		return true;
 	} else
 		return false;
+}
+
+inline bool insideInterval(float n, float a, float b) {
+	if (a < b)
+		return (n >= a && n <= b)?true:false;
+	return (n >= b && n <= a)?true:false;
+}
+
+inline bool angleInsideIntervalo(float n, float a, float b) {
+	if (b >= 360 && n <= 180) {
+		return insideInterval(n,a-360,clockLimit(b,0,360));
+	}
+	else if (a <= 0 && n >= 180) {
+		return insideInterval(n-360,a,b);
+	}
+	return insideInterval(n,a,b);
+}
+
+inline bool aproxEqual(float n, float np) {
+	return insideInterval(n,np-0.1,np+0.1);
 }
 
 #endif

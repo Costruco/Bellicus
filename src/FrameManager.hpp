@@ -14,7 +14,7 @@ class FrameManager {
 		static void init(int targetFPS);		
 		static bool frameDue();
 		
-		static int getDeltaTime(); 
+		static float getDeltaTime(); 
 };
 
 #endif

@@ -16,8 +16,8 @@ void FrameManager::init(int targetFPS) {
 	frameStart = SDL_GetTicks();
 }
 
-int FrameManager::getDeltaTime() {
-	return deltaTime;
+float FrameManager::getDeltaTime() {
+	return static_cast<float>(deltaTime)/1000;
 }
 
 bool FrameManager::frameDue() {

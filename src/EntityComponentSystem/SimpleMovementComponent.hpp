@@ -12,7 +12,7 @@ class SimpleMovementComponent : public Component {
 		TransformComponent * transform;
 		float speed;
 		float turningSpeed;
-			   
+  
 		SimpleMovementComponent(float speed, float turningSpeed) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
@@ -25,18 +25,18 @@ class SimpleMovementComponent : public Component {
 		void update() override {
 			//direction
 			if (transform->turnIntent == TurnDirection::LEFT)
-				transform->direction += turningSpeed*FrameManager::getDeltaTime()/1000;
+				transform->direction += turningSpeed*FrameManager::getDeltaTime();
 			else if (transform->turnIntent == TurnDirection::RIGHT)
-				transform->direction -= turningSpeed*FrameManager::getDeltaTime()/1000;
+				transform->direction -= turningSpeed*FrameManager::getDeltaTime();
 			else
 				;
 			clockLimit(transform->direction,0.0f,360.0f);
 			
 			//movement
 			if (transform->moveIntent == MovementDirection::FORWARD)
-				transform->position += Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime()/1000;
+				transform->position += Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime();
 			else if (transform->moveIntent == MovementDirection::BACKWARD)
-				transform->position -= Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime()/1000;
+				transform->position -= Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime();
 			else
 				;	
 		}	

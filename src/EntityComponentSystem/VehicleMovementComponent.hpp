@@ -1,12 +1,22 @@
 #ifndef VEHICLE_MOVEMENT_COMPONENT_HPP
 #define VEHICLE_MOVEMENT_COMPONENT_HPP
 
+#include "SDL2/SDL.h"
+
 #include "Components.hpp"
+#include "Map.hpp"
 #include "Vector2D.hpp"
 #include "MovementInput.hpp"
+#include "Math.hpp"
+#include "Physics.hpp"
+#include "FrameManager.hpp"
+#include <iterator>
+#include <vector>
+#include <iostream>
 
 class VehicleMovementComponent : public Component {
 	public:
+		Map& map;
 		TransformComponent * transform;
 		float speed;
 		float turningSpeed;
@@ -14,14 +24,36 @@ class VehicleMovementComponent : public Component {
 		int mass;
 		int brakePower;
 		float rollingDrag;
+		
+		//gearSystem
+		Uint32 gearChangeStart;
+		bool increasing;
+		bool decreasing;
+		
+		int nGears;
+		std::vector<SDL_Point> gearsMaxSpeed;
+		int neutralGear;
+		int currentGear;
 			   
-		VehicleMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag) {
+		VehicleMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
+		Map& m, int nGears, std::vector<SDL_Point> maxSpeedArray) : map(m), gearsMaxSpeed(maxSpeedArray) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
 			this->enginePower = enginePower;
 			this->mass = mass;
 			this->brakePower = brakePower;
 			this->rollingDrag = rollingDrag;
+			
+			//gearSystem
+			this->nGears = nGears;
+			for (int i = 0; i < nGears; i++) {
+				if (gearsMaxSpeed[i].x == 0 && gearsMaxSpeed[i].y == 0) {
+					currentGear = neutralGear = i;
+					break;
+				}
+		    }
+		    increasing = false;
+		    decreasing = false;
 		}
 		
 		void init() override {
@@ -29,89 +61,87 @@ class VehicleMovementComponent : public Component {
 		}
 		
 		void update() override {
-			transform->position += Vector2D::fromPolar(speed,transform->direction);
-			//atualiza a marcha do tanque com base na marcha atual, velocidade e controle
-			if (marcha == PONTO_MORTO) {
-				if (aproxIgual(velocidade,velocidades[marcha].y) && passando == 0 && movimento == TRANSV) {
-					inicioDaTroca = SDL_GetTicks();
-					passando = 1;
-				} else if (aproxIgual(velocidade,velocidades[marcha].x) && reduzindo == 0 && movimento == REV) {
-					inicioDaTroca = SDL_GetTicks();
-					reduzindo = 1;
+			float groundDrag = map.getTileDrag(static_cast<int>(transform->position.x)/100,static_cast<int>(transform->position.y)/100);
+			//std::cout << groundDrag << std::endl;
+			
+			//atualiza a currentGear do tanque com base na currentGear atual, speed e controle
+			if (currentGear == neutralGear) {
+				if (aproxEqual(speed,gearsMaxSpeed[currentGear].y) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
+					gearChangeStart = SDL_GetTicks();
+					increasing = true;
+				} else if (aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
+					gearChangeStart = SDL_GetTicks();
+					decreasing = true;
 				}
 			} else {
-				if (marcha != QUARTA && aproxIgual(velocidade,velocidades[marcha].y) && passando == 0 && movimento == TRANSV) {
-					inicioDaTroca = SDL_GetTicks();
-					passando = 1;
-				} else if (marcha > PONTO_MORTO && aproxIgual(velocidade,velocidades[marcha].x) && reduzindo == 0 && movimento == REV) {
-					marcha = MAX(marcha-1,PONTO_MORTO);
-				} else if (marcha > PONTO_MORTO && aproxIgual(velocidade,velocidades[marcha].x) && reduzindo == 0 && movimento == NULO) {
-					inicioDaTroca = SDL_GetTicks();
-					reduzindo = 1;
+				if (currentGear != nGears-1 && aproxEqual(speed,gearsMaxSpeed[currentGear].y) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
+					gearChangeStart = SDL_GetTicks();
+					increasing = true;
+				} else if (currentGear > neutralGear && aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
+					currentGear = MAX(currentGear-1,neutralGear);
+				} else if (currentGear > neutralGear && aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::STILL) {
+					gearChangeStart = SDL_GetTicks();
+					decreasing = true;
 				}
 			}
 			
-			if (passando == 1 && SDL_GetTicks()-inicioDaTroca >= 250/VELOCIDADE_DE_TROCA_DE_MARCHA) {
-				marcha = MIN(marcha+1,QUARTA);
-				passando = 0;
-			} else if (reduzindo == 1 && SDL_GetTicks()-inicioDaTroca >= 250/VELOCIDADE_DE_TROCA_DE_MARCHA) {
-				marcha = MAX(marcha-1,RE);
-				reduzindo = 0;
+			if (increasing == true && SDL_GetTicks()-gearChangeStart >= 250) {
+				currentGear = MIN(currentGear+1,nGears-1);
+				increasing = false;
+			} else if (decreasing == true && SDL_GetTicks()-gearChangeStart >= 250) {
+				currentGear = MAX(currentGear-1,0);
+				decreasing = false;
 			}
 			
-			//acelera ou desacelera o veiculo com base na marcha atual, velocidade e controle
-			int troca = (passando == 1 || reduzindo == 1);
-			double TURNING = 0.035*(direcao != RETO);
-			if (velocidade < 0) {
-				if (movimento == NULO)
-					velocidade = MIN(velocidades[marcha].y,velocidade+desaceleracao(FRENAGEM,MASSA)*32.5/FPS);
-				else if (movimento == TRANSV)
-					velocidade = MIN(velocidades[marcha].y,velocidade+desaceleracao(FRENAGEM,MASSA)*32.5/FPS);
-				else if (movimento == REV && !troca)
-					velocidade = MAX(velocidades[marcha].x,velocidade+aceleracao(velocidade,MASSA,POTENCIA,ATRITO_DO_SOLO,ATRITO_DE_ROLAMENTO+TURNING)/FPS);
-			} else if (velocidade == 0) {
-				if (movimento == TRANSV && !troca)
-					velocidade = MAX(velocidades[marcha].x,velocidade+aceleracao(velocidade,MASSA,POTENCIA,ATRITO_DO_SOLO,ATRITO_DE_ROLAMENTO+TURNING)/FPS);
-				else if (movimento == REV && !troca)
-					velocidade = MIN(velocidades[marcha].y,velocidade-aceleracao(velocidade,MASSA,POTENCIA,ATRITO_DO_SOLO,ATRITO_DE_ROLAMENTO+TURNING)/FPS);
-			} else if (velocidade > 0){
-				if (movimento == NULO)
-					velocidade = MAX(velocidades[marcha].x,velocidade-desaceleracao(FRENAGEM,MASSA)*32.5/FPS);
-				else if (movimento == TRANSV && !troca)
-					velocidade = MIN(velocidades[marcha].y,velocidade+aceleracao(velocidade,MASSA,POTENCIA,ATRITO_DO_SOLO,ATRITO_DE_ROLAMENTO+TURNING)/FPS);
-				else if (movimento == REV)
-					velocidade = MAX(velocidades[marcha].x,velocidade-desaceleracao(FRENAGEM,MASSA)*32.5/FPS);
+			//movement
+			int troca = (increasing == true || decreasing == true);
+			double TURNING = 0.035*(transform->turnIntent != TurnDirection::STRAIGHT);
+			if (speed < 0) {
+				if (transform->moveIntent == MovementDirection::STILL)
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+				else if (transform->moveIntent == MovementDirection::FORWARD)
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+			} else if (speed == 0) {
+				if (transform->moveIntent == MovementDirection::FORWARD && !troca)
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+			} else if (speed > 0){
+				if (transform->moveIntent == MovementDirection::STILL)
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+				else if (transform->moveIntent == MovementDirection::FORWARD && !troca)
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+				else if (transform->moveIntent == MovementDirection::BACKWARD)
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
 			}
+			//movement
+			transform->position += Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime();
 		
-			//atualiza o angulo do veiculo com base nos controles
-			switch (direcao) {
-				case RETO:
+			//direction
+			switch (transform->turnIntent) {
+				case TurnDirection::STRAIGHT:
 					break;
-				case ESQ:
-					if (movimento != REV) {
-						angulo -= VELOCIDADE_ANGULAR/FPS;
-						angulo_arma -= VELOCIDADE_ANGULAR/FPS;
-						angulo_metra -= VELOCIDADE_ANGULAR/FPS;	
+				case TurnDirection::LEFT:
+					if (transform->moveIntent != MovementDirection::BACKWARD) {
+						transform->direction += turningSpeed*FrameManager::getDeltaTime();
 						break;
 					} else {
-						angulo += VELOCIDADE_ANGULAR/FPS;
-						angulo_arma += VELOCIDADE_ANGULAR/FPS;
-						angulo_metra += VELOCIDADE_ANGULAR/FPS;
+						transform->direction -= turningSpeed*FrameManager::getDeltaTime();
 						break;
 					}
-				case DIR:
-					if (movimento != REV) {
-						angulo += VELOCIDADE_ANGULAR/FPS;
-						angulo_arma += VELOCIDADE_ANGULAR/FPS;
-						angulo_metra += VELOCIDADE_ANGULAR/FPS;	
+				case TurnDirection::RIGHT:
+					if (transform->moveIntent != MovementDirection::BACKWARD) {
+						transform->direction -= turningSpeed*FrameManager::getDeltaTime();
 						break;
 					} else {
-						angulo -= VELOCIDADE_ANGULAR/FPS;
-						angulo_arma -= VELOCIDADE_ANGULAR/FPS;
-						angulo_metra -= VELOCIDADE_ANGULAR/FPS;
+						transform->direction += turningSpeed*FrameManager::getDeltaTime();
 						break;
 					}
 			}
+			clockLimit(transform->direction,0.0f,360.0f);
+			
 		}	
 };
 

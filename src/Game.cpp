@@ -57,7 +57,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<TransformComponent>(100,100,0.3f);
 	newPlayer.addComponent<KeyboardController>();
-	newPlayer.addComponent<SimpleMovementComponent>(100,50);
+	newPlayer.addComponent<VehicleMovementComponent>(0.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<SDL_Point>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
 }
 
