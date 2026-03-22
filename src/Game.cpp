@@ -18,6 +18,7 @@ SDL_Renderer * Game::ren = nullptr;
 SDL_Event Game::evt;
 
 auto& newPlayer(manager.addEntity());
+auto& wheel(manager.addEntity());
 
 Game::Game() {
 	updateCounter = 0;
@@ -57,8 +58,12 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<TransformComponent>(100,100,0.3f);
 	newPlayer.addComponent<KeyboardController>();
-	newPlayer.addComponent<VehicleMovementComponent>(0.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<SDL_Point>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
-	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
+	//newPlayer.addComponent<TankMovementComponent>(0.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<SDL_Point>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
+	//newPlayer.addComponent<SpriteComponent>("assets/textures/entities/T-34/chassi_com_sombra.png");
+	newPlayer.addComponent<CarMovementComponent>(100,30,2);
+	newPlayer.addComponent<SpriteComponent>("assets/textures/entities/carro.png");
+	
+	wheel.addComponent<TransformComponent>(100,100,0.3f);
 }
 
 void Game::handleEvents() {

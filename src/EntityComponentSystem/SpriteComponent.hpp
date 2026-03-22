@@ -12,11 +12,23 @@ class SpriteComponent : public Component {
 		SDL_Texture * texture;
 		SDL_Rect src,
 				 dst;
+		SDL_Point texture_center;
 	
 	public:
 		SpriteComponent() = default;
 		SpriteComponent(const char * path) {
 			setTexture(path);
+			int width, height;
+			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+			src = {0,0,width,height};
+			texture_center = {width/2,height/2};
+		}
+		SpriteComponent(const char * path, SDL_Point texture_center) {
+			setTexture(path);
+			int width, height;
+			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+			src = {0,0,width,height};
+			this->texture_center = texture_center;
 		}
 		~SpriteComponent() {
 			TextureManager::destroyTexture(texture);
@@ -28,15 +40,16 @@ class SpriteComponent : public Component {
 		
 		void init() override {
 			int width, height;
-			transform = &entity->getComponent<TransformComponent>();
 			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
-			src = {0,0,width,height};
-			dst = {(int)transform->position.x,(int)transform->position.y,width,height};
+			transform = &entity->getComponent<TransformComponent>();
+			dst = {(int)transform->position.x-texture_center.x,(int)transform->position.y-texture_center.y,width,height};
 		}
+		
 		void update() override {
-			dst.x = (int)transform->position.x;
-			dst.y = (int)transform->position.y;
+			dst.x = (int)transform->position.x-texture_center.x;
+			dst.y = (int)transform->position.y-texture_center.y;
 		}
+		
 		void draw() override {
 			TextureManager::drawTexture(texture,&src,&dst,transform->direction,nullptr,SDL_FLIP_NONE);
 		}

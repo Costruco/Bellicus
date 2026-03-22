@@ -14,7 +14,7 @@
 #include <vector>
 #include <iostream>
 
-class VehicleMovementComponent : public Component {
+class TankMovementComponent : public Component {
 	public:
 		Map& map;
 		TransformComponent * transform;
@@ -35,7 +35,7 @@ class VehicleMovementComponent : public Component {
 		int neutralGear;
 		int currentGear;
 			   
-		VehicleMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
+		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
 		Map& m, int nGears, std::vector<SDL_Point> maxSpeedArray) : map(m), gearsMaxSpeed(maxSpeedArray) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
@@ -62,6 +62,7 @@ class VehicleMovementComponent : public Component {
 		
 		void update() override {
 			float groundDrag = map.getTileDrag(static_cast<int>(transform->position.x)/100,static_cast<int>(transform->position.y)/100);
+			float dt = FrameManager::getDeltaTime();
 			//std::cout << groundDrag << std::endl;
 			
 			//atualiza a currentGear do tanque com base na currentGear atual, speed e controle
@@ -98,26 +99,26 @@ class VehicleMovementComponent : public Component {
 			double TURNING = 0.035*(transform->turnIntent != TurnDirection::STRAIGHT);
 			if (speed < 0) {
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed == 0) {
 				if (transform->moveIntent == MovementDirection::FORWARD && !troca)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed > 0){
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD && !troca)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*FrameManager::getDeltaTime());
+					speed = MIN(gearsMaxSpeed[currentGear].y,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*FrameManager::getDeltaTime());
+					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*dt);
 			}
 			//movement
-			transform->position += Vector2D::fromPolar(speed,transform->direction)*FrameManager::getDeltaTime();
+			transform->position += Vector2D::fromPolar(speed,transform->direction)*dt;
 		
 			//direction
 			switch (transform->turnIntent) {
@@ -125,18 +126,18 @@ class VehicleMovementComponent : public Component {
 					break;
 				case TurnDirection::LEFT:
 					if (transform->moveIntent != MovementDirection::BACKWARD) {
-						transform->direction += turningSpeed*FrameManager::getDeltaTime();
+						transform->direction += turningSpeed*dt;
 						break;
 					} else {
-						transform->direction -= turningSpeed*FrameManager::getDeltaTime();
+						transform->direction -= turningSpeed*dt;
 						break;
 					}
 				case TurnDirection::RIGHT:
 					if (transform->moveIntent != MovementDirection::BACKWARD) {
-						transform->direction -= turningSpeed*FrameManager::getDeltaTime();
+						transform->direction -= turningSpeed*dt;
 						break;
 					} else {
-						transform->direction += turningSpeed*FrameManager::getDeltaTime();
+						transform->direction += turningSpeed*dt;
 						break;
 					}
 			}

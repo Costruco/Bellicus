@@ -7,6 +7,7 @@
 #define MIN(a,b) (a<b)?a:b
 
 constexpr float toRad = M_PI/180.0f;
+constexpr float toDeg = 180.0f/M_PI;
 
 inline float cosd(float angle) {
 	return std::cos(angle*toRad);
@@ -19,6 +20,13 @@ inline float sind(float angle) {
 inline float tand(float angle) {
 	return std::tan(angle*toRad);
 }
+
+inline void toZero(float& n, float inc) {
+	if (n < 0) 
+		n = MIN(0,n+inc);
+	else if (n > 0)
+		n = MAX(0,n-inc);
+} 
 
 inline bool clampLimit(float& n, float floor, float ceil) {
 	if (n < floor) {
