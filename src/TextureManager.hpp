@@ -1,5 +1,4 @@
-#ifndef TEXTUREMANAGER_HPP
-#define TEXTUREMANAGER_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 
@@ -10,5 +9,3 @@ class TextureManager {
 		static void drawTexture(SDL_Texture * tex, SDL_Rect * src, SDL_Rect * dst);
 		static void destroyTexture(SDL_Texture * tex);
 };
-
-#endif

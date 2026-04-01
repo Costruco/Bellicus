@@ -1,5 +1,4 @@
-#ifndef ENTITY_COMPONENT_SYSTEM_HPP
-#define ENTITY_COMPONENT_SYSTEM_HPP
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -131,5 +130,3 @@ class Manager {
 			return *e;
 		}
 };
-
-#endif

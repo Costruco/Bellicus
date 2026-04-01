@@ -1,5 +1,4 @@
-#ifndef COMPONENTS_HPP
-#define COMPONENTS_HPP
+#pragma once
 
 #include "EntityComponentSystem.hpp"
 #include "TransformComponent.hpp"
@@ -8,5 +7,3 @@
 #include "CarMovementComponent.hpp"
 #include "KeyboardController.hpp"
 #include "SpriteComponent.hpp"
-
-#endif

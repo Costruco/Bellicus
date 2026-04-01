@@ -1,5 +1,4 @@
-#ifndef MOVEMENT_INPUT_HPP
-#define MOVEMENT_INPUT_HPP
+#pragma once
 
 //MovementDirection
 enum class MovementDirection : int {
@@ -46,5 +45,3 @@ inline TurnDirection& operator+=(TurnDirection& td, int delta) {
 inline TurnDirection& operator-=(TurnDirection& td, int delta) {
 	return td += -delta;
 }
-
-#endif

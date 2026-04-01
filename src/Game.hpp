@@ -1,5 +1,4 @@
-#ifndef GAME_HPP
-#define GAME_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 
@@ -25,5 +24,3 @@ class Game {
 		
 		bool running();
 };
-
-#endif

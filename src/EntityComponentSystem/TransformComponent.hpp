@@ -1,5 +1,4 @@
-#ifndef TRANSFORM_COMPONENT_HPP
-#define TRANSFORM_COMPONENT_HPP
+#pragma once
 
 #include "Components.hpp"
 #include "Vector2D.hpp"
@@ -26,5 +25,3 @@ class TransformComponent : public Component {
 			turnIntent = TurnDirection::STRAIGHT;
 		}
 };
-
-#endif

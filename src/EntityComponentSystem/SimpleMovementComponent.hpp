@@ -1,5 +1,4 @@
-#ifndef SIMPLE_MOVEMENT_COMPONENT_HPP
-#define SIMPLE_MOVEMENT_COMPONENT_HPP
+#pragma once
 
 #include "Components.hpp"
 #include "Vector2D.hpp"
@@ -41,5 +40,3 @@ class SimpleMovementComponent : public Component {
 				;	
 		}	
 };
-
-#endif

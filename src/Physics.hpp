@@ -1,5 +1,4 @@
-#ifndef PHYSICS_HPP
-#define PHYSICS_HPP
+#pragma once
 
 #include "Math.hpp"
 
@@ -18,5 +17,3 @@ inline float acc(float speed, float mass, float enginePower, float groundDrag, f
 inline float desacc(float brakePower, float mass) {
 	return brakePower/mass;
 }
-
-#endif

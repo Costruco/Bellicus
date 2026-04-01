@@ -1,5 +1,4 @@
-#ifndef VECTOR_2D_HPP
-#define VECTOR_2D_HPP
+#pragma once
 
 #include <iostream>
 
@@ -40,5 +39,3 @@ class Vector2D {
 		
 		friend std::ostream& operator<<(std::ostream& stream, const Vector2D& v);
 };
-
-#endif

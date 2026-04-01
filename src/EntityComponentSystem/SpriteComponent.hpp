@@ -1,5 +1,4 @@
-#ifndef SPRITE_COMPONENT_HPP
-#define SPRITE_COMPONENT_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 
@@ -54,5 +53,3 @@ class SpriteComponent : public Component {
 			TextureManager::drawTexture(texture,&src,&dst,transform->direction,nullptr,SDL_FLIP_NONE);
 		}
 };
-
-#endif

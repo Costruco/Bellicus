@@ -1,5 +1,4 @@
-#ifndef FRAMEMANAGER_HPP
-#define FRAMEMANAGER_HPP
+#pragma once
 
 class FrameManager {
 	private:
@@ -16,5 +15,3 @@ class FrameManager {
 		
 		static float getDeltaTime(); 
 };
-
-#endif

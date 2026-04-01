@@ -1,5 +1,4 @@
-#ifndef MAP_HPP
-#define MAP_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 
@@ -25,5 +24,3 @@ class Map {
 		float getTileDrag(int x, int y);
 		void draw();	
 };
-
-#endif

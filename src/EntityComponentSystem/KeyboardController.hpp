@@ -1,5 +1,4 @@
-#ifndef KEYBOARD_CONTROLLER_HPP
-#define KEYBOARD_CONTROLLER_HPP
+#pragma once
 
 #include "Components.hpp"
 #include "Game.hpp"
@@ -52,5 +51,3 @@ class KeyboardController : public Component {
 			}
 		}
 };
-
-#endif

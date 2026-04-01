@@ -1,5 +1,4 @@
-#ifndef MATH_HPP
-#define MATH_HPP
+#pragma once
 
 #include <cmath>
 
@@ -69,5 +68,3 @@ inline bool angleInsideIntervalo(float n, float a, float b) {
 inline bool aproxEqual(float n, float np) {
 	return insideInterval(n,np-0.1,np+0.1);
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef VEHICLE_MOVEMENT_COMPONENT_HPP
-#define VEHICLE_MOVEMENT_COMPONENT_HPP
+#pragma once
 
 #include "SDL2/SDL.h"
 
@@ -145,5 +144,3 @@ class TankMovementComponent : public Component {
 			
 		}	
 };
-
-#endif
