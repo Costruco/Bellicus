@@ -10,12 +10,18 @@ class TransformComponent : public Component {
 		float direction;
 		MovementDirection moveIntent;
 		TurnDirection turnIntent;
+		
+		float height = 32;
+		float width = 32;
+		float scale = 1;
 			  
 		TransformComponent() :
 			position() {
 			direction = 0;
 			moveIntent = MovementDirection::STILL;
 			turnIntent = TurnDirection::STRAIGHT;
+			width = height = 0;
+			scale = 1;
 		}
 		
 		TransformComponent(float xpos, float ypos, float angle) :
@@ -23,5 +29,17 @@ class TransformComponent : public Component {
 			direction = angle;
 			moveIntent = MovementDirection::STILL;
 			turnIntent = TurnDirection::STRAIGHT;
+			width = height = 0;
+			scale = 1;
+		}
+		
+		TransformComponent(float xpos, float ypos, float angle, float w, float h, float sc) :
+			position(xpos,ypos) {
+			direction = angle;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
+			width = w;
+			height = h;
+			scale = sc;
 		}
 };

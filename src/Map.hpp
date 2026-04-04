@@ -7,8 +7,8 @@
 
 class Map {
 	private:
-		SDL_Rect src,
-				 dst;
+		SDL_Rect src;
+		SDL_FRect dst;
 		
 		SDL_Texture * tile1,
 					* tile2;

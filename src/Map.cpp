@@ -26,8 +26,8 @@ int testLvl[MAX_MAP_X][MAX_MAP_Y] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 					   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
 
 Map::Map() {
-	tile1 = TextureManager::loadTexture("assets/textures/tiles/tile_map_1.png");
-	tile2 = TextureManager::loadTexture("assets/textures/tiles/tile_map_2.png");
+	tile1 = TextureManager::loadTexture("../assets/textures/tiles/tile_map_1.png");
+	tile2 = TextureManager::loadTexture("../assets/textures/tiles/tile_map_2.png");
 	
 	loadMap(testLvl);
 	
@@ -36,7 +36,8 @@ Map::Map() {
 }
 
 Map::~Map() {
-
+	TextureManager::destroyTexture(tile1);
+	TextureManager::destroyTexture(tile2);
 }
 
 void Map::loadMap(int arr[MAX_MAP_X][MAX_MAP_Y]) {

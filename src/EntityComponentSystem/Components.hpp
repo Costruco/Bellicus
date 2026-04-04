@@ -7,3 +7,4 @@
 #include "CarMovementComponent.hpp"
 #include "KeyboardController.hpp"
 #include "SpriteComponent.hpp"
+#include "ColliderComponent.hpp"

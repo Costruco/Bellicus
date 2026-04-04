@@ -9,25 +9,35 @@ class SpriteComponent : public Component {
 	private:
 		TransformComponent * transform;
 		SDL_Texture * texture;
-		SDL_Rect src,
-				 dst;
-		SDL_Point texture_center;
+		SDL_Rect src;
+		SDL_FRect dst;
+		SDL_FPoint texture_center;
 	
 	public:
 		SpriteComponent() = default;
 		SpriteComponent(const char * path) {
 			setTexture(path);
-			int width, height;
-			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
-			src = {0,0,width,height};
-			texture_center = {width/2,height/2};
+			src = {0,0,-1,-1};
 		}
-		SpriteComponent(const char * path, SDL_Point texture_center) {
+		SpriteComponent(const char * path, SDL_FPoint texture_center, bool fullTexture) {
 			setTexture(path);
-			int width, height;
-			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
-			src = {0,0,width,height};
+			if (fullTexture) {
+				int width, height;
+				SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+				src = {0,0,width,height};
+			} else
+				src = {0,0,-1,-1};
 			this->texture_center = texture_center;
+		}
+		SpriteComponent(const char * path, bool fullTexture) {
+			setTexture(path);
+			if (fullTexture) {
+				int width, height;
+				SDL_QueryTexture(texture,NULL,NULL,&width,&height);
+				src = {0,0,width,height};
+				texture_center = {(float)width/2,(float)height/2};
+			} else
+				src = {0,0,-1,-1};
 		}
 		~SpriteComponent() {
 			TextureManager::destroyTexture(texture);
@@ -38,10 +48,20 @@ class SpriteComponent : public Component {
 		}
 		
 		void init() override {
-			int width, height;
-			SDL_QueryTexture(texture,NULL,NULL,&width,&height);
 			transform = &entity->getComponent<TransformComponent>();
-			dst = {(int)transform->position.x-texture_center.x,(int)transform->position.y-texture_center.y,width,height};
+			if (src.w == -1) {
+				src.w = transform->width;
+				src.h = transform->height;
+				texture_center = {transform->width/2,transform->height/2};
+			} else {
+				transform->width = src.w;
+				transform->height = src.h;
+			}
+			
+			dst = {(int)transform->position.x-texture_center.x,
+				   (int)transform->position.y-texture_center.y,
+				   transform->width*transform->scale,
+				   transform->height*transform->scale};
 		}
 		
 		void update() override {
