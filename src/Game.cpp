@@ -1,5 +1,6 @@
 #include "Game.hpp"
 
+#include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
 
 #include <iostream>
@@ -47,6 +48,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,0);
 			if (ren) {
+				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
 				SDL_SetRenderDrawColor(ren,255,255,255,255);
 				std::cout << "Renderer created...\n" << "Game started..." << std::endl;
 				
@@ -59,15 +61,15 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	//inicializa texturas
 	map = new Map();
 	
-	newPlayer.addComponent<TransformComponent>(100,100,0.3f);
+	newPlayer.addComponent<TransformComponent>(100,100,0.3f,158,64,1);
 	newPlayer.addComponent<KeyboardController>();
 	//newPlayer.addComponent<TankMovementComponent>(0.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<SDL_Point>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	//newPlayer.addComponent<SpriteComponent>("./assets/textures/entities/T-34/chassi_com_sombra.png");
 	newPlayer.addComponent<CarMovementComponent>(100,30,2);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",true);
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png");
 	newPlayer.addComponent<ColliderComponent>("player");
 	
-	wall.addComponent<TransformComponent>(200,200,0.0f,100,100,1);
+	wall.addComponent<TransformComponent>(200,200,0.0f,197,256,0.5);
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
 	wall.addComponent<ColliderComponent>("wall");
 }
@@ -88,7 +90,8 @@ void Game::update() {
 	//std::cout << newPlayer.getComponent<TransformComponent>().position << std::endl;
 	//std::cout << newPlayer.getComponent<TransformComponent>().direction << std::endl;
 	manager.update();
-	if (Collision::AABB(newPlayer.getComponent<ColliderComponent>().collider,wall.getComponent<ColliderComponent>().collider)) {
+	if (Collision::SAT(newPlayer.getComponent<ColliderComponent>().collider,wall.getComponent<ColliderComponent>().collider,
+								newPlayer.getComponent<TransformComponent>().direction,wall.getComponent<TransformComponent>().direction)) {
 		std::cout << "Bateu!" << std::endl;
 	}
 }

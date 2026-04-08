@@ -60,7 +60,7 @@ class CarMovementComponent : public Component {
 						break;
 					}
 			}
-			clampLimit(wheelDirection,-30.0f,30.0f);
+			wheelDirection = clamp(wheelDirection,-30.0f,30.0f);
 			
 			
 			

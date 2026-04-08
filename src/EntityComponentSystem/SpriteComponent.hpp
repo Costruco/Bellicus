@@ -14,30 +14,16 @@ class SpriteComponent : public Component {
 		SDL_FPoint texture_center;
 	
 	public:
-		SpriteComponent() = default;
 		SpriteComponent(const char * path) {
 			setTexture(path);
-			src = {0,0,-1,-1};
+			src.x = 0;
+			src.y = 0;
+			SDL_QueryTexture(texture,NULL,NULL,&src.w,&src.h);
 		}
-		SpriteComponent(const char * path, SDL_FPoint texture_center, bool fullTexture) {
+		SpriteComponent(const char * path, const SDL_Rect& src) {
 			setTexture(path);
-			if (fullTexture) {
-				int width, height;
-				SDL_QueryTexture(texture,NULL,NULL,&width,&height);
-				src = {0,0,width,height};
-			} else
-				src = {0,0,-1,-1};
-			this->texture_center = texture_center;
-		}
-		SpriteComponent(const char * path, bool fullTexture) {
-			setTexture(path);
-			if (fullTexture) {
-				int width, height;
-				SDL_QueryTexture(texture,NULL,NULL,&width,&height);
-				src = {0,0,width,height};
-				texture_center = {(float)width/2,(float)height/2};
-			} else
-				src = {0,0,-1,-1};
+			this->src = src;
+			texture_center = {(float)src.w/2,(float)src.h/2};
 		}
 		~SpriteComponent() {
 			TextureManager::destroyTexture(texture);
@@ -49,27 +35,18 @@ class SpriteComponent : public Component {
 		
 		void init() override {
 			transform = &entity->getComponent<TransformComponent>();
-			if (src.w == -1) {
-				src.w = transform->width;
-				src.h = transform->height;
-				texture_center = {transform->width/2,transform->height/2};
-			} else {
-				transform->width = src.w;
-				transform->height = src.h;
-			}
-			
-			dst = {(int)transform->position.x-texture_center.x,
-				   (int)transform->position.y-texture_center.y,
+		}
+		
+		void update() override {
+			texture_center = {transform->width/2+transform->center_offset.x,
+							  transform->height/2+transform->center_offset.y};
+			dst = {transform->position.x-texture_center.x*transform->scale,
+				   transform->position.y-texture_center.y*transform->scale,
 				   transform->width*transform->scale,
 				   transform->height*transform->scale};
 		}
 		
-		void update() override {
-			dst.x = (int)transform->position.x-texture_center.x;
-			dst.y = (int)transform->position.y-texture_center.y;
-		}
-		
 		void draw() override {
-			TextureManager::drawTexture(texture,&src,&dst,transform->direction,nullptr,SDL_FLIP_NONE);
+			TextureManager::drawTexture(texture,&src,&dst,transform->direction,&texture_center,SDL_FLIP_NONE);
 		}
 };

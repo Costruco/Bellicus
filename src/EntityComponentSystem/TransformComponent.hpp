@@ -11,35 +11,57 @@ class TransformComponent : public Component {
 		MovementDirection moveIntent;
 		TurnDirection turnIntent;
 		
-		float height = 32;
-		float width = 32;
-		float scale = 1;
+		float width;
+		float height;
+		float scale;
+		Vector2D center_offset;
 			  
 		TransformComponent() :
-			position() {
+			position(),center_offset() {
 			direction = 0;
 			moveIntent = MovementDirection::STILL;
 			turnIntent = TurnDirection::STRAIGHT;
 			width = height = 0;
-			scale = 1;
+			scale = 1.0f;
 		}
 		
-		TransformComponent(float xpos, float ypos, float angle) :
-			position(xpos,ypos) {
+		TransformComponent(float xpos, float ypos, float angle, float w, float h) :
+			position(xpos,ypos),center_offset() {
 			direction = angle;
 			moveIntent = MovementDirection::STILL;
 			turnIntent = TurnDirection::STRAIGHT;
-			width = height = 0;
-			scale = 1;
+			width = w;
+			height = h;
+			scale = 1.0f;
 		}
 		
 		TransformComponent(float xpos, float ypos, float angle, float w, float h, float sc) :
-			position(xpos,ypos) {
+			position(xpos,ypos),center_offset() {
 			direction = angle;
 			moveIntent = MovementDirection::STILL;
 			turnIntent = TurnDirection::STRAIGHT;
 			width = w;
 			height = h;
 			scale = sc;
+		}
+				
+		TransformComponent(float xpos, float ypos, float angle, float w, float h, float sc, float offx, float offy) :
+			position(xpos,ypos),center_offset(offx,offy) {
+			direction = angle;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
+			width = w;
+			height = h;
+			scale = sc;
+		}
+		
+		TransformComponent(float xpos, float ypos, float angle, float w, float h, float offx, float offy) :
+			position(xpos,ypos),center_offset(offx,offy) {
+			direction = angle;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
+			width = w;
+			height = h;
+			scale = 1.0f;
 		}
 };

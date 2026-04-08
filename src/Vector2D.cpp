@@ -1,15 +1,28 @@
 #include "Vector2D.hpp"
 
+#include "SDL2/SDL.h"
 #include "Math.hpp"
 
 Vector2D::Vector2D() {
 	x = 0.0f;
 	y = 0.0f;
 }
+Vector2D::Vector2D(int x, int y) {
+	this->x = x;
+	this->y = y;
+}
 Vector2D::Vector2D(float x, float y) {
 	this->x = x;
 	this->y = y;
 }
+Vector2D::Vector2D(const SDL_Point& p) {
+	x = p.x;
+	y = p.y;
+}
+Vector2D::Vector2D(const SDL_FPoint& p) {
+	x = p.x;
+	y = p.y;
+}	
 Vector2D Vector2D::fromPolar(float module, float angle) {
  	return Vector2D(cosd(angle)*module,sind(angle)*module);
 }
@@ -21,6 +34,9 @@ float Vector2D::getModule() {
 float Vector2D::getDistance(const Vector2D& v) {
 	return (*this-v).getModule();
 }
+float Vector2D::dot(const Vector2D& v) const {
+    return x*v.x+y*v.y;
+}
 Vector2D Vector2D::getDirection() {
 	float module = this->getModule();
 	if (module)
@@ -28,8 +44,16 @@ Vector2D Vector2D::getDirection() {
 	else
 		return Vector2D();
 }
-void Vector2D::normalize() {
-	*this = this->getDirection();
+Vector2D Vector2D::normalize() {
+	return this->getDirection();
+}
+Vector2D Vector2D::perpendicular() {
+	return {-y,x};
+}
+Vector2D Vector2D::rotate(const Vector2D& o, float angle) {
+	Vector2D newv = {(this->x-o.x)*cosd(angle) - (this->y-o.y)*sind(angle) + o.x,
+	                 (this->x-o.x)*sind(angle) + (this->y-o.y)*cosd(angle) + o.y};
+	return newv;
 }
 
 //metodos membro
@@ -102,6 +126,10 @@ Vector2D& Vector2D::operator*=(float x) {
 }
 Vector2D& Vector2D::operator/=(float x) {
 	return this->scale(1/x);
+}
+
+Vector2D::operator SDL_FPoint() const {
+    return SDL_FPoint{x,y};
 }
 
 //string

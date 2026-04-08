@@ -2,11 +2,12 @@
 
 #include <cmath>
 
-#define MAX(a,b) (a>b)?a:b
-#define MIN(a,b) (a<b)?a:b
+#define MAX(a,b) ((a)>(b))?(a):(b)
+#define MIN(a,b) ((a)<(b))?(a):(b)
 
-constexpr float toRad = M_PI/180.0f;
-constexpr float toDeg = 180.0f/M_PI;
+constexpr float PI = 3.14159265358979323846f;
+constexpr float toRad = PI / 180.0f;
+constexpr float toDeg = 180.0f / PI;
 
 inline float cosd(float angle) {
 	return std::cos(angle*toRad);
@@ -27,26 +28,21 @@ inline void toZero(float& n, float inc) {
 		n = MAX(0,n-inc);
 } 
 
-inline bool clampLimit(float& n, float floor, float ceil) {
-	if (n < floor) {
-		n = floor;
-		return true;
-	} else if (n > ceil) {
-		n = ceil;
-		return true;
-	} else
-		return false; 
+inline float clamp(float n, float floor, float ceil) {
+	if (n < floor)
+		return floor;
+	else if (n > ceil)
+		return ceil;
+	else
+		return n;
 }
 
-inline bool clockLimit(float& n, float floor, float ceil) {
-	if (n < floor) {
-		n = std::nextafter(ceil,floor);
-		return true;
-	} else if (n >= ceil) {
-		n = floor;
-		return true;
-	} else
-		return false;
+inline float clockLimit(float n, float floor, float ceil) {
+	float range = ceil-floor;
+    n = std::fmod(n-floor,range);
+    if (n < 0) 
+		n += range;
+    return n+floor;
 }
 
 inline bool insideInterval(float n, float a, float b) {
@@ -55,14 +51,14 @@ inline bool insideInterval(float n, float a, float b) {
 	return (n >= b && n <= a)?true:false;
 }
 
-inline bool angleInsideIntervalo(float n, float a, float b) {
-	if (b >= 360 && n <= 180) {
-		return insideInterval(n,a-360,clockLimit(b,0,360));
-	}
-	else if (a <= 0 && n >= 180) {
-		return insideInterval(n-360,a,b);
-	}
-	return insideInterval(n,a,b);
+inline bool angleInsideInterval(float n, float a, float b) {
+    n = clockLimit(n, 0.0f, 360.0f);
+    a = clockLimit(a, 0.0f, 360.0f);
+    b = clockLimit(b, 0.0f, 360.0f);
+    if (a <= b)
+        return n >= a && n <= b;
+    else
+        return n >= a || n <= b;
 }
 
 inline bool aproxEqual(float n, float np) {
