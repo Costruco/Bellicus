@@ -5,7 +5,7 @@
 #include "Components.hpp"
 #include "Map.hpp"
 #include "Vector2D.hpp"
-#include "MovementInput.hpp"
+#include "Input.hpp"
 #include "Math.hpp"
 #include "Physics.hpp"
 #include "FrameManager.hpp"

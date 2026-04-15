@@ -17,12 +17,12 @@ class Vector2D {
 		static Vector2D fromPolar(float module, float angle);
 		
 		float getModule();
-		float getDistance(const Vector2D& v);
+		float getDistance(const Vector2D& v) const;
 		float dot(const Vector2D& v) const;
 		Vector2D getDirection();
 		Vector2D normalize();
 		Vector2D perpendicular();
-		Vector2D rotate(const Vector2D& o, float angle);
+		Vector2D rotate(const Vector2D& o, float angle) const;
 		
 		Vector2D& add(const Vector2D& v);
 		Vector2D& sub(const Vector2D& v);

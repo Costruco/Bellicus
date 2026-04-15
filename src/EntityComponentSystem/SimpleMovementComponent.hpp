@@ -2,7 +2,7 @@
 
 #include "Components.hpp"
 #include "Vector2D.hpp"
-#include "MovementInput.hpp"
+#include "Input.hpp"
 #include "Math.hpp"
 #include "FrameManager.hpp"
 

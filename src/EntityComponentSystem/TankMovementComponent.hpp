@@ -5,7 +5,7 @@
 #include "Components.hpp"
 #include "Map.hpp"
 #include "Vector2D.hpp"
-#include "MovementInput.hpp"
+#include "Input.hpp"
 #include "Math.hpp"
 #include "Physics.hpp"
 #include "FrameManager.hpp"
@@ -30,12 +30,12 @@ class TankMovementComponent : public Component {
 		bool decreasing;
 		
 		int nGears;
-		std::vector<SDL_Point> gearsMaxSpeed;
+		std::vector<Vector2D> gearsMaxSpeed;
 		int neutralGear;
 		int currentGear;
 			   
 		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
-		Map& m, int nGears, std::vector<SDL_Point> maxSpeedArray) : map(m), gearsMaxSpeed(maxSpeedArray) {
+		Map& m, int nGears, std::initializer_list<Vector2D> maxSpeedArray) : map(m), gearsMaxSpeed(maxSpeedArray) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
 			this->enginePower = enginePower;

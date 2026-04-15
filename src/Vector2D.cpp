@@ -31,7 +31,7 @@ Vector2D Vector2D::fromPolar(float module, float angle) {
 float Vector2D::getModule() {
 	return sqrt(this->x*this->x+this->y*this->y);
 }
-float Vector2D::getDistance(const Vector2D& v) {
+float Vector2D::getDistance(const Vector2D& v) const {
 	return (*this-v).getModule();
 }
 float Vector2D::dot(const Vector2D& v) const {
@@ -50,7 +50,7 @@ Vector2D Vector2D::normalize() {
 Vector2D Vector2D::perpendicular() {
 	return {-y,x};
 }
-Vector2D Vector2D::rotate(const Vector2D& o, float angle) {
+Vector2D Vector2D::rotate(const Vector2D& o, float angle) const {
 	Vector2D newv = {(this->x-o.x)*cosd(angle) - (this->y-o.y)*sind(angle) + o.x,
 	                 (this->x-o.x)*sind(angle) + (this->y-o.y)*cosd(angle) + o.y};
 	return newv;

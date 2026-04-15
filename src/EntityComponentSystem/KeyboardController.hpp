@@ -2,7 +2,7 @@
 
 #include "Components.hpp"
 #include "Game.hpp"
-#include "MovementInput.hpp"
+#include "Input.hpp"
 
 class KeyboardController : public Component {
 	public:

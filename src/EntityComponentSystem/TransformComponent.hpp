@@ -2,7 +2,9 @@
 
 #include "Components.hpp"
 #include "Vector2D.hpp"
-#include "MovementInput.hpp"
+#include "Input.hpp"
+#include "Game.hpp"
+#include "SDL2/SDL2_gfxPrimitives.h"
 
 class TransformComponent : public Component {
 	public:
@@ -63,5 +65,9 @@ class TransformComponent : public Component {
 			width = w;
 			height = h;
 			scale = 1.0f;
+		}
+		
+		void draw() override {
+			filledCircleRGBA(Game::ren,position.x,position.y,3,0,255,255,255);
 		}
 };
