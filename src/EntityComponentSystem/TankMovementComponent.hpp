@@ -35,7 +35,7 @@ class TankMovementComponent : public Component {
 		int currentGear;
 			   
 		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
-		Map& m, int nGears, std::initializer_list<Vector2D> maxSpeedArray) : map(m), gearsMaxSpeed(maxSpeedArray) {
+		Map& m, int nGears, std::vector<Vector2D> maxSpeedArray) : map(m), gearsMaxSpeed(std::move(maxSpeedArray)) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
 			this->enginePower = enginePower;
@@ -124,23 +124,13 @@ class TankMovementComponent : public Component {
 				case TurnDirection::STRAIGHT:
 					break;
 				case TurnDirection::LEFT:
-					if (transform->moveIntent != MovementDirection::BACKWARD) {
-						transform->direction += turningSpeed*dt;
-						break;
-					} else {
-						transform->direction -= turningSpeed*dt;
-						break;
-					}
+					transform->direction -= turningSpeed*dt;
+					break;
 				case TurnDirection::RIGHT:
-					if (transform->moveIntent != MovementDirection::BACKWARD) {
-						transform->direction -= turningSpeed*dt;
-						break;
-					} else {
-						transform->direction += turningSpeed*dt;
-						break;
-					}
+					transform->direction += turningSpeed*dt;
+					break;
 			}
-			clockLimit(transform->direction,0.0f,360.0f);
+			transform->direction = clockLimit(transform->direction,0.0f,360.0f);
 			
 		}	
 };

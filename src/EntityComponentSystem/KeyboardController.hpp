@@ -13,41 +13,22 @@ class KeyboardController : public Component {
 		}
 		
 		void update() override {
-			if (Game::evt.type == SDL_KEYDOWN) {
-				switch (Game::evt.key.keysym.sym) {
-					case SDLK_w:
-						transform->moveIntent += 1;
-						break;
-					case SDLK_a:
-						transform->turnIntent -= 1;
-						break;
-					case SDLK_s:
-						transform->moveIntent -= 1;
-						break;
-					case SDLK_d:
-						transform->turnIntent += 1;
-						break;
-					default:
-						break;
-				}
-			}
-			if (Game::evt.type == SDL_KEYUP) {
-				switch (Game::evt.key.keysym.sym) {
-					case SDLK_w:
-						transform->moveIntent -= 1;
-						break;
-					case SDLK_a:
-						transform->turnIntent += 1;
-						break;
-					case SDLK_s:
-						transform->moveIntent += 1;
-						break;
-					case SDLK_d:
-						transform->turnIntent -= 1;
-						break;
-					default:
-						break;
-				}
-			}
+			const Uint8* keystate = Game::keystate;
+	
+			//direction
+		    if (keystate[SDL_SCANCODE_A] && !keystate[SDL_SCANCODE_D])
+		        transform->turnIntent = TurnDirection::LEFT;
+		    else if (keystate[SDL_SCANCODE_D] && !keystate[SDL_SCANCODE_A])
+		        transform->turnIntent = TurnDirection::RIGHT;
+		    else
+		        transform->turnIntent = TurnDirection::STRAIGHT;
+		        
+			//movement
+		    if (keystate[SDL_SCANCODE_W] && !keystate[SDL_SCANCODE_S])
+		        transform->moveIntent = MovementDirection::FORWARD;
+		    else if (keystate[SDL_SCANCODE_S] && !keystate[SDL_SCANCODE_W])
+		        transform->moveIntent = MovementDirection::BACKWARD;
+		    else
+		        transform->moveIntent = MovementDirection::STILL;
 		}
 };

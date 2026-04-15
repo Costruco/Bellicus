@@ -11,6 +11,7 @@ class Game {
 	public:
 		static SDL_Renderer * ren;
 		static SDL_Event evt;
+		static const Uint8* keystate;
 		
 		Game();
 		~Game();

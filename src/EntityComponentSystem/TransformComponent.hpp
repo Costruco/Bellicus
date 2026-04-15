@@ -67,7 +67,5 @@ class TransformComponent : public Component {
 			scale = 1.0f;
 		}
 		
-		void draw() override {
-			filledCircleRGBA(Game::ren,position.x,position.y,3,0,255,255,255);
-		}
+		//void draw() override {filledCircleRGBA(Game::ren,position.x,position.y,3,0,255,255,255);}
 };
