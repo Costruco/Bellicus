@@ -15,7 +15,9 @@ class Vector2D {
 		Vector2D(const SDL_FPoint& p);
 		
 		static Vector2D fromPolar(float module, float angle);
+		float angle() const;
 		
+		Vector2D& zero();
 		float getModule();
 		float getDistance(const Vector2D& v) const;
 		float dot(const Vector2D& v) const;

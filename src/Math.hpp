@@ -21,6 +21,10 @@ inline float tand(float angle) {
 	return std::tan(angle*toRad);
 }
 
+inline float atand(float y, float x) {
+    return std::atan2(y,x)*toDeg;
+}
+
 inline void toZero(float& n, float inc) {
 	if (n < 0) 
 		n = MIN(0,n+inc);

@@ -116,7 +116,6 @@ class TankMovementComponent : public Component {
 				else if (transform->moveIntent == MovementDirection::BACKWARD)
 					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*dt);
 			}
-			//movement
 			transform->position += Vector2D::fromPolar(speed,transform->direction)*dt;
 		
 			//direction

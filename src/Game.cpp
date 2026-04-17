@@ -64,11 +64,12 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<TransformComponent>(100,100,0.3f,158,64,1);
 	newPlayer.addComponent<KeyboardController>();
-	newPlayer.addComponent<TankMovementComponent>(90.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
-	//newPlayer.addComponent<SpriteComponent>("./assets/textures/entities/T-34/chassi_com_sombra.png");
-	//newPlayer.addComponent<CarMovementComponent>(100,60,2);
+	//newPlayer.addComponent<TankMovementComponent>(90.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
+	newPlayer.addComponent<CarMovementComponent>(100,120,110);
 	//newPlayer.addComponent<SimpleMovementComponent>(100,45);
+	
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png");
+	//newPlayer.addComponent<SpriteComponent>("./assets/textures/entities/T-34/chassi_com_sombra.png");
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
 	
 	wall.addComponent<TransformComponent>(200,200,0.0f,200,300,1);

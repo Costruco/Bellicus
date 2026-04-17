@@ -26,8 +26,15 @@ Vector2D::Vector2D(const SDL_FPoint& p) {
 Vector2D Vector2D::fromPolar(float module, float angle) {
  	return Vector2D(cosd(angle)*module,sind(angle)*module);
 }
+float Vector2D::angle() const {
+	return atand(this->y,this->x);
+}
  
 //metodos gerais
+Vector2D& Vector2D::zero() {
+	*this = Vector2D();
+	return *this;
+}
 float Vector2D::getModule() {
 	return sqrt(this->x*this->x+this->y*this->y);
 }
@@ -60,31 +67,26 @@ Vector2D Vector2D::rotate(const Vector2D& o, float angle) const {
 Vector2D& Vector2D::add(const Vector2D& v) {
 	this->x += v.x;
 	this->y += v.y;
-	
 	return *this;
 }
 Vector2D& Vector2D::sub(const Vector2D& v) {
 	this->x -= v.x;
-	this->y -= v.y;
-	
+	this->y -= v.y;	
 	return *this;
 }
 Vector2D& Vector2D::mult(const Vector2D& v) {
 	this->x *= v.x;
 	this->y *= v.y;
-	
 	return *this;
 }
 Vector2D& Vector2D::divide(const Vector2D& v) {
 	this->x /= v.x;
 	this->y /= v.y;
-	
 	return *this;
 }
 Vector2D& Vector2D::scale(float x) {
 	this->x *= x;
 	this->y *= x;
-	
 	return *this;
 }
 
