@@ -1,6 +1,9 @@
 #pragma once
 
 #include "SDL2/SDL.h"
+#include <vector>
+
+class ColliderComponent;
 
 class Game {
 	private:
@@ -11,6 +14,7 @@ class Game {
 	public:
 		static SDL_Renderer * ren;
 		static SDL_Event evt;
+		static std::vector<ColliderComponent*> colliders;
 		static const Uint8* keystate;
 		
 		Game();

@@ -1,6 +1,9 @@
 #include "Collision.hpp"
-#include <array>
+
+#include "EntityComponentSystem/ColliderComponent.hpp"
 #include "SDL2/SDL.h"
+
+#include <array>
 #include "Vector2D.hpp"
 #include "Polygon.hpp"
 #include "Math.hpp"
@@ -21,7 +24,7 @@ static bool overlap(float minA, float maxA, float minB, float maxB) {
     return !(maxA < minB || maxB < minA);
 }
 
-bool Collision::SAT(Polygon a, Polygon b) {
+bool Collision::SAT(const Polygon& a, const Polygon& b) {
     for (int shape = 0; shape < 2; ++shape) {
         const auto& pts = (shape == 0) ? a.points : b.points;
 
@@ -41,4 +44,10 @@ bool Collision::SAT(Polygon a, Polygon b) {
         }
     }
     return true;
+}
+
+bool Collision::SAT(const ColliderComponent& a, const ColliderComponent& b) {
+	if (SAT(a.getWorldPoints(),b.getWorldPoints()))
+		return true;
+	return false;
 }

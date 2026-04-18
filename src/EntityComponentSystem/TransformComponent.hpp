@@ -27,6 +27,16 @@ class TransformComponent : public Component {
 			scale = 1.0f;
 		}
 		
+		TransformComponent(float xpos, float ypos, float w, float h) :
+			position(xpos,ypos),center_offset() {
+			direction = 0;
+			moveIntent = MovementDirection::STILL;
+			turnIntent = TurnDirection::STRAIGHT;
+			width = w;
+			height = h;
+			scale = 1.0f;
+		}
+		
 		TransformComponent(float xpos, float ypos, float angle, float w, float h) :
 			position(xpos,ypos),center_offset() {
 			direction = angle;

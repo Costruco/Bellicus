@@ -19,11 +19,15 @@ Manager manager;
 
 SDL_Renderer * Game::ren = nullptr;
 SDL_Event Game::evt;
+std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
 
 auto& newPlayer(manager.addEntity());
 auto& wheel(manager.addEntity());
 auto& wall(manager.addEntity());
+auto& tile0(manager.addEntity());
+auto& tile1(manager.addEntity());
+auto& tile2(manager.addEntity());
 
 Game::Game() {
 	updateCounter = 0;
@@ -59,8 +63,12 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	} else
 		isRunning = false;
 	
-	//inicializa texturas
 	map = new Map();
+	
+	//inicializa entidades
+	tile0.addComponent<TileComponent>(400,400,100,100,0);
+	tile1.addComponent<TileComponent>(500,400,100,100,1);
+	tile2.addComponent<TileComponent>(600,400,100,100,1);
 	
 	newPlayer.addComponent<TransformComponent>(100,100,0.3f,158,64,1);
 	newPlayer.addComponent<KeyboardController>();
@@ -69,7 +77,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	//newPlayer.addComponent<SimpleMovementComponent>(100,45);
 	
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png");
-	//newPlayer.addComponent<SpriteComponent>("./assets/textures/entities/T-34/chassi_com_sombra.png");
+	//newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png");
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
 	
 	wall.addComponent<TransformComponent>(200,200,0.0f,200,300,1);
@@ -91,17 +99,19 @@ void Game::handleEvents() {
 
 void Game::update() {
 	manager.refresh();
-	//std::cout << newPlayer.getComponent<TransformComponent>().position << std::endl;
-	//std::cout << newPlayer.getComponent<TransformComponent>().direction << std::endl;
 	manager.update();
-	if (Collision::SAT(newPlayer.getComponent<ColliderComponent>().getWorldPoints(),wall.getComponent<ColliderComponent>().getWorldPoints())) {
-		//std::cout << "Bateu!" << std::endl;
+	
+	for (auto c : colliders) {
+		if (Collision::SAT(newPlayer.getComponent<ColliderComponent>(),*c)) {
+			//std::cout << "Bateu!" << std::endl;
+		}
 	}
 }
 
 void Game::render() {
+	SDL_SetRenderDrawColor(ren,255,255,255,255);
 	SDL_RenderClear(ren);
-	map->draw();
+	//map->draw();
 	manager.draw();
 	SDL_RenderPresent(ren);
 }
