@@ -12,18 +12,20 @@ class SpriteComponent : public Component {
 		SDL_Rect src;
 		SDL_FRect dst;
 		SDL_FPoint texture_center;
+		
+		bool animated = false;
+		int frames;
+		int frameDelay;
 	
 	public:
 		SpriteComponent(const char * path) {
 			setTexture(path);
-			src.x = 0;
-			src.y = 0;
-			SDL_QueryTexture(texture,NULL,NULL,&src.w,&src.h);
 		}
-		SpriteComponent(const char * path, const SDL_Rect& src) {
+		SpriteComponent(const char * path, int nFrames, int delay) {
 			setTexture(path);
-			this->src = src;
-			texture_center = {(float)src.w/2,(float)src.h/2};
+			animated = true;
+			frames = nFrames;
+			frameDelay = delay;
 		}
 		~SpriteComponent() {
 			TextureManager::destroyTexture(texture);
@@ -35,9 +37,13 @@ class SpriteComponent : public Component {
 		
 		void init() override {
 			transform = &entity->getComponent<TransformComponent>();
+			src = {0,0,static_cast<int>(transform->width),static_cast<int>(transform->height)};
 		}
 		
 		void update() override {
+			if (animated) {
+				src.x = src.w*static_cast<int>((SDL_GetTicks()/frameDelay)%frames);
+			}
 			texture_center = {transform->width/2+transform->center_offset.x,
 							  transform->height/2+transform->center_offset.y};
 			dst = {transform->position.x-texture_center.x*transform->scale,

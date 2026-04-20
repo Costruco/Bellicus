@@ -14,7 +14,6 @@
 
 #include "Collision.hpp"
 
-Map * map;
 Manager manager;
 
 SDL_Renderer * Game::ren = nullptr;
@@ -25,9 +24,13 @@ const Uint8* Game::keystate = nullptr;
 auto& newPlayer(manager.addEntity());
 auto& wheel(manager.addEntity());
 auto& wall(manager.addEntity());
-auto& tile0(manager.addEntity());
-auto& tile1(manager.addEntity());
-auto& tile2(manager.addEntity());
+
+enum GroupLabels : std::size_t {
+	groupMap,
+	groupPlayers,
+	groupEnemies,
+	groupColliders
+};
 
 Game::Game() {
 	updateCounter = 0;
@@ -63,26 +66,24 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	} else
 		isRunning = false;
 	
-	map = new Map();
+	Map::loadMap("../assets/maps/map1.txt",10,10);
 	
 	//inicializa entidades
-	tile0.addComponent<TileComponent>(400,400,100,100,0);
-	tile1.addComponent<TileComponent>(500,400,100,100,1);
-	tile2.addComponent<TileComponent>(600,400,100,100,1);
-	
-	newPlayer.addComponent<TransformComponent>(100,100,0.3f,158,64,1);
+	newPlayer.addComponent<TransformComponent>(100,100,0.3f,180,88,1);
 	newPlayer.addComponent<KeyboardController>();
-	//newPlayer.addComponent<TankMovementComponent>(90.0f,54.0f,370000,36250,94000,0.095f,*map,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
+	//newPlayer.addComponent<TankMovementComponent>(90.0f,54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	newPlayer.addComponent<CarMovementComponent>(100,120,110);
 	//newPlayer.addComponent<SimpleMovementComponent>(100,45);
 	
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png");
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
 	//newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png");
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
+	newPlayer.addGroup(groupPlayers);
 	
 	wall.addComponent<TransformComponent>(200,200,0.0f,200,300,1);
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
 	wall.addComponent<ColliderComponent>("wall",Polygon{{-100,-150},{100,-150},{100,150},{-100,150}});
+	wall.addGroup(groupMap);
 }
 
 void Game::handleEvents() {
@@ -100,7 +101,7 @@ void Game::handleEvents() {
 void Game::update() {
 	manager.refresh();
 	manager.update();
-	
+	//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
 	for (auto c : colliders) {
 		if (Collision::SAT(newPlayer.getComponent<ColliderComponent>(),*c)) {
 			//std::cout << "Bateu!" << std::endl;
@@ -108,11 +109,22 @@ void Game::update() {
 	}
 }
 
+auto& tiles(manager.getGroup(groupMap));
+auto& players(manager.getGroup(groupPlayers));
+auto& enemies(manager.getGroup(groupEnemies));
+
 void Game::render() {
 	SDL_SetRenderDrawColor(ren,255,255,255,255);
 	SDL_RenderClear(ren);
-	//map->draw();
-	manager.draw();
+	for (auto& t : tiles) {
+		t->draw();
+	}
+	for (auto& p : players) {
+		p->draw();
+	}
+	for (auto& e : enemies) {
+		e->draw();
+	}
 	SDL_RenderPresent(ren);
 }
 
@@ -125,4 +137,10 @@ void Game::clean() {
 
 bool Game::running() {
 	return isRunning;
+}
+
+void Game::addTile(int id, int x, int y) {
+	auto& tile(manager.addEntity());
+	tile.addComponent<TileComponent>(x,y,TILE_SIZE,TILE_SIZE,id);
+	tile.addGroup(groupMap);
 }

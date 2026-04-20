@@ -3,7 +3,6 @@
 #include "SDL2/SDL.h"
 
 #include "Components.hpp"
-#include "Map.hpp"
 #include "Vector2D.hpp"
 #include "Input.hpp"
 #include "Math.hpp"
@@ -13,9 +12,10 @@
 #include <vector>
 #include <iostream>
 
+//{0.25f,0.17f}
+
 class TankMovementComponent : public Component {
 	public:
-		Map& map;
 		TransformComponent * transform;
 		float speed;
 		float turningSpeed;
@@ -34,8 +34,8 @@ class TankMovementComponent : public Component {
 		int neutralGear;
 		int currentGear;
 			   
-		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, 
-		Map& m, int nGears, std::vector<Vector2D> maxSpeedArray) : map(m), gearsMaxSpeed(std::move(maxSpeedArray)) {
+		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, int nGears, 
+		std::vector<Vector2D> maxSpeedArray) : gearsMaxSpeed(std::move(maxSpeedArray)) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;
 			this->enginePower = enginePower;
@@ -60,7 +60,7 @@ class TankMovementComponent : public Component {
 		}
 		
 		void update() override {
-			float groundDrag = map.getTileDrag(static_cast<int>(transform->position.x)/100,static_cast<int>(transform->position.y)/100);
+			float groundDrag = 0.25f;
 			float dt = FrameManager::getDeltaTime();
 			//std::cout << groundDrag << std::endl;
 			
@@ -130,6 +130,5 @@ class TankMovementComponent : public Component {
 					break;
 			}
 			transform->direction = clockLimit(transform->direction,0.0f,360.0f);
-			
 		}	
 };

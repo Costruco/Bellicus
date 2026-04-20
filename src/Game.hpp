@@ -28,4 +28,6 @@ class Game {
 		void clean();
 		
 		bool running();
+		
+		static void addTile(int id, int x, int y);
 };
