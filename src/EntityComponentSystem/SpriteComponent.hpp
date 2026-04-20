@@ -8,7 +8,7 @@
 class SpriteComponent : public Component {
 	private:
 		TransformComponent * transform;
-		SDL_Texture * texture;
+		TextureManager::TexturePtr texture;
 		SDL_Rect src;
 		SDL_FRect dst;
 		SDL_FPoint texture_center;
@@ -28,7 +28,6 @@ class SpriteComponent : public Component {
 			frameDelay = delay;
 		}
 		~SpriteComponent() {
-			TextureManager::destroyTexture(texture);
 		}
 		
 		void setTexture(const char * path) {

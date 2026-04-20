@@ -164,4 +164,11 @@ class Manager {
 			entities.emplace_back(std::move(uPtr));
 			return *e;
 		}
+		
+		void clear() {
+		    for (auto& group : groupedEntities) {
+		        group.clear();
+		    }
+		    entities.clear();
+		}
 };

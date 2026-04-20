@@ -129,6 +129,8 @@ void Game::render() {
 }
 
 void Game::clean() {
+	TextureManager::clear();
+	manager.clear();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();

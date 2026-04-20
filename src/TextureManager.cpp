@@ -4,20 +4,43 @@
 #include "SDL2/SDL_image.h"
 
 #include "Game.hpp"
+#include <unordered_map>
+#include <string>
+#include <memory>
 
-SDL_Texture * TextureManager::loadTexture(const char * fileName) {
-	SDL_Texture * tex = IMG_LoadTexture(Game::ren,fileName);
-	return tex;
+std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> TextureManager::cache;
+
+TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileName) {
+	auto it = cache.find(fileName);
+    if (it != cache.end()) {
+        if (auto tex = it->second.lock()) {
+            return tex;
+        }
+    }
+
+    SDL_Texture* raw = IMG_LoadTexture(Game::ren, fileName.c_str());
+    if (!raw) {
+        SDL_Log("Failed to load texture: %s", IMG_GetError());
+        return nullptr;
+    }
+
+    TextureManager::TexturePtr tex(raw, SDL_DestroyTexture);
+    cache[fileName] = tex;
+    return tex;
 }
 
-void TextureManager::drawTexture(SDL_Texture * tex, SDL_Rect * src, SDL_FRect * dst) {
-	SDL_RenderCopyF(Game::ren,tex,src,dst);
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, SDL_Rect * src, SDL_FRect * dst) {
+	SDL_RenderCopyF(Game::ren,tex.get(),src,dst);
 }
 
-void TextureManager::drawTexture(SDL_Texture * tex, SDL_Rect * src, SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
-	SDL_RenderCopyExF(Game::ren,tex,src,dst,angle,center,flip);
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, SDL_Rect * src, SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
+	SDL_RenderCopyExF(Game::ren,tex.get(),src,dst,angle,center,flip);
 }
 
-void TextureManager::destroyTexture(SDL_Texture * tex) {
-	SDL_DestroyTexture(tex);
+void TextureManager::unload(const std::string& path) {
+    cache.erase(path);
+}
+
+void TextureManager::clear() {
+    cache.clear();
 }
