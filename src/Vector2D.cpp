@@ -44,6 +44,7 @@ float Vector2D::getDistance(const Vector2D& v) const {
 float Vector2D::dot(const Vector2D& v) const {
     return x*v.x+y*v.y;
 }
+
 Vector2D Vector2D::getDirection() {
 	float module = this->getModule();
 	if (module)
@@ -62,7 +63,11 @@ Vector2D Vector2D::rotate(const Vector2D& o, float angle) const {
 	                 (this->x-o.x)*sind(angle) + (this->y-o.y)*cosd(angle) + o.y};
 	return newv;
 }
-
+float Vector2D::angle(const Vector2D& v1, const Vector2D& v2) {
+	Vector2D v1v2 = v2-v1;
+	return atan2(v1.y,v1.x);
+}
+ 
 //metodos membro
 Vector2D& Vector2D::add(const Vector2D& v) {
 	this->x += v.x;

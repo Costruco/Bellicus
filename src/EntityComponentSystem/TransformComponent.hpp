@@ -5,9 +5,11 @@
 #include "Input.hpp"
 #include "Game.hpp"
 #include "SDL2/SDL2_gfxPrimitives.h"
+#include "Math.hpp"
 
 class TransformComponent : public Component {
 	public:
+		TransformComponent * father = nullptr;
 		Vector2D position;
 		float direction;
 		MovementDirection moveIntent;
@@ -75,6 +77,24 @@ class TransformComponent : public Component {
 			width = w;
 			height = h;
 			scale = 1.0f;
+		}
+		
+		void setFather(TransformComponent * father) {
+			this->father = father;
+		}
+		
+		Vector2D getPosition() {
+			if (father)
+				return position.rotate({0,0},father->getDirection())+father->getPosition();
+			else
+				return position;
+		}
+		
+		float getDirection() {
+			if (father)
+				return clockLimit(direction+father->getDirection(),0.0f,360.0f);
+			else
+				return direction;
 		}
 		
 		//void draw() override {filledCircleRGBA(Game::ren,position.x,position.y,3,0,255,255,255);}

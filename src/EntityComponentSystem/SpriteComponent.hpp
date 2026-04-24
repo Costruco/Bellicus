@@ -45,13 +45,15 @@ class SpriteComponent : public Component {
 			}
 			texture_center = {transform->width/2+transform->center_offset.x,
 							  transform->height/2+transform->center_offset.y};
-			dst = {transform->position.x-texture_center.x*transform->scale,
-				   transform->position.y-texture_center.y*transform->scale,
+							  
+			Vector2D pos = transform->getPosition();
+			dst = {pos.x-texture_center.x*transform->scale,
+				   pos.y-texture_center.y*transform->scale,
 				   transform->width*transform->scale,
 				   transform->height*transform->scale};
 		}
 		
 		void draw() override {
-			TextureManager::drawTexture(texture,&src,&dst,transform->direction,&texture_center,SDL_FLIP_NONE);
+			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center,SDL_FLIP_NONE);
 		}
 };

@@ -4,6 +4,7 @@
 #include "SDL2/SDL_image.h"
 
 #include <iostream>
+#include <vector>
 
 #include "FrameManager.hpp"
 #include "TextureManager.hpp"
@@ -21,8 +22,10 @@ SDL_Event Game::evt;
 std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
 
+std::vector<Entity*> wheels;
+	
 auto& newPlayer(manager.addEntity());
-auto& wheel(manager.addEntity());
+
 auto& wall(manager.addEntity());
 
 enum GroupLabels : std::size_t {
@@ -69,10 +72,33 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	Map::loadMap("../assets/maps/map1.txt",10,10);
 	
 	//inicializa entidades
+	wheels.emplace_back(&manager.addEntity());
+	wheels.emplace_back(&manager.addEntity());
+	wheels.emplace_back(&manager.addEntity());
+	wheels.emplace_back(&manager.addEntity());
+	Polygon car = Polygon{{-55,-30},{55,-30},{55,30},{-55,30}};
+	wheels[0]->addGroup(groupPlayers);
+	wheels[0]->addComponent<TransformComponent>(-55,-30,28,12);
+	wheels[0]->addComponent<ColliderComponent>("wheel",Polygon{{-14,-6},{14,-6},{14,6},{-14,6}});
+	wheels[0]->addComponent<SpriteComponent>("../assets/textures/entities/pneu.png");
+	wheels[1]->addGroup(groupPlayers);
+	wheels[1]->addComponent<TransformComponent>(55,-30,28,12);
+	wheels[1]->addComponent<ColliderComponent>("wheel",Polygon{{-14,-6},{14,-6},{14,6},{-14,6}});
+	wheels[1]->addComponent<SpriteComponent>("../assets/textures/entities/pneu.png");
+	wheels[2]->addGroup(groupPlayers);
+	wheels[2]->addComponent<TransformComponent>(55,30,28,12);
+	wheels[2]->addComponent<ColliderComponent>("wheel",Polygon{{-14,-6},{14,-6},{14,6},{-14,6}});
+	wheels[2]->addComponent<SpriteComponent>("../assets/textures/entities/pneu.png");
+	wheels[3]->addGroup(groupPlayers);
+	wheels[3]->addComponent<TransformComponent>(-55,30,28,12);
+	wheels[3]->addComponent<ColliderComponent>("wheel",Polygon{{-14,-6},{14,-6},{14,6},{-14,6}});
+	wheels[3]->addComponent<SpriteComponent>("../assets/textures/entities/pneu.png");
+	
+	
 	newPlayer.addComponent<TransformComponent>(100,100,0.3f,180,88,1);
 	newPlayer.addComponent<KeyboardController>();
 	//newPlayer.addComponent<TankMovementComponent>(90.0f,54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
-	newPlayer.addComponent<CarMovementComponent>(100,120,110);
+	newPlayer.addComponent<CarMovementComponent>(150,120,110);
 	//newPlayer.addComponent<SimpleMovementComponent>(100,45);
 	
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
@@ -84,6 +110,11 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
 	wall.addComponent<ColliderComponent>("wall",Polygon{{-100,-150},{100,-150},{100,150},{-100,150}});
 	wall.addGroup(groupMap);
+	
+	wheels[0]->getComponent<TransformComponent>().setFather(&newPlayer.getComponent<TransformComponent>());
+	wheels[1]->getComponent<TransformComponent>().setFather(&newPlayer.getComponent<TransformComponent>());
+	wheels[2]->getComponent<TransformComponent>().setFather(&newPlayer.getComponent<TransformComponent>());
+	wheels[3]->getComponent<TransformComponent>().setFather(&newPlayer.getComponent<TransformComponent>());
 }
 
 void Game::handleEvents() {
@@ -101,6 +132,12 @@ void Game::handleEvents() {
 void Game::update() {
 	manager.refresh();
 	manager.update();
+	
+
+	wheels[1]->getComponent<TransformComponent>().direction = newPlayer.getComponent<CarMovementComponent>().wheelDirection;
+	wheels[2]->getComponent<TransformComponent>().direction = newPlayer.getComponent<CarMovementComponent>().wheelDirection;
+	
+	
 	//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
 	for (auto c : colliders) {
 		if (Collision::SAT(newPlayer.getComponent<ColliderComponent>(),*c)) {
