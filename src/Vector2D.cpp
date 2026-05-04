@@ -26,6 +26,12 @@ Vector2D::Vector2D(const SDL_FPoint& p) {
 Vector2D Vector2D::fromPolar(float module, float angle) {
  	return Vector2D(cosd(angle)*module,sind(angle)*module);
 }
+Vector2D Vector2D::max(const Vector2D& v1, const Vector2D& v2) {
+	return ((v1.getModule()>=v2.getModule())?v1:v2);
+}
+Vector2D Vector2D::min(const Vector2D& v1, const Vector2D& v2) {
+	return ((v1.getModule()<=v2.getModule())?v1:v2);
+}
 float Vector2D::angle() const {
 	return atand(this->y,this->x);
 }
@@ -35,7 +41,7 @@ Vector2D& Vector2D::zero() {
 	*this = Vector2D();
 	return *this;
 }
-float Vector2D::getModule() {
+float Vector2D::getModule() const {
 	return sqrt(this->x*this->x+this->y*this->y);
 }
 float Vector2D::getDistance(const Vector2D& v) const {
@@ -43,6 +49,9 @@ float Vector2D::getDistance(const Vector2D& v) const {
 }
 float Vector2D::dot(const Vector2D& v) const {
     return x*v.x+y*v.y;
+}
+float Vector2D::cross(const Vector2D& v) const {
+	return x*v.y-y*v.x;
 }
 
 Vector2D Vector2D::getDirection() {

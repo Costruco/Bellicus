@@ -15,12 +15,15 @@ class Vector2D {
 		Vector2D(const SDL_FPoint& p);
 		
 		static Vector2D fromPolar(float module, float angle);
+		static Vector2D max(const Vector2D& v1, const Vector2D& v2);
+		static Vector2D min(const Vector2D& v1, const Vector2D& v2);
 		float angle() const;
 		
 		Vector2D& zero();
-		float getModule();
+		float getModule() const;
 		float getDistance(const Vector2D& v) const;
 		float dot(const Vector2D& v) const;
+		float cross(const Vector2D& v) const;
 		Vector2D getDirection();
 		Vector2D normalize();
 		Vector2D perpendicular();

@@ -35,15 +35,18 @@ class ColliderComponent : public Component {
 		}
 		
 		Polygon getWorldPoints() const {
-			float realScale = transform->scale*colliderScale;
-			
-			Vector2D center = transform->getPosition()-transform->center_offset*realScale;
-			
+			float realScale = transform->getScale()*colliderScale;
+			Vector2D center = transform->getPosition();
+		
 			std::vector<Vector2D> result;
 			result.reserve(collider.points.size());
+		
 			for (const auto& p : collider.points) {
-				result.push_back((p+center).rotate(center,transform->getDirection()));
+				Vector2D scaledPoint = p*realScale;
+				Vector2D rotatedPoint = scaledPoint.rotate({0, 0},transform->getDirection());
+				result.push_back(center+rotatedPoint);
 			}
+		
 			return Polygon(result);
 		}
 		

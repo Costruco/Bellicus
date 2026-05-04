@@ -2,6 +2,7 @@
 
 #include "SDL2/SDL.h"
 
+#include <string>
 #include "Components.hpp"
 #include "TextureManager.hpp"
 
@@ -18,10 +19,10 @@ class SpriteComponent : public Component {
 		int frameDelay;
 	
 	public:
-		SpriteComponent(const char * path) {
+		SpriteComponent(std::string path) {
 			setTexture(path);
 		}
-		SpriteComponent(const char * path, int nFrames, int delay) {
+		SpriteComponent(std::string path, int nFrames, int delay) {
 			setTexture(path);
 			animated = true;
 			frames = nFrames;
@@ -30,7 +31,7 @@ class SpriteComponent : public Component {
 		~SpriteComponent() {
 		}
 		
-		void setTexture(const char * path) {
+		void setTexture(std::string path) {
 			texture = TextureManager::loadTexture(path);
 		}
 		
@@ -43,14 +44,13 @@ class SpriteComponent : public Component {
 			if (animated) {
 				src.x = src.w*static_cast<int>((SDL_GetTicks()/frameDelay)%frames);
 			}
-			texture_center = {transform->width/2+transform->center_offset.x,
-							  transform->height/2+transform->center_offset.y};
-							  
+			texture_center = {(transform->width/2.0f+transform->center_offset.x)*transform->getScale(),
+							  (transform->height/2.0f+transform->center_offset.y)*transform->getScale()};
 			Vector2D pos = transform->getPosition();
-			dst = {pos.x-texture_center.x*transform->scale,
-				   pos.y-texture_center.y*transform->scale,
-				   transform->width*transform->scale,
-				   transform->height*transform->scale};
+			dst = {pos.x-texture_center.x,
+				   pos.y-texture_center.y,
+				   transform->width*transform->getScale(),
+				   transform->height*transform->getScale()};
 		}
 		
 		void draw() override {
