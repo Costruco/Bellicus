@@ -70,25 +70,30 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	Map::loadMap("../assets/maps/map1.txt",10,10);
 	
 	//inicializa entidades
-	newPlayer.addComponent<TransformComponent>(100,100,0.0f,180,88,1);
+	/*newPlayer.addComponent<TransformComponent>(100,100,0.0f,180,88,1);
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
+	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});*/
+	
+	newPlayer.addComponent<TransformComponent>(100,100,0.0f,220,118,1);
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/sandero.png");
+	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-100,-45},{100,-45},{100,45},{-100,45}});
+	
 	newPlayer.addComponent<KeyboardController>();
 	
-	CarMovementConfig carConfig(260.0f,1280.0f,75.0f,58.0f,58.0f,30.0f,17.5f,0.92f,1200.0f,900.0f,7200.0f,
-								10.0f,3.0f,1.8f,12.0f,18.0f,120.0f,0.45f,
-								42.0f,0.5f,0.001f,1.35f,24.0f,45.0f,45.0f,22.0f,
+	CarMovementConfig carConfig(260.0f,1102.0f,74.6f,64.75f,64.75f,27.5f,15.8f,0.92f,900.0f,800.0f,6500.0f,
+								5.0f,3.0f,0.7f,12.0f,18.0f,120.0f,0.45f,
+								38.0f,0.055f,1.15f,24.0f,45.0f,45.0f,22.0f,22.0f,
 								Vector2D(),Vector2D(),Vector2D(),0.0f,0.0f,
-								TorqueCurve(430.0f,95.0f,3800.0f,1.0f,2800.0f),
-								GearBox({-3.10f,0.0f,3.23f,2.24f,1.59f,1.21f,1.00f,0.82f},4.35f,2),
+								TorqueCurve(157.0f,70.0f,4000.0f,1.0f,6000.0f),
+								GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f,2),
 								PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
 								PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
-								{CarWheelConfig(Vector2D(55,-25),Vector2D(28,12),true,true),
-								 CarWheelConfig(Vector2D(55,25),Vector2D(28,12),true,true),
-								 CarWheelConfig(Vector2D(-55,-25),Vector2D(28,12),false,true),
-								 CarWheelConfig(Vector2D(-55,25),Vector2D(28,12),false,true)});
+								{CarWheelConfig(Vector2D(64.75f,-37.3f),Vector2D(31.6f,10.3f),true,true),
+								 CarWheelConfig(Vector2D(64.75f,37.3f),Vector2D(31.6f,10.3f),true,true),
+								 CarWheelConfig(Vector2D(-64.75f,-37.3f),Vector2D(31.6f,10.3f),false,false),
+								 CarWheelConfig(Vector2D(-64.75f,37.3f),Vector2D(31.6f,10.3f),false,false)});
 	
 	newPlayer.addComponent<CarMovementComponent>(&manager,carConfig,"../assets/textures/entities/pneu.png",groupGround);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
-	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
 	newPlayer.addGroup(groupPlayers);
 	
 	wall.addComponent<TransformComponent>(200,200,0.0f,200,300,1);
@@ -113,10 +118,15 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
-	std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
-	std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
-	std::cout << newPlayer.getComponent<CarMovementComponent>().engineRPM << std::endl;
+	updateCounter++;
+	if (!(updateCounter%60)) {
+		//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
+		std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+		std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
+		std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
+		std::cout << newPlayer.getComponent<CarMovementComponent>().engineRPM << std::endl;
+	}
+	
 	for (auto c : colliders) {
 		if (Collision::SAT(newPlayer.getComponent<ColliderComponent>(),*c)) {
 			//std::cout << "Bateu!" << std::endl;
