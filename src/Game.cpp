@@ -74,8 +74,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});*/
 	
-	newPlayer.addComponent<TransformComponent>(100,100,0.0f,220,118,1);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/sandero.png");
+	newPlayer.addComponent<TransformComponent>(100,100,0.0f,/*220,118*/180,88,1);
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",true);
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-100,-45},{100,-45},{100,45},{-100,45}});
 	
 	newPlayer.addComponent<KeyboardController>();
@@ -117,7 +117,13 @@ void Game::handleEvents() {
 void Game::update() {
 	manager.refresh();
 	manager.update();
-
+	
+	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1) {
+		newPlayer.getComponent<SpriteComponent>().play("walk");
+	} else {
+		newPlayer.getComponent<SpriteComponent>().play("idle");
+	}
+	
 	updateCounter++;
 	if (!(updateCounter%60)) {
 		//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;

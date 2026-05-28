@@ -5,6 +5,8 @@
 #include <string>
 #include "Components.hpp"
 #include "TextureManager.hpp"
+#include "Animation.hpp"
+#include <map>
 
 class SpriteComponent : public Component {
 	private:
@@ -19,14 +21,23 @@ class SpriteComponent : public Component {
 		int frameDelay;
 	
 	public:
+		int animIndex = 0;
+		std::map<std::string,Animation> animations;
+		
 		SpriteComponent(std::string path) {
 			setTexture(path);
 		}
-		SpriteComponent(std::string path, int nFrames, int delay) {
+		SpriteComponent(std::string path, bool isAnimated) {
 			setTexture(path);
-			animated = true;
-			frames = nFrames;
-			frameDelay = delay;
+			if (animated = isAnimated) {
+				Animation idle = Animation(0,2,500);
+				Animation walk = Animation(1,2,500);
+				
+				animations.emplace("idle",idle);
+				animations.emplace("walk",walk);
+				
+				play("idle");
+			}
 		}
 		~SpriteComponent() {
 		}
@@ -44,6 +55,8 @@ class SpriteComponent : public Component {
 			if (animated) {
 				src.x = src.w*static_cast<int>((SDL_GetTicks()/frameDelay)%frames);
 			}
+			src.y = animIndex*transform->height;
+			
 			texture_center = {(transform->width/2.0f+transform->center_offset.x)*transform->getScale(),
 							  (transform->height/2.0f+transform->center_offset.y)*transform->getScale()};
 			Vector2D pos = transform->getPosition();
@@ -55,5 +68,11 @@ class SpriteComponent : public Component {
 		
 		void draw() override {
 			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center,SDL_FLIP_NONE);
+		}
+		
+		void play(std::string animName) {
+			animIndex = animations[animName].index;
+			frames = animations[animName].frames;
+			frameDelay = animations[animName].frameDelay;
 		}
 };
