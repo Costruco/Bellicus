@@ -80,18 +80,18 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<KeyboardController>();
 	
-	CarMovementConfig carConfig(260.0f,1102.0f,74.6f,64.75f,64.75f,27.5f,15.8f,0.92f,900.0f,800.0f,6500.0f,
+	CarMovementConfig carConfig(260.0f,1102.0f,139.35f,64.75f,27.5f,15.8f,0.92f,900.0f,800.0f,6500.0f,
 								5.0f,3.0f,0.7f,12.0f,18.0f,120.0f,0.45f,
 								38.0f,0.055f,1.15f,24.0f,45.0f,45.0f,22.0f,22.0f,
 								Vector2D(),Vector2D(),Vector2D(),0.0f,0.0f,
 								TorqueCurve(157.0f,70.0f,4000.0f,1.0f,6000.0f),
-								GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f,2),
+								GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f),
 								PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
 								PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
-								{CarWheelConfig(Vector2D(64.75f,-37.3f),Vector2D(31.6f,10.3f),true,true),
-								 CarWheelConfig(Vector2D(64.75f,37.3f),Vector2D(31.6f,10.3f),true,true),
-								 CarWheelConfig(Vector2D(-64.75f,-37.3f),Vector2D(31.6f,10.3f),false,false),
-								 CarWheelConfig(Vector2D(-64.75f,37.3f),Vector2D(31.6f,10.3f),false,false)});
+								{CarWheelConfig(Vector2D(64.75f,-37.3f),Vector2D(31.6f,10.3f),true,false),
+								 CarWheelConfig(Vector2D(64.75f,37.3f),Vector2D(31.6f,10.3f),true,false),
+								 CarWheelConfig(Vector2D(-64.75f,-37.3f),Vector2D(31.6f,10.3f),false,true),
+								 CarWheelConfig(Vector2D(-64.75f,37.3f),Vector2D(31.6f,10.3f),false,true)});
 	
 	newPlayer.addComponent<CarMovementComponent>(&manager,carConfig,"../assets/textures/entities/pneu.png",groupGround);
 	newPlayer.addGroup(groupPlayers);

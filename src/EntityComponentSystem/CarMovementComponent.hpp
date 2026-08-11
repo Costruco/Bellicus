@@ -36,9 +36,8 @@ struct CarMovementConfig {
 	float turningSpeed;
 
 	float mass;
+	float wheelBase;
 	float trackWidth;
-	float cgToFront;
-	float cgToRear;
 	float cgHeight;
 	float wheelRadius;
 	float tireMu;
@@ -79,9 +78,8 @@ struct CarMovementConfig {
 	CarMovementConfig(
 		float turningSpeed,
 		float mass,
+		float wheelBase,
 		float trackWidth,
-		float cgToFront,
-		float cgToRear,
 		float cgHeight,
 		float wheelRadius,
 		float tireMu,
@@ -116,9 +114,8 @@ struct CarMovementConfig {
 	) :
 		turningSpeed(turningSpeed),
 		mass(mass),
+		wheelBase(wheelBase),
 		trackWidth(trackWidth),
-		cgToFront(cgToFront),
-		cgToRear(cgToRear),
 		cgHeight(cgHeight),
 		wheelRadius(wheelRadius),
 		tireMu(tireMu),
@@ -169,8 +166,6 @@ class CarMovementComponent : public Component {
 
 		float mass;
 		float trackWidth;
-		float cgToFront;
-		float cgToRear;
 		float cgHeight;
 		float wheelRadius;
 		float tireMu;
@@ -217,11 +212,9 @@ class CarMovementComponent : public Component {
 			wheelTexturePath(path),
 			wheelDirection(config.wheelDirection),
 			turningSpeed(config.turningSpeed),
-			wheelBase(std::max(0.1f, config.cgToFront + config.cgToRear)),
+			wheelBase(std::max(0.1f, config.wheelBase)),
 			mass(std::max(1.0f, config.mass)),
 			trackWidth(std::max(0.1f, config.trackWidth)),
-			cgToFront(std::max(0.0f, config.cgToFront)),
-			cgToRear(std::max(0.0f, config.cgToRear)),
 			cgHeight(std::max(0.0f, config.cgHeight)),
 			wheelRadius(std::max(0.01f, config.wheelRadius)),
 			tireMu(std::max(0.0f, config.tireMu)),
@@ -333,8 +326,20 @@ class CarMovementComponent : public Component {
 			wheelDirection = moveToward(wheelDirection,target,turningSpeed*dt);
 			wheelDirection = clamp(wheelDirection,-maxSteerAngle,maxSteerAngle);
 
-			for (WheelPhysics& wheel : wheels)
-				wheel.steerAngle = (wheel.steerable?wheelDirection:0.0f);
+			float left = 0, right = 0;
+			if (wheelDirection) {
+				float distance_to_curve = wheelBase/tand(wheelDirection);
+				left = atand(wheelBase,distance_to_curve+trackWidth*0.5f);
+				right = atand(wheelBase,distance_to_curve-trackWidth*0.5f);
+			}
+			for (WheelPhysics& wheel : wheels) {
+				if (!wheel.steerable)
+					continue;
+				if (wheel.localPosition.y < 0.0f)
+					wheel.steerAngle = left;
+				else
+					wheel.steerAngle = right;
+			}
 		}
 		
 		float gearRatioAt(int gearIndex) const {
@@ -515,8 +520,8 @@ class CarMovementComponent : public Component {
 			int positiveSideCount = positiveSideWheelCount();
 			int negativeSideCount = negativeSideWheelCount();
 
-			float frontAxleLoad = totalWeight*(cgToRear/wheelBase);
-			float rearAxleLoad = totalWeight*(cgToFront/wheelBase);
+			float frontAxleLoad = totalWeight/2.0f;
+			float rearAxleLoad = totalWeight/2.0f;
 
 			float longAcceleration = previousAcceleration.dot(forward());
 			float latAcceleration = previousAcceleration.dot(right());

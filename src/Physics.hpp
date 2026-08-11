@@ -10,7 +10,7 @@
 #include <algorithm>
 
 constexpr float PIXELS_PER_METER = 50.0f;
-constexpr float GRAVITY = 9.81f*PIXELS_PER_METER; //lembrando que ta em pixels/s²
+constexpr float GRAVITY = 9.81f*PIXELS_PER_METER; //lembrando que ta em pixels/sï¿½
 
 struct TorqueCurve {
 	float maxTorque;
@@ -38,14 +38,14 @@ struct GearBox {
 	int gear;
 	float finalDrive;
 
-	GearBox(std::initializer_list<float> ratios, float finalDrive, int gear) {
+	GearBox(std::initializer_list<float> ratios, float finalDrive, int gear = 1) {
 		this->ratios = ratios;
 		this->finalDrive = finalDrive;
 		this->gear = 0;
 		setGear(gear);
 	}
 
-	GearBox(std::vector<float> ratios, float finalDrive, int gear) {
+	GearBox(std::vector<float> ratios, float finalDrive, int gear = 1) {
 		this->ratios = std::move(ratios);
 		this->finalDrive = finalDrive;
 		this->gear = 0;
