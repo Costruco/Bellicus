@@ -20,6 +20,7 @@ void Map::loadMap(const std::string& path, int sizeX, int sizeY) {
 		for (int x = 0; x < sizeX; x++) {
 			mapFile.get(tile);
 			srcx = atoi(&tile)*TILE_SIZE;
+			mapFile.get(tile);
 			srcy = atoi(&tile)*TILE_SIZE;
 			Game::addTile(srcx,srcy,x*TILE_SIZE,y*TILE_SIZE);
 			mapFile.ignore();
