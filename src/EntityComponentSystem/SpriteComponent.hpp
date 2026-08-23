@@ -24,10 +24,11 @@ class SpriteComponent : public Component {
 		int animIndex = 0;
 		std::map<std::string,Animation> animations;
 		
-		SpriteComponent(std::string path) {
+		SpriteComponent() = default;
+		SpriteComponent(const std::string& path) {
 			setTexture(path);
 		}
-		SpriteComponent(std::string path, bool isAnimated) {
+		SpriteComponent(const std::string& path, bool isAnimated) {
 			setTexture(path);
 			if (animated = isAnimated) {
 				Animation idle = Animation(0,2,500);
@@ -42,7 +43,7 @@ class SpriteComponent : public Component {
 		~SpriteComponent() {
 		}
 		
-		void setTexture(std::string path) {
+		void setTexture(const std::string& path) {
 			texture = TextureManager::loadTexture(path);
 		}
 		
@@ -70,7 +71,7 @@ class SpriteComponent : public Component {
 			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center,SDL_FLIP_NONE);
 		}
 		
-		void play(std::string animName) {
+		void play(const std::string& animName) {
 			animIndex = animations[animName].index;
 			frames = animations[animName].frames;
 			frameDelay = animations[animName].frameDelay;

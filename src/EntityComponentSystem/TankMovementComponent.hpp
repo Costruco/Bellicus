@@ -34,6 +34,7 @@ class TankMovementComponent : public Component {
 		int neutralGear;
 		int currentGear;
 			   
+		TankMovementComponent() = default;
 		TankMovementComponent(float speed, float turningSpeed, int enginePower, int mass, int brakePower, float rollingDrag, int nGears, 
 		std::vector<Vector2D> maxSpeedArray) : gearsMaxSpeed(std::move(maxSpeedArray)) {
 			this->speed = speed;

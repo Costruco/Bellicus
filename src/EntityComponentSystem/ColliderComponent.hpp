@@ -13,14 +13,13 @@ class ColliderComponent : public Component {
 	public:
 		Polygon collider;
 		float colliderScale = 1;
-		std::string tag;
+		const std::string& tag;
 		TransformComponent * transform;
 		
-		ColliderComponent(std::string tag, std::initializer_list<Vector2D> pts) : collider(pts) {
-			this->tag = tag;
+		ColliderComponent() = default;
+		ColliderComponent(const std::string& tag, std::initializer_list<Vector2D> pts) : collider(pts), tag(tag) {
 		}
-		ColliderComponent(std::string tag, const Polygon& poly) : collider(std::move(poly)) {
-			this->tag = tag;
+		ColliderComponent(const std::string& tag, const Polygon& poly) : collider(std::move(poly)), tag(tag) {
 		}
 		
 		void init() override {

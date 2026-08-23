@@ -210,7 +210,8 @@ class CarMovementComponent : public Component {
 		PacejkaCurve lateralCurve;
 		std::vector<WheelPhysics> wheels;
 
-		CarMovementComponent(Manager * manager, const CarMovementConfig& config, std::string path, Group group) :
+		CarMovementComponent() = default;
+		CarMovementComponent(Manager * manager, const CarMovementConfig& config, const std::string& path, Group group) :
 			transform(nullptr),
 			group(group),
 			manager(manager),

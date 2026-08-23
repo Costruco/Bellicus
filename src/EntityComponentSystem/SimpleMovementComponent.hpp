@@ -11,7 +11,8 @@ class SimpleMovementComponent : public Component {
 		TransformComponent * transform;
 		float speed;
 		float turningSpeed;
-  
+
+		SimpleMovementComponent() = default;
 		SimpleMovementComponent(float speed, float turningSpeed) {
 			this->speed = speed;
 			this->turningSpeed = turningSpeed;

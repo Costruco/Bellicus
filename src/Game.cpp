@@ -25,6 +25,8 @@ const Uint8* Game::keystate = nullptr;
 auto& newPlayer(manager.addEntity());
 auto& wall(manager.addEntity());
 
+const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
+
 enum GroupLabels : std::size_t {
 	groupMap,
 	groupGround,
@@ -176,8 +178,8 @@ bool Game::running() {
 	return isRunning;
 }
 
-void Game::addTile(int id, int x, int y) {
+void Game::addTile(int srcx, int srcy, int xpos, int ypos) {
 	auto& tile(manager.addEntity());
-	tile.addComponent<TileComponent>(x,y,TILE_SIZE,TILE_SIZE,id);
+	tile.addComponent<TileComponent>(srcx,srcy,xpos,ypos,mapfile);
 	tile.addGroup(groupMap);
 }

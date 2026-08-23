@@ -29,11 +29,11 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
     return tex;
 }
 
-void TextureManager::drawTexture(TextureManager::TexturePtr tex, SDL_Rect * src, SDL_FRect * dst) {
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst) {
 	SDL_RenderCopyF(Game::ren,tex.get(),src,dst);
 }
 
-void TextureManager::drawTexture(TextureManager::TexturePtr tex, SDL_Rect * src, SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
 	SDL_RenderCopyExF(Game::ren,tex.get(),src,dst,angle,center,flip);
 }
 

@@ -29,5 +29,5 @@ class Game {
 		
 		bool running();
 		
-		static void addTile(int id, int x, int y);
+		static void addTile(int srcx, int srcy, int xpos, int ypos);
 };

@@ -8,5 +8,5 @@ class Map {
 		Map();
 		~Map();
 		
-		static void loadMap(std::string path, int sizeX, int sizeY);
+		static void loadMap(const std::string& path, int sizeX, int sizeY);
 };

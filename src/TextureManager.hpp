@@ -12,8 +12,8 @@ class TextureManager {
 		using TexturePtr = std::shared_ptr<SDL_Texture>;
 	
 		static TexturePtr loadTexture(const std::string& fileName);
-		static void drawTexture(TexturePtr, SDL_Rect * src, SDL_FRect * dst);
-		static void drawTexture(TexturePtr, SDL_Rect * src, SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip);
+		static void drawTexture(TexturePtr, const SDL_Rect * src, const SDL_FRect * dst);
+		static void drawTexture(TexturePtr, const SDL_Rect * src, const SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip);
 		static void unload(const std::string& path);
 		static void clear();
 };
