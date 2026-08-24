@@ -2,6 +2,7 @@
 
 #include "SDL2/SDL.h"
 #include <vector>
+#include "Camera.hpp"
 
 class ColliderComponent;
 
@@ -16,6 +17,10 @@ class Game {
 		static SDL_Event evt;
 		static std::vector<ColliderComponent*> colliders;
 		static const Uint8* keystate;
+		static Camera camera;
+
+		int WINDOW_WIDTH;
+		int WINDOW_HEIGHT;
 		
 		Game();
 		~Game();

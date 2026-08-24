@@ -9,6 +9,7 @@
 #include "FrameManager.hpp"
 #include "TextureManager.hpp"
 #include "Map.hpp"
+#include "Camera.hpp"
 
 #include "Vector2D.hpp"
 #include "EntityComponentSystem/Components.hpp"
@@ -21,6 +22,7 @@ SDL_Renderer * Game::ren = nullptr;
 SDL_Event Game::evt;
 std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
+Camera Game::camera;
 	
 auto& newPlayer(manager.addEntity());
 auto& wall(manager.addEntity());
@@ -54,6 +56,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
+		SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
 		if (win) {
 			std::cout << "Window created..." << std::endl;
 			//cria renderizador
@@ -78,7 +81,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<TransformComponent>(100,100,0.0f,/*220,118*/180,88,1);
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",true);
-	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-100,-45},{100,-45},{100,45},{-100,45}});
+	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
 	
 	newPlayer.addComponent<KeyboardController>();
 	
@@ -105,34 +108,67 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 }
 
 void Game::handleEvents() {
+	static int mouseX = 0, mouseY = 0;
+
+	float beforeWorldMouseX, beforeWorldMouseY;
+	camera.screenToWorld((float)mouseX,(float)mouseY,beforeWorldMouseX,beforeWorldMouseY);
+
 	SDL_PollEvent(&evt);
+	SDL_GetMouseState(&mouseX,&mouseY);
+	
+	float afterWorldMouseX, afterWorldMouseY;
+	camera.screenToWorld((float)mouseX,(float)mouseY,afterWorldMouseX,afterWorldMouseY);
+	
 	switch (evt.type) {
+		case SDL_KEYUP:
+		case SDL_KEYDOWN:
+			if (evt.key.keysym.sym == SDLK_ESCAPE)
+				camera.xmouseoffset = camera.ymouseoffset = 0.0f;
+			break;
 		case SDL_QUIT:
 			isRunning = false;
+			break;
+		case SDL_MOUSEWHEEL:
+			if (evt.wheel.y > 0 && camera.xscale+0.1f <= 5.0f) {
+				camera.xscale += 0.1f;
+				camera.yscale += 0.1f;
+			} else if (evt.wheel.y < 0 && camera.xscale-0.1f >= 0.1f) {
+				camera.xscale -= 0.1f;
+				camera.yscale -= 0.1f;
+			}
+			
+			camera.xmouseoffset += afterWorldMouseX-beforeWorldMouseX;
+			camera.ymouseoffset += afterWorldMouseY-beforeWorldMouseY;
 			break;
 		default:
 			break;
 	}
+	std::cout << "Camera scale: " << camera.xscale << std::endl;
+	std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
+	std::cout << "Before world position: " << beforeWorldMouseX << "," << beforeWorldMouseY <<std::endl;
+	std::cout << "After world position: " << afterWorldMouseX << "," << afterWorldMouseY << std::endl;
+	std::cout << "Offset: " << camera.xmouseoffset+camera.xoffset << "," << camera.ymouseoffset+camera.yoffset << std::endl;
 	keystate = SDL_GetKeyboardState(NULL);
 }
 
 void Game::update() {
 	manager.refresh();
-	manager.update();
-	
-	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1) {
+
+	camera.xoffset = newPlayer.getComponent<TransformComponent>().position.x-WINDOW_WIDTH/2;
+	camera.yoffset = newPlayer.getComponent<TransformComponent>().position.y-WINDOW_HEIGHT/2;
+	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
-	} else {
+	else
 		newPlayer.getComponent<SpriteComponent>().play("idle");
-	}
 	
 	updateCounter++;
+
 	if (!(updateCounter%60)) {
 		//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
-		std::cout << "---------------------------------------------------------------------------------------" << std::endl;
-		std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
-		std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
-		std::cout << newPlayer.getComponent<CarMovementComponent>().engineRPM << std::endl;
+		//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+		//std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
+		//std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
+		//std::cout << newPlayer.getComponent<CarMovementComponent>().engineRPM << std::endl;
 	}
 	
 	for (auto c : colliders) {
@@ -140,6 +176,8 @@ void Game::update() {
 			//std::cout << "Bateu!" << std::endl;
 		}
 	}
+	
+	manager.update();
 }
 
 auto& tiles(manager.getGroup(groupMap));

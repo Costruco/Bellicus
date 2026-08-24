@@ -30,11 +30,17 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
 }
 
 void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst) {
-	SDL_RenderCopyF(Game::ren,tex.get(),src,dst);
+    SDL_FRect screenDst = *dst;
+    Game::camera.worldToScreen(dst->x,dst->y,screenDst.x,screenDst.y);
+    SDL_RenderCopyF(Game::ren,tex.get(),src,&screenDst);
 }
 
-void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst, double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
-	SDL_RenderCopyExF(Game::ren,tex.get(),src,dst,angle,center,flip);
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst, 
+    double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
+
+    SDL_FRect screenDst = *dst;
+    Game::camera.worldToScreen(dst->x, dst->y,screenDst.x,screenDst.y);
+	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle,center,flip);
 }
 
 void TextureManager::unload(const std::string& path) {
