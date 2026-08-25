@@ -2,25 +2,28 @@
 
 class Camera {
     public:
-        float xoffset, yoffset;
-        float xscale, yscale;
-        float xmouseoffset, ymouseoffset;
+        float xOffset, yOffset;
+        float xScale, yScale;
+        float xZoomCenter, yZoomCenter;
+        float xMouseOffset, yMouseOffset;
 
         Camera() {
-            xoffset = 0.0f;
-            yoffset = 0.0f;
-            xscale = 1.0f;
-            yscale = 1.0f;
-            xmouseoffset = 0.0f;
-            ymouseoffset = 0.0f;
+            xOffset = 0.0f;
+            yOffset = 0.0f;
+            xScale = 1.0f;
+            yScale = 1.0f;
+            xZoomCenter = 0.0f;
+            yZoomCenter = 0.0f;
+            xMouseOffset = 0.0f;
+            yMouseOffset = 0.0f;
         }
 
         void worldToScreen(float worldx, float worldy, float& screenx, float& screeny) {
-            screenx = (float)(int)((worldx-(xoffset+xmouseoffset))*xscale);
-            screeny = (float)(int)((worldy-(yoffset+ymouseoffset))*yscale);
+            screenx = (float)((worldx-xZoomCenter)*xScale+xOffset);
+            screeny = (float)((worldy-yZoomCenter)*yScale+yOffset);
         }
         void screenToWorld(float screenx, float screeny, float& worldx, float& worldy) {
-            worldx = (float)(screenx/xscale)+xoffset+xmouseoffset;
-            worldy = (float)(screeny/yscale)+yoffset+ymouseoffset;
+            worldx = (float)((screenx-xOffset)/xScale+xZoomCenter);
+            worldy = (float)((screeny-yOffset)/yScale+yZoomCenter);
         }
 };

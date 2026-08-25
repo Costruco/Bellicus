@@ -290,7 +290,7 @@ class CarMovementComponent : public Component {
 			yawRate += angularAcceleration * dt;
 			yawRate -= yawRate * (yawDamping + std::sqrt(velocity.dot(velocity)) * 0.08f) * dt;
 
-			transform->position += velocity * dt;
+			transform->position += velocity * dt*4;
 			transform->direction = clockLimit(transform->direction + yawRate * toDeg * dt, 0.0f, 360.0f);
 			transform->velocity = velocity;
 			transform->angularVelocity = yawRate * toDeg;

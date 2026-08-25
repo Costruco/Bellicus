@@ -20,11 +20,11 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
 
     SDL_Texture* raw = IMG_LoadTexture(Game::ren, fileName.c_str());
     if (!raw) {
-        SDL_Log("Failed to load texture: %s", IMG_GetError());
+        SDL_Log("Failed to load texture: %s",IMG_GetError());
         return nullptr;
     }
 
-    TextureManager::TexturePtr tex(raw, SDL_DestroyTexture);
+    TextureManager::TexturePtr tex(raw,SDL_DestroyTexture);
     cache[fileName] = tex;
     return tex;
 }
@@ -32,6 +32,8 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
 void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst) {
     SDL_FRect screenDst = *dst;
     Game::camera.worldToScreen(dst->x,dst->y,screenDst.x,screenDst.y);
+    screenDst.w = dst->w*Game::camera.xScale;
+    screenDst.h = dst->h*Game::camera.yScale;
     SDL_RenderCopyF(Game::ren,tex.get(),src,&screenDst);
 }
 
@@ -39,8 +41,16 @@ void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect 
     double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
 
     SDL_FRect screenDst = *dst;
-    Game::camera.worldToScreen(dst->x, dst->y,screenDst.x,screenDst.y);
-	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle,center,flip);
+    Game::camera.worldToScreen(dst->x,dst->y,screenDst.x,screenDst.y);
+    screenDst.w = dst->w*Game::camera.xScale;
+    screenDst.h = dst->h*Game::camera.yScale;
+
+    SDL_FPoint screenCenter;
+    if (center) {
+        screenCenter.x = center->x*Game::camera.xScale;
+        screenCenter.y = center->y*Game::camera.yScale;
+    }
+	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle,(center?&screenCenter:nullptr),flip);
 }
 
 void TextureManager::unload(const std::string& path) {

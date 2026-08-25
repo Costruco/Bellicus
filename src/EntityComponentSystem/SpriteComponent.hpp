@@ -57,7 +57,9 @@ class SpriteComponent : public Component {
 				src.x = src.w*static_cast<int>((SDL_GetTicks()/frameDelay)%frames);
 			}
 			src.y = animIndex*transform->height;
-			
+		}
+		
+		void draw() override {
 			texture_center = {(transform->width/2.0f+transform->center_offset.x)*transform->getScale(),
 							  (transform->height/2.0f+transform->center_offset.y)*transform->getScale()};
 			Vector2D pos = transform->getPosition();
@@ -65,9 +67,6 @@ class SpriteComponent : public Component {
 				   pos.y-texture_center.y,
 				   transform->width*transform->getScale(),
 				   transform->height*transform->getScale()};
-		}
-		
-		void draw() override {
 			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center,SDL_FLIP_NONE);
 		}
 		

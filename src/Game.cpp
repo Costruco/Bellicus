@@ -93,15 +93,15 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 								GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f,2),
 								PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
 								PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
-								{CarWheelConfig(Vector2D(64.75f,-37.3f),Vector2D(31.6f,10.3f),true,true),
-								 CarWheelConfig(Vector2D(64.75f,37.3f),Vector2D(31.6f,10.3f),true,true),
-								 CarWheelConfig(Vector2D(-64.75f,-37.3f),Vector2D(31.6f,10.3f),false,false),
-								 CarWheelConfig(Vector2D(-64.75f,37.3f),Vector2D(31.6f,10.3f),false,false)});
+								{CarWheelConfig(Vector2D(64.75f,-37.3f),Vector2D(28.0f,12.0f),true,true),
+								 CarWheelConfig(Vector2D(64.75f,37.3f),Vector2D(28.0f,12.0f),true,true),
+								 CarWheelConfig(Vector2D(-64.75f,-37.3f),Vector2D(28.0f,12.0f),false,false),
+								 CarWheelConfig(Vector2D(-64.75f,37.3f),Vector2D(28.0f,12.0f),false,false)});
 	
 	newPlayer.addComponent<CarMovementComponent>(&manager,carConfig,"../assets/textures/entities/pneu.png",groupGround);
 	newPlayer.addGroup(groupPlayers);
 	
-	wall.addComponent<TransformComponent>(200,200,0.0f,200,300,1);
+	wall.addComponent<TransformComponent>(200,200,45.0f,200,300,1);
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
 	wall.addComponent<ColliderComponent>("wall",Polygon{{-100,-150},{100,-150},{100,150},{-100,150}});
 	wall.addGroup(groupMap);
@@ -123,39 +123,43 @@ void Game::handleEvents() {
 		case SDL_KEYUP:
 		case SDL_KEYDOWN:
 			if (evt.key.keysym.sym == SDLK_ESCAPE)
-				camera.xmouseoffset = camera.ymouseoffset = 0.0f;
+				camera.xMouseOffset = camera.yMouseOffset = 0.0f;
 			break;
 		case SDL_QUIT:
 			isRunning = false;
 			break;
 		case SDL_MOUSEWHEEL:
-			if (evt.wheel.y > 0 && camera.xscale+0.1f <= 5.0f) {
-				camera.xscale += 0.1f;
-				camera.yscale += 0.1f;
-			} else if (evt.wheel.y < 0 && camera.xscale-0.1f >= 0.1f) {
-				camera.xscale -= 0.1f;
-				camera.yscale -= 0.1f;
+			if (evt.wheel.y > 0 && camera.xScale+0.1f <= 5.0f) {
+				camera.xScale += 0.1f;
+				camera.yScale += 0.1f;
+			} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.1f) {
+				camera.xScale -= 0.1f;
+				camera.yScale -= 0.1f;
 			}
 			
-			camera.xmouseoffset += afterWorldMouseX-beforeWorldMouseX;
-			camera.ymouseoffset += afterWorldMouseY-beforeWorldMouseY;
+			camera.xMouseOffset += afterWorldMouseX-beforeWorldMouseX;
+			camera.yMouseOffset += afterWorldMouseY-beforeWorldMouseY;
 			break;
 		default:
 			break;
 	}
-	std::cout << "Camera scale: " << camera.xscale << std::endl;
+	std::cout << "Camera scale: " << camera.xScale << std::endl;
 	std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
 	std::cout << "Before world position: " << beforeWorldMouseX << "," << beforeWorldMouseY <<std::endl;
 	std::cout << "After world position: " << afterWorldMouseX << "," << afterWorldMouseY << std::endl;
-	std::cout << "Offset: " << camera.xmouseoffset+camera.xoffset << "," << camera.ymouseoffset+camera.yoffset << std::endl;
+	std::cout << "Offset: " << camera.xMouseOffset+camera.xOffset << "," << camera.yMouseOffset+camera.yOffset << std::endl;
 	keystate = SDL_GetKeyboardState(NULL);
 }
 
 void Game::update() {
 	manager.refresh();
+	manager.update();
 
-	camera.xoffset = newPlayer.getComponent<TransformComponent>().position.x-WINDOW_WIDTH/2;
-	camera.yoffset = newPlayer.getComponent<TransformComponent>().position.y-WINDOW_HEIGHT/2;
+	camera.xOffset = WINDOW_WIDTH/2;
+	camera.yOffset = WINDOW_HEIGHT/2;
+	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
+	camera.xZoomCenter = playerPos.x;
+	camera.yZoomCenter = playerPos.y;
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
 	else
@@ -176,8 +180,6 @@ void Game::update() {
 			//std::cout << "Bateu!" << std::endl;
 		}
 	}
-	
-	manager.update();
 }
 
 auto& tiles(manager.getGroup(groupMap));
