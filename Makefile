@@ -8,7 +8,7 @@ LIBRARY_PATHS = -LC:/msys64/ucrt64/lib
 
 COMPILER_FLAGS = -std=c++20 -static-libgcc -static-libstdc++
 
-LINKER_FLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2_gfx
+LINKER_FLAGS = -static -lmingw32 -lSDL2main $(shell pkg-config --static --libs sdl2 SDL2_image SDL2_mixer SDL2_ttf SDL2_gfx)
 
 OBJ_NAME = bin\Bellicus.exe
 
