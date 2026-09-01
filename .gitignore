@@ -1,6 +1,5 @@
 *.exe
 *.o
 *.dll
-*.txt
 *.zip
 .vscode
