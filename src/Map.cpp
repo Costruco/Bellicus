@@ -25,6 +25,7 @@ void Map::loadMap(const std::string& path, int sizeX, int sizeY) {
 			Game::addTile(srcx,srcy,x*TILE_SIZE,y*TILE_SIZE);
 			mapFile.ignore();
 		}
+		mapFile.ignore(2,'\n');
 	}
 	
 	mapFile.close();
