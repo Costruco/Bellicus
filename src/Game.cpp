@@ -72,7 +72,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	} else
 		isRunning = false;
 	
-	Map::loadMap("../assets/maps/map1.txt",10,10);
+	Map::loadMap("../assets/maps/map1.map",10,10);
 	
 	//inicializa entidades
 	/*newPlayer.addComponent<TransformComponent>(100,100,0.0f,180,88,1);
