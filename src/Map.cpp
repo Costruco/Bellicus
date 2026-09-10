@@ -10,14 +10,17 @@ Map::Map() {
 Map::~Map() {
 }
 
-void Map::loadMap(const std::string& path, int sizeX, int sizeY) {
+void Map::loadMap(const std::string& path, int &mapSizeX, int &mapSizeY) {
 	char tile;
 	std::fstream mapFile;
 	mapFile.open(path);
 	
-	int srcx,srcy;
-	for(int y = 0; y < sizeY; y++) {
-		for (int x = 0; x < sizeX; x++) {
+	int sizeX,sizeY,srcx,srcy;
+	mapFile >> sizeX >> sizeY;
+	mapSizeX = sizeX;
+	mapSizeY = sizeY;
+	for(int y = -sizeY/2; y < sizeY-sizeY/2; y++) {
+		for (int x = -sizeX/2; x < sizeX-sizeX/2; x++) {
 			mapFile.get(tile);
 			srcx = atoi(&tile)*TILE_SIZE;
 			mapFile.get(tile);

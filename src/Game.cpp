@@ -27,6 +27,7 @@ Camera Game::camera;
 auto& newPlayer(manager.addEntity());
 auto& wall(manager.addEntity());
 
+int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
 
 enum GroupLabels : std::size_t {
@@ -72,14 +73,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	} else
 		isRunning = false;
 	
-	Map::loadMap("../assets/maps/map1.map",10,10);
+	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
 	
 	//inicializa entidades
 	/*newPlayer.addComponent<TransformComponent>(100,100,0.0f,180,88,1);
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});*/
 	
-	newPlayer.addComponent<TransformComponent>(100,100,0.0f,/*220,118*/180,88,1);
+	newPlayer.addComponent<TransformComponent>(0,0,0.0f,/*220,118*/180,88,1);
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",true);
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});
 	
@@ -129,10 +130,10 @@ void Game::handleEvents() {
 			isRunning = false;
 			break;
 		case SDL_MOUSEWHEEL:
-			if (evt.wheel.y > 0 && camera.xScale+0.1f <= 5.0f) {
+			if (evt.wheel.y > 0 && camera.xScale+0.1f <= 2.0f) {
 				camera.xScale += 0.1f;
 				camera.yScale += 0.1f;
-			} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.1f) {
+			} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.5f) {
 				camera.xScale -= 0.1f;
 				camera.yScale -= 0.1f;
 			}
@@ -158,8 +159,17 @@ void Game::update() {
 	camera.xOffset = WINDOW_WIDTH/2;
 	camera.yOffset = WINDOW_HEIGHT/2;
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
-	camera.xZoomCenter = playerPos.x;
-	camera.yZoomCenter = playerPos.y;
+
+	//bloqueia a visão da parte exterior do mapa
+	float left = -mapSizeX/2*TILE_SIZE;
+	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
+	float top = -mapSizeY/2*TILE_SIZE;
+	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
+	float halfWidth = WINDOW_WIDTH/2/camera.xScale;
+	float halfHeight = WINDOW_HEIGHT/2/camera.yScale;
+	camera.xZoomCenter = std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x));
+	camera.yZoomCenter = std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y));
+
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
 	else
