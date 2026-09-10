@@ -114,35 +114,36 @@ void Game::handleEvents() {
 	float beforeWorldMouseX, beforeWorldMouseY;
 	camera.screenToWorld((float)mouseX,(float)mouseY,beforeWorldMouseX,beforeWorldMouseY);
 
-	SDL_PollEvent(&evt);
 	SDL_GetMouseState(&mouseX,&mouseY);
 	
 	float afterWorldMouseX, afterWorldMouseY;
 	camera.screenToWorld((float)mouseX,(float)mouseY,afterWorldMouseX,afterWorldMouseY);
 	
-	switch (evt.type) {
-		case SDL_KEYUP:
-		case SDL_KEYDOWN:
-			if (evt.key.keysym.sym == SDLK_ESCAPE)
-				camera.xMouseOffset = camera.yMouseOffset = 0.0f;
-			break;
-		case SDL_QUIT:
-			isRunning = false;
-			break;
-		case SDL_MOUSEWHEEL:
-			if (evt.wheel.y > 0 && camera.xScale+0.1f <= 2.0f) {
-				camera.xScale += 0.1f;
-				camera.yScale += 0.1f;
-			} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.5f) {
-				camera.xScale -= 0.1f;
-				camera.yScale -= 0.1f;
-			}
-			
-			camera.xMouseOffset += afterWorldMouseX-beforeWorldMouseX;
-			camera.yMouseOffset += afterWorldMouseY-beforeWorldMouseY;
-			break;
-		default:
-			break;
+	while (SDL_PollEvent(&evt)) {
+		switch (evt.type) {
+			case SDL_KEYUP:
+			case SDL_KEYDOWN:
+				if (evt.key.keysym.sym == SDLK_ESCAPE)
+					camera.xMouseOffset = camera.yMouseOffset = 0.0f;
+				break;
+			case SDL_QUIT:
+				isRunning = false;
+				break;
+			case SDL_MOUSEWHEEL:
+				if (evt.wheel.y > 0 && camera.xScale+0.1f <= 2.0f) {
+					camera.xScale += 0.1f;
+					camera.yScale += 0.1f;
+				} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.5f) {
+					camera.xScale -= 0.1f;
+					camera.yScale -= 0.1f;
+				}
+				
+				camera.xMouseOffset += afterWorldMouseX-beforeWorldMouseX;
+				camera.yMouseOffset += afterWorldMouseY-beforeWorldMouseY;
+				break;
+			default:
+				break;
+		}
 	}
 	std::cout << "Camera scale: " << camera.xScale << std::endl;
 	std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
