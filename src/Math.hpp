@@ -25,7 +25,9 @@ inline float tand(float angle) {
 }
 
 inline float atand(float y, float x) {
-	return std::atan2(y, x) * toDeg;
+	if (x == 0.0f || y == 0.0f)
+		return 0.0f;
+	return std::atan(y/x) * toDeg;
 }
 
 inline float sign(float n) {
