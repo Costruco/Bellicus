@@ -694,7 +694,7 @@ class CarMovementComponent : public Component {
 				wheelEntities.push_back(&wheelEntity);
 		
 				auto& wheelTransform = wheelEntity.addComponent<TransformComponent>(local.x,local.y,size.x,size.y);
-				wheelTransform.setFather(transform);
+				wheelTransform.entity->setFather(entity);
 				wheelEntity.addComponent<SpriteComponent>(wheelTexturePath);
 				wheelEntity.addComponent<ColliderComponent>(wheelColliderTag,Polygon{{-size.x/2,-size.y/2},
 																					 {size.x/2,-size.y/2},

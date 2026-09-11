@@ -38,6 +38,14 @@ void Entity::addSon(Entity * son) {
 	son->setFather(this);
 }
 
+const Entity * Entity::getFather() const {
+	return father;
+}
+
+const std::vector<Entity*>& Entity::getSons() const {
+	return sons;
+}
+
 void Entity::removeSon(Entity * son) {
 	if (!son)
 		return;

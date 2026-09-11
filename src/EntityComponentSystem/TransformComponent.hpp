@@ -9,9 +9,6 @@
 
 class TransformComponent : public Component {
 	public:
-		TransformComponent * father = nullptr;
-		std::vector<TransformComponent*> sons;
-		
 		Vector2D position;
 		Vector2D velocity;
 		
@@ -86,106 +83,30 @@ class TransformComponent : public Component {
 			scale = 1.0f;
 		}
 		
-		void setFather(TransformComponent * newFather) {
-			if (newFather == this)
-				return;
-		
-			if (father == newFather)
-				return;
-		
-			if (newFather && newFather->hasFather(this))
-				return;
-		
-			if (father)
-				father->removeSonOnly(this);
-		
-			father = newFather;
-		
-			if (father)
-				father->addSonOnly(this);
-		}
-
-		void addSon(TransformComponent * son) {
-			if (!son)
-				return;
-		
-			son->setFather(this);
-		}
-		
-		void removeSon(TransformComponent * son) {
-			if (!son)
-				return;
-		
-			if (son->father == this)
-				son->father = nullptr;
-		
-			removeSonOnly(son);
-		}
-		
-		void removeFromFather() {
-			if (father)
-				father->removeSonOnly(this);
-		
-			father = nullptr;
-		}
-		
-		bool hasFather(TransformComponent * possibleFather) const {
-			TransformComponent * current = father;
-		
-			while (current) {
-				if (current == possibleFather)
-					return true;
-		
-				current = current->father;
-			}
-		
-			return false;
-		}
-		
-		void destroySonsRecursive() {
-			std::vector<TransformComponent*> sonsCopy = sons;
-			sons.clear();
-		
-			for (TransformComponent * son : sonsCopy) {
-				if (!son)
-					continue;
-		
-				son->father = nullptr;
-				son->destroySonsRecursive();
-		
-				if (son->entity)
-					son->entity->destroy();
-			}
-		}
-		
 		Vector2D getPosition() const {
-			if (father)
-				return (position*father->getScale()).rotate({0, 0},father->getDirection())+father->getPosition();
+			const Entity * fatherEntity = entity->getFather();
+			if (fatherEntity) {
+				TransformComponent * fatherTransform = &fatherEntity->getComponent<TransformComponent>();
+				return (position*fatherTransform->getScale()).rotate({0, 0},fatherTransform->getDirection())+fatherTransform->getPosition();
+			}
 			return position;
 		}
 
 		float getDirection() const {
-			if (father)
-				return clockLimit(direction+father->getDirection(),0.0f,360.0f);
+			const Entity * fatherEntity = entity->getFather();
+			if (fatherEntity) {
+				TransformComponent * fatherTransform = &fatherEntity->getComponent<TransformComponent>();
+				return clockLimit(direction+fatherTransform->getDirection(),0.0f,360.0f);
+			}
 			return direction;
 		}
 		
 		float getScale() const {
-			if (father)
-				return scale*father->getScale();
+			const Entity * fatherEntity = entity->getFather();
+			if (fatherEntity) {
+				TransformComponent * fatherTransform = &fatherEntity->getComponent<TransformComponent>();
+				return scale*fatherTransform->getScale();
+			}
 			return scale;
-		}
-		
-	private:
-		void addSonOnly(TransformComponent * son) {
-			if (!son)
-				return;
-	
-			if (std::find(sons.begin(), sons.end(), son) == sons.end())
-				sons.push_back(son);
-		}
-	
-		void removeSonOnly(TransformComponent * son) {
-			sons.erase(std::remove(sons.begin(), sons.end(), son), sons.end());
 		}
 };

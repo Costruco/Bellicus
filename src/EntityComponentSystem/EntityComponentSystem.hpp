@@ -89,6 +89,7 @@ class Entity {
 		
 		void destroy() {
 			active = false;
+			destroySonsRecursive();
 		}
 		
 		bool hasGroup(Group mGroup) {
@@ -124,6 +125,8 @@ class Entity {
 
 		void setFather(Entity * newFather);
 		void addSon(Entity * son);
+		const Entity * getFather() const;
+		const std::vector<Entity*>& getSons() const;
 		void removeSon(Entity * son);
 		void removeFromFather();
 		bool hasFather(Entity * possibleFather) const;
