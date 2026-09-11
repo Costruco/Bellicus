@@ -163,6 +163,16 @@ void Game::update() {
 	camera.yOffset = WINDOW_HEIGHT/2;
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
 
+	//destroi o carro para testar fim de jogo e destruicao de entidades
+	if (playerPos.x > 800) {
+		newPlayer.destroy();
+		manager.refresh();
+		Game::render();
+		SDL_Delay(1000);
+		isRunning = false;
+		return;
+	}
+
 	//bloqueia a visão da parte exterior do mapa
 	float left = -mapSizeX/2*TILE_SIZE;
 	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
