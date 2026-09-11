@@ -124,7 +124,7 @@ Vector2D operator/(const Vector2D& v, float x) {
 	return Vector2D(v.x/x,v.y/x);
 }
 
-//operadores de atribuição
+//operadores de atribuicao
 Vector2D& Vector2D::operator+=(const Vector2D& v) {
 	return this->add(v);
 }
@@ -142,6 +142,26 @@ Vector2D& Vector2D::operator*=(float x) {
 }
 Vector2D& Vector2D::operator/=(float x) {
 	return this->scale(1/x);
+}
+
+//operadores de comparacao
+bool Vector2D::operator==(const Vector2D& v2) const {
+	return (this->x==v2.x && this->y==v2.y);
+}
+bool Vector2D::operator!=(const Vector2D& v2) const {
+	return !(this->operator==(v2));
+}
+bool Vector2D::operator<(const Vector2D& v2) const {
+	return (this->getModule()<v2.getModule());
+}
+bool Vector2D::operator>(const Vector2D& v2) const {
+	return (this->getModule()>v2.getModule());
+}
+bool Vector2D::operator<=(const Vector2D& v2) const {
+	return !(this->operator>(v2));
+}
+bool Vector2D::operator>=(const Vector2D& v2) const {
+	return !(this->operator<(v2));
 }
 
 Vector2D::operator SDL_FPoint() const {
