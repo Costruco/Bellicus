@@ -30,6 +30,15 @@ struct CarWheelConfig {
 		size(size),
 		steerable(steerable),
 		driven(driven) {}
+
+	CarWheelConfig(Vector2D size, bool steerable, bool driven) :
+		size(size),
+		steerable(steerable),
+		driven(driven) {}
+
+	CarWheelConfig(bool steerable, bool driven) :
+		steerable(steerable),
+		driven(driven) {}
 };
 
 struct CarMovementConfig {
@@ -684,15 +693,22 @@ class CarMovementComponent : public Component {
 		}
 		
 		void createWheelEntities() {
-			for (int i = 0; i < static_cast<int>(wheels.size()); i++) {
+			Vector2D defaultWheelSize;
+			if (wheels.size())
+				defaultWheelSize = wheels[0].size;
+			for (int i = 0; i < wheels.size(); i++) {
 				WheelPhysics& wheel = wheels[i];
-		
+				
+				float x = (i<wheels.size()/2)?wheelBase*0.5f:-wheelBase*0.5f;
+				float y = (i%2==0)?-trackWidth*0.5f:trackWidth*0.5f;
+				wheel.localPosition = (wheel.localPosition==Vector2D())?Vector2D(x,y):wheel.localPosition;
 				Vector2D local = wheel.localPosition;
+				wheel.size = (wheel.size==Vector2D())?defaultWheelSize:wheel.size;
 				Vector2D size = wheel.size;
 		
 				Entity& wheelEntity = manager->addEntity();
 				wheelEntities.push_back(&wheelEntity);
-		
+				std::cout << local << size << std::endl;
 				auto& wheelTransform = wheelEntity.addComponent<TransformComponent>(local.x,local.y,size.x,size.y);
 				wheelTransform.setFather(transform);
 				wheelEntity.addComponent<SpriteComponent>(wheelTexturePath);
