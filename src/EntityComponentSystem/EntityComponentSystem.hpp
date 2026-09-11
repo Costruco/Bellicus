@@ -61,7 +61,13 @@ class Entity {
 		ComponentArray componentArray;
 		ComponentBitSet componentBitSet;
 		GroupBitSet groupBitSet;
+
+		Entity * father = nullptr;
+		std::vector<Entity*> sons;
 		
+		void addSonOnly(Entity * son);
+		void removeSonOnly(Entity * son);
+
 	public:
 		Entity(Manager& mManager): manager(mManager) {}
 		
@@ -115,6 +121,13 @@ class Entity {
 			auto ptr(componentArray[getComponentTypeID<T>()]);
 			return * static_cast<T*>(ptr);
 		}		
+
+		void setFather(Entity * newFather);
+		void addSon(Entity * son);
+		void removeSon(Entity * son);
+		void removeFromFather();
+		bool hasFather(Entity * possibleFather) const;
+		void destroySonsRecursive();
 };
 
 class Manager {
