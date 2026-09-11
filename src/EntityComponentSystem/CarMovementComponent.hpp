@@ -321,8 +321,7 @@ class CarMovementComponent : public Component {
 					input.brake = 1.0f;
 				else
 					input.throttle = 1.0f;
-			}
-			else if (transform->moveIntent == MovementDirection::BACKWARD) {
+			} else if (transform->moveIntent == MovementDirection::BACKWARD) {
 				if (forwardSpeed > 0.0f)
 					input.brake = 1.0f;
 				else
@@ -378,7 +377,7 @@ class CarMovementComponent : public Component {
 			if (std::abs(ratio) <= 0.0001f)
 				return 0.0f;
 		
-			return torqueCurve.getTorque(rpm) * std::abs(ratio);
+			return torqueCurve.getTorque(rpm)*std::abs(ratio);
 		}
 
 		void updateTransmission(float dt, const VehicleControl& input) {
@@ -396,16 +395,13 @@ class CarMovementComponent : public Component {
 			if (transform->moveIntent == MovementDirection::BACKWARD) {
 				if (forwardSpeed <= 0.0f)
 					gearbox.setGear(0);
-		
 				return;
 			}
-		
 			if (transform->moveIntent != MovementDirection::FORWARD)
 				return;
-		
 			if (forwardSpeed < 0.0f)
 				return;
-		
+
 			if (gearbox.gear < 2)
 				gearbox.setGear(2);
 		
@@ -416,11 +412,8 @@ class CarMovementComponent : public Component {
 				return;
 		
 			int currentGear = gearbox.gear;
-			int nextGear = currentGear + 1;
-			int previousGear = currentGear - 1;
-		
-			float upshiftRPM = maxRPM * 0.88f;
-			float downshiftRPM = maxRPM * 0.38f;
+			int nextGear = currentGear+1;
+			int previousGear = currentGear-1;
 		
 			if (nextGear <= gearbox.maxGear()) {
 				float nextRPM = rpmAfterShift(nextGear);
@@ -448,20 +441,16 @@ class CarMovementComponent : public Component {
 		Vector2D forward() const {
 			return Vector2D::fromPolar(1.0f, transform->direction);
 		}
-
 		Vector2D localToWorld(Vector2D v) const {
 			return forward()*v.x+right()*v.y;
-		}
-		
+		}	
 		Vector2D right() const {
 			Vector2D f = forward();
 			return f.perpendicular();
 		}
-
 		Vector2D wheelForward(const WheelPhysics& wheel) const {
 			return Vector2D::fromPolar(1.0f, transform->direction + wheel.steerAngle);
 		}
-
 		Vector2D pointVelocity(Vector2D offset) const {
 			Vector2D tangent = offset.perpendicular();
 			return velocity+tangent*yawRate;
@@ -473,49 +462,29 @@ class CarMovementComponent : public Component {
 		
 			return mass*(wb*wb+tw*tw)/12.0f;
 		}
-
 		float weight() const {
 			return mass * GRAVITY;
 		}
-
+		
 		int frontWheelCount() const {
 			int count = 0;
-
 			for (const WheelPhysics& wheel : wheels)
 				if (wheel.localPosition.x >= 0.0f)
 					count++;
-
 			return count;
 		}
-
 		int rearWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.x < 0.0f)
-					count++;
-
-			return count;
+			return wheels.size()-frontWheelCount();
 		}
-
 		int positiveSideWheelCount() const {
 			int count = 0;
-
 			for (const WheelPhysics& wheel : wheels)
 				if (wheel.localPosition.y >= 0.0f)
 					count++;
-
 			return count;
 		}
-
 		int negativeSideWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.y < 0.0f)
-					count++;
-
-			return count;
+			return wheels.size()-positiveSideWheelCount();
 		}
 
 		void updateNormalLoads() {
