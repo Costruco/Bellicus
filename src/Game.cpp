@@ -64,7 +64,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 			ren = SDL_CreateRenderer(win,-1,0);
 			if (ren) {
 				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
-				SDL_SetRenderDrawColor(ren,255,255,255,255);
+				SDL_SetRenderDrawColor(ren,0,0,0,255);
 				std::cout << "Renderer created...\n" << "Game started..." << std::endl;
 				
 				isRunning = true;
@@ -145,11 +145,11 @@ void Game::handleEvents() {
 				break;
 		}
 	}
-	std::cout << "Camera scale: " << camera.xScale << std::endl;
-	std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
-	std::cout << "Before world position: " << beforeWorldMouseX << "," << beforeWorldMouseY <<std::endl;
-	std::cout << "After world position: " << afterWorldMouseX << "," << afterWorldMouseY << std::endl;
-	std::cout << "Offset: " << camera.xMouseOffset+camera.xOffset << "," << camera.yMouseOffset+camera.yOffset << std::endl;
+	//std::cout << "Camera scale: " << camera.xScale << std::endl;
+	//std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
+	//std::cout << "Before world position: " << beforeWorldMouseX << "," << beforeWorldMouseY <<std::endl;
+	//std::cout << "After world position: " << afterWorldMouseX << "," << afterWorldMouseY << std::endl;
+	//std::cout << "Offset: " << camera.xMouseOffset+camera.xOffset << "," << camera.yMouseOffset+camera.yOffset << std::endl;
 	keystate = SDL_GetKeyboardState(NULL);
 }
 
@@ -188,7 +188,7 @@ void Game::update() {
 	
 	updateCounter++;
 
-	if (!(updateCounter%60)) {
+	if (SDL_GetTicks64()%1000 == 0) {
 		//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
 		//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
 		//std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
@@ -209,7 +209,6 @@ auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
 
 void Game::render() {
-	SDL_SetRenderDrawColor(ren,255,255,255,255);
 	SDL_RenderClear(ren);
 	for (auto& t : tiles) {
 		t->draw();
