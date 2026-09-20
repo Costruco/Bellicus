@@ -49,6 +49,13 @@ class Vector2D {
 		Vector2D& operator/=(const Vector2D& v);
 		Vector2D& operator*=(float x);
 		Vector2D& operator/=(float x);
+
+		bool operator==(const Vector2D& v2) const;
+		bool operator!=(const Vector2D& v2) const;
+		bool operator<(const Vector2D& v2) const;
+		bool operator>(const Vector2D& v2) const;
+		bool operator<=(const Vector2D& v2) const;
+		bool operator>=(const Vector2D& v2) const;
 		
 		operator SDL_FPoint() const;
     	

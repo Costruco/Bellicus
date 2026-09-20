@@ -8,7 +8,10 @@ class Polygon {
 	public:
 		std::vector<Vector2D> points;
 		
-		Polygon() : points{{0,0},{0,1},{1,1},{1,0}} {}
+		Polygon() : points{} {}
+		Polygon(float width, float height) {
+			points = {{-width/2,-height/2},{width/2,-height/2},{width/2,height/2},{-width/2,height/2}};
+		}
 		Polygon(const std::vector<Vector2D>& pts) : points(std::move(pts)) {}
 		Polygon(std::initializer_list<Vector2D> pts) : points(pts) {}
 		

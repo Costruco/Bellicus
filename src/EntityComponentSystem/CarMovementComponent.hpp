@@ -10,6 +10,7 @@
 #include "Physics.hpp"
 #include "Polygon.hpp"
 #include "FrameManager.hpp"
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include "Game.hpp"
 
 #include <vector>
@@ -28,6 +29,15 @@ struct CarWheelConfig {
 	CarWheelConfig(Vector2D localPosition, Vector2D size, bool steerable, bool driven) :
 		localPosition(localPosition),
 		size(size),
+		steerable(steerable),
+		driven(driven) {}
+
+	CarWheelConfig(Vector2D size, bool steerable, bool driven) :
+		size(size),
+		steerable(steerable),
+		driven(driven) {}
+
+	CarWheelConfig(bool steerable, bool driven) :
 		steerable(steerable),
 		driven(driven) {}
 };
@@ -276,15 +286,16 @@ class CarMovementComponent : public Component {
 			Vector2D dir = Vector2D::fromPolar(1,transform->getDirection());
 			float signedVelocity = velocity.dot(dir);
 			if (signedVelocity > 0)
-				velocity = Vector2D::max(velocity-dir*groundDrag*GRAVITY*dt,Vector2D(),dir);
+				velocity = Vector2D::max(velocity-velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
 			else
-				velocity = Vector2D::min(velocity+dir*groundDrag*GRAVITY*dt,Vector2D(),dir);
+				velocity = Vector2D::min(velocity+velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
 				
 			yawRate += angularAcceleration * dt;
-			yawRate -= yawRate * (yawDamping + std::sqrt(velocity.dot(velocity)) * 0.08f) * dt;
-
-			transform->position += velocity * dt*4;
-			transform->direction = clockLimit(transform->direction + yawRate * toDeg * dt, 0.0f, 360.0f);
+			yawRate = moveToward(yawRate, 0.0f, yawDamping*dt);
+			if (getSpeed() < 0.1f)
+				yawRate = 0.0f;
+			transform->position += velocity*dt;
+			transform->direction = clockLimit(transform->direction+yawRate*toDeg*dt,0.0f,360.0f);
 			transform->velocity = velocity;
 			transform->angularVelocity = yawRate * toDeg;
 			
@@ -302,23 +313,13 @@ class CarMovementComponent : public Component {
 		
 			float forwardSpeed = velocity.dot(forward());
 		
-			if (transform->turnIntent == TurnDirection::LEFT)
-				input.steer = -1.0f;
-			else if (transform->turnIntent == TurnDirection::RIGHT)
-				input.steer = 1.0f;
-		
-			if (transform->moveIntent == MovementDirection::FORWARD) {
-				if (forwardSpeed < 0.0f)
-					input.brake = 1.0f;
-				else
-					input.throttle = 1.0f;
-			}
-			else if (transform->moveIntent == MovementDirection::BACKWARD) {
-				if (forwardSpeed > 0.0f)
-					input.brake = 1.0f;
-				else
-					input.throttle = 1.0f;
-			}
+			input.steer = static_cast<int>(transform->turnIntent);
+			if (transform->moveIntent == MovementDirection::STILL)
+				return input;
+			if (static_cast<int>(transform->moveIntent) == sign(forwardSpeed) || sign(forwardSpeed) == 0)
+				input.throttle = 1.0f;
+			else
+				input.brake = 1.0f;
 			return input;
 		}
 
@@ -369,7 +370,7 @@ class CarMovementComponent : public Component {
 			if (std::abs(ratio) <= 0.0001f)
 				return 0.0f;
 		
-			return torqueCurve.getTorque(rpm) * std::abs(ratio);
+			return torqueCurve.getTorque(rpm)*std::abs(ratio);
 		}
 
 		void updateTransmission(float dt, const VehicleControl& input) {
@@ -387,16 +388,13 @@ class CarMovementComponent : public Component {
 			if (transform->moveIntent == MovementDirection::BACKWARD) {
 				if (forwardSpeed <= 0.0f)
 					gearbox.setGear(0);
-		
 				return;
 			}
-		
 			if (transform->moveIntent != MovementDirection::FORWARD)
 				return;
-		
 			if (forwardSpeed < 0.0f)
 				return;
-		
+
 			if (gearbox.gear < 2)
 				gearbox.setGear(2);
 		
@@ -407,11 +405,8 @@ class CarMovementComponent : public Component {
 				return;
 		
 			int currentGear = gearbox.gear;
-			int nextGear = currentGear + 1;
-			int previousGear = currentGear - 1;
-		
-			float upshiftRPM = maxRPM * 0.88f;
-			float downshiftRPM = maxRPM * 0.38f;
+			int nextGear = currentGear+1;
+			int previousGear = currentGear-1;
 		
 			if (nextGear <= gearbox.maxGear()) {
 				float nextRPM = rpmAfterShift(nextGear);
@@ -439,20 +434,16 @@ class CarMovementComponent : public Component {
 		Vector2D forward() const {
 			return Vector2D::fromPolar(1.0f, transform->direction);
 		}
-
 		Vector2D localToWorld(Vector2D v) const {
 			return forward()*v.x+right()*v.y;
-		}
-		
+		}	
 		Vector2D right() const {
 			Vector2D f = forward();
 			return f.perpendicular();
 		}
-
 		Vector2D wheelForward(const WheelPhysics& wheel) const {
 			return Vector2D::fromPolar(1.0f, transform->direction + wheel.steerAngle);
 		}
-
 		Vector2D pointVelocity(Vector2D offset) const {
 			Vector2D tangent = offset.perpendicular();
 			return velocity+tangent*yawRate;
@@ -464,96 +455,18 @@ class CarMovementComponent : public Component {
 		
 			return mass*(wb*wb+tw*tw)/12.0f;
 		}
-
 		float weight() const {
 			return mass * GRAVITY;
-		}
-
-		int frontWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.x >= 0.0f)
-					count++;
-
-			return count;
-		}
-
-		int rearWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.x < 0.0f)
-					count++;
-
-			return count;
-		}
-
-		int positiveSideWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.y >= 0.0f)
-					count++;
-
-			return count;
-		}
-
-		int negativeSideWheelCount() const {
-			int count = 0;
-
-			for (const WheelPhysics& wheel : wheels)
-				if (wheel.localPosition.y < 0.0f)
-					count++;
-
-			return count;
 		}
 
 		void updateNormalLoads() {
 			if (wheels.empty())
 				return;
 
-			float speedSq = velocity.dot(velocity);
-			float totalWeight = weight() + downforce * speedSq;
+			float wheelLoad = weight()/wheels.size();
 
-			int frontCount = frontWheelCount();
-			int rearCount = rearWheelCount();
-			int positiveSideCount = positiveSideWheelCount();
-			int negativeSideCount = negativeSideWheelCount();
-
-			float frontAxleLoad = totalWeight/2.0f;
-			float rearAxleLoad = totalWeight/2.0f;
-
-			float longAcceleration = previousAcceleration.dot(forward());
-			float latAcceleration = previousAcceleration.dot(right());
-
-			float longTransfer = mass*longAcceleration*cgHeight/wheelBase;
-			float lateralTransfer = mass*latAcceleration*cgHeight/trackWidth;
-
-			frontAxleLoad -= longTransfer;
-			rearAxleLoad += longTransfer;
-
-			for (WheelPhysics& wheel : wheels) {
-				bool frontAxle = wheel.localPosition.x >= 0.0f;
-				bool positiveSide = wheel.localPosition.y >= 0.0f;
-
-				float load = totalWeight/static_cast<float>(wheels.size());
-
-				if (frontCount > 0 && rearCount > 0) {
-					if (frontAxle)
-						load = frontAxleLoad/static_cast<float>(frontCount);
-					else
-						load = rearAxleLoad/static_cast<float>(rearCount);
-				}
-
-				if (positiveSideCount > 0 && negativeSideCount > 0) {
-					if (positiveSide)
-						load -= lateralTransfer / static_cast<float>(positiveSideCount);
-					else
-						load += lateralTransfer / static_cast<float>(negativeSideCount);
-				}
-				wheel.normalLoad = load;
-			}
+			for (WheelPhysics& wheel : wheels)
+				wheel.normalLoad = wheelLoad;
 		}
 
 		float averageDrivenWheelOmega() const {
@@ -569,7 +482,7 @@ class CarMovementComponent : public Component {
 
 			if (count == 0)
 				return 0.0f;
-			return sum/static_cast<float>(count);
+			return sum/count;
 		}
 
 		void updateEngineAndDrivenWheels(float dt, const VehicleControl& input) {
@@ -664,11 +577,9 @@ class CarMovementComponent : public Component {
 				wheel.slipAngle += (targetSlipAngle - wheel.slipAngle) * relaxation;
 
 				float maxGrip = tireMu * wheel.normalLoad;
-				float lateralGripScale = clamp(wheelSpeed / lowSpeedLateralGripSpeed, 0.0f, 1.0f);
-				float longitudinalGripScale = clamp(std::max(std::abs(surfaceSpeed), std::abs(vx)) / 75.0f, 0.0f, 1.0f);
 
-				float fx = longitudinalCurve.evaluate(wheel.slipRatio) * maxGrip * longitudinalGripScale;
-				float fy = -lateralCurve.evaluate(wheel.slipAngle) * maxGrip * lateralGripScale;
+				float fx = longitudinalCurve.evaluate(wheel.slipRatio) * maxGrip;
+				float fy = -lateralCurve.evaluate(wheel.slipAngle) * maxGrip;
 				float forceMag = std::sqrt(fx * fx + fy * fy);
 
 				if (forceMag > maxGrip && forceMag > 0.0001f) {
@@ -684,23 +595,25 @@ class CarMovementComponent : public Component {
 		}
 		
 		void createWheelEntities() {
-			for (int i = 0; i < static_cast<int>(wheels.size()); i++) {
+			Vector2D defaultWheelSize;
+			if (wheels.size())
+				defaultWheelSize = wheels[0].size;
+			for (int i = 0; i < wheels.size(); i++) {
 				WheelPhysics& wheel = wheels[i];
-		
+				
+				float x = (i<wheels.size()/2)?wheelBase*0.5f:-wheelBase*0.5f;
+				float y = (i%2==0)?-trackWidth*0.5f:trackWidth*0.5f;
+				wheel.localPosition = (wheel.localPosition==Vector2D())?Vector2D(x,y):wheel.localPosition;
 				Vector2D local = wheel.localPosition;
+				wheel.size = (wheel.size==Vector2D())?defaultWheelSize:wheel.size;
 				Vector2D size = wheel.size;
 		
 				Entity& wheelEntity = manager->addEntity();
 				wheelEntities.push_back(&wheelEntity);
-		
 				auto& wheelTransform = wheelEntity.addComponent<TransformComponent>(local.x,local.y,size.x,size.y);
 				wheelTransform.entity->setFather(entity);
 				wheelEntity.addComponent<SpriteComponent>(wheelTexturePath);
-				wheelEntity.addComponent<ColliderComponent>(wheelColliderTag,Polygon{{-size.x/2,-size.y/2},
-																					 {size.x/2,-size.y/2},
-																					 {size.x/2,size.y/2},
-																					 {-size.x/2,size.y/2}});
-																						 
+				wheelEntity.addComponent<ColliderComponent>(wheelColliderTag);																 
 				wheelEntity.addGroup(group);
 			}
 		}
