@@ -25,9 +25,9 @@ inline MovementDirection& operator-=(MovementDirection& md, int delta) {
 
 //TurnDirection
 enum class TurnDirection : int {
-	RIGHT = -1,
+	LEFT = -1,
 	STRAIGHT = 0,
-	LEFT = 1
+	RIGHT = 1
 };
 
 inline TurnDirection& operator+=(TurnDirection& td, int delta) {
