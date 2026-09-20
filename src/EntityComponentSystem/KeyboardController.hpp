@@ -16,19 +16,17 @@ class KeyboardController : public Component {
 			const Uint8* keystate = Game::keystate;
 	
 			//direction
-		    if (keystate[SDL_SCANCODE_A] && !keystate[SDL_SCANCODE_D])
-		        transform->turnIntent = TurnDirection::LEFT;
-		    else if (keystate[SDL_SCANCODE_D] && !keystate[SDL_SCANCODE_A])
-		        transform->turnIntent = TurnDirection::RIGHT;
-		    else
-		        transform->turnIntent = TurnDirection::STRAIGHT;
+			transform->turnIntent = TurnDirection::STRAIGHT;
+			if (keystate[SDL_SCANCODE_A])
+				transform->turnIntent -= 1;
+			if (keystate[SDL_SCANCODE_D])
+				transform->turnIntent += 1;
 		        
 			//movement
-		    if (keystate[SDL_SCANCODE_W] && !keystate[SDL_SCANCODE_S])
-		        transform->moveIntent = MovementDirection::FORWARD;
-		    else if (keystate[SDL_SCANCODE_S] && !keystate[SDL_SCANCODE_W])
-		        transform->moveIntent = MovementDirection::BACKWARD;
-		    else
-		        transform->moveIntent = MovementDirection::STILL;
+			transform->moveIntent = MovementDirection::STILL;
+			if (keystate[SDL_SCANCODE_W])
+				transform->moveIntent += 1;
+			if (keystate[SDL_SCANCODE_S])
+				transform->moveIntent -= 1;
 		}
 };

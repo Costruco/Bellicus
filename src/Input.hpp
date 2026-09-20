@@ -31,12 +31,12 @@ enum class TurnDirection : int {
 };
 
 inline TurnDirection& operator+=(TurnDirection& td, int delta) {
-    int v = static_cast<int>(td) + delta;
+    int v = static_cast<int>(td)+delta;
 
-    if (v < static_cast<int>(TurnDirection::RIGHT))
-		v = static_cast<int>(TurnDirection::RIGHT);
-    if (v > static_cast<int>(TurnDirection::LEFT))
+	if (v < static_cast<int>(TurnDirection::LEFT))
 		v = static_cast<int>(TurnDirection::LEFT);
+    if (v > static_cast<int>(TurnDirection::RIGHT))
+		v = static_cast<int>(TurnDirection::RIGHT);
 
     td = static_cast<TurnDirection>(v);
     return td;
