@@ -16,16 +16,27 @@ class ColliderComponent : public Component {
 		const std::string& tag;
 		TransformComponent * transform;
 		
-		ColliderComponent() = default;
+		ColliderComponent(const std::string& tag) : tag(tag) {			
+		}
+		ColliderComponent(const std::string& tag, float width, float height) : tag(tag) {
+			collider = Polygon(width,height);		
+		}
 		ColliderComponent(const std::string& tag, std::initializer_list<Vector2D> pts) : collider(pts), tag(tag) {
 		}
 		ColliderComponent(const std::string& tag, const Polygon& poly) : collider(std::move(poly)), tag(tag) {
+		}
+		~ColliderComponent() {
+			std::vector<ColliderComponent*>::iterator it = std::find(Game::colliders.begin(),Game::colliders.end(), this);
+			if (it != Game::colliders.end())
+				Game::colliders.erase(it);
 		}
 		
 		void init() override {
 			if (!entity->hasComponent<TransformComponent>())
 				entity->addComponent<TransformComponent>();
 			transform = &entity->getComponent<TransformComponent>();
+			if (collider.points.empty())
+				collider = Polygon(transform->width,transform->height);
 			
 			Game::colliders.push_back(this);
 		}
