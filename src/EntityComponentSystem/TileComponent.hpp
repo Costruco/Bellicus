@@ -26,6 +26,6 @@ class TileComponent : public Component {
 		}
 
 		void draw() override {
-			TextureManager::drawTexture(texture,&src,&dst);
+			TextureManager::drawTexture(texture,&src,&dst,0,nullptr,SDL_FLIP_NONE);
 		}
 };

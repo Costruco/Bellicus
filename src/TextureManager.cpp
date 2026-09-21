@@ -32,8 +32,7 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
 void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst) {
     SDL_FRect screenDst = *dst;
     Game::camera.worldToScreen(dst->x,dst->y,screenDst.x,screenDst.y);
-    screenDst.w = dst->w*Game::camera.xScale;
-    screenDst.h = dst->h*Game::camera.yScale;
+    Game::camera.worldSizeToScreen(dst->w,dst->h,screenDst.w,screenDst.h);
     SDL_RenderCopyF(Game::ren,tex.get(),src,&screenDst);
 }
 
@@ -42,15 +41,12 @@ void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect 
 
     SDL_FRect screenDst = *dst;
     Game::camera.worldToScreen(dst->x,dst->y,screenDst.x,screenDst.y);
-    screenDst.w = dst->w*Game::camera.xScale;
-    screenDst.h = dst->h*Game::camera.yScale;
+    Game::camera.worldSizeToScreen(dst->w,dst->h,screenDst.w,screenDst.h);
 
     SDL_FPoint screenCenter;
-    if (center) {
-        screenCenter.x = center->x*Game::camera.xScale;
-        screenCenter.y = center->y*Game::camera.yScale;
-    }
-	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle,(center?&screenCenter:nullptr),flip);
+    if (center)
+        Game::camera.worldSizeToScreen(center->x,center->y,screenCenter.x,screenCenter.y);
+	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,(center?&screenCenter:nullptr),flip);
 }
 
 void TextureManager::unload(const std::string& path) {

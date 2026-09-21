@@ -164,6 +164,7 @@ void Game::update() {
 
 	camera.xOffset = WINDOW_WIDTH/2;
 	camera.yOffset = WINDOW_HEIGHT/2;
+	camera.angle = newPlayer.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
 
 	//destroi o carro para testar fim de jogo e destruicao de entidades
@@ -193,8 +194,9 @@ void Game::update() {
 	
 	updateCounter++;
 
-	if (SDL_GetTicks64()%1000 == 0) {
-		//std::cout << newPlayer.getComponent<TransformComponent>().position.x << std::endl;
+	if (updateCounter == 10) {
+		//std::cout << Vector2D(playerPos) << std::endl;
+		//std::cout << newPlayer.getComponent<TransformComponent>().getDirection() << std::endl;
 		//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
 		//std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
 		//std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
