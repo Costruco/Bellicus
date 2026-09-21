@@ -129,22 +129,19 @@ void Game::handleEvents() {
 			case SDL_KEYUP:
 			case SDL_KEYDOWN:
 				if (evt.key.keysym.sym == SDLK_ESCAPE)
-					camera.xMouseOffset = camera.yMouseOffset = 0.0f;
+					camera.mouseOffset = Vector2D();
 				break;
 			case SDL_QUIT:
 				isRunning = false;
 				break;
 			case SDL_MOUSEWHEEL:
-				if (evt.wheel.y > 0 && camera.xScale+0.1f <= 2.0f) {
-					camera.xScale += 0.1f;
-					camera.yScale += 0.1f;
-				} else if (evt.wheel.y < 0 && camera.xScale-0.1f >= 0.5f) {
-					camera.xScale -= 0.1f;
-					camera.yScale -= 0.1f;
+				if (evt.wheel.y > 0 && camera.scale.x+0.1f <= 2.0f) {
+					camera.scale += {0.1f,0.1f};
+				} else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f) {
+					camera.scale -= {0.1f,0.1f};
 				}
 				
-				camera.xMouseOffset += afterWorldMouseX-beforeWorldMouseX;
-				camera.yMouseOffset += afterWorldMouseY-beforeWorldMouseY;
+				camera.mouseOffset += {afterWorldMouseX-beforeWorldMouseX,afterWorldMouseY-beforeWorldMouseY}
 				break;
 			default:
 				break;
@@ -162,8 +159,7 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	camera.xOffset = WINDOW_WIDTH/2;
-	camera.yOffset = WINDOW_HEIGHT/2;
+	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2}
 	camera.angle = newPlayer.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
 
@@ -182,10 +178,10 @@ void Game::update() {
 	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
 	float top = -mapSizeY/2*TILE_SIZE;
 	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
-	float halfWidth = WINDOW_WIDTH/2/camera.xScale;
-	float halfHeight = WINDOW_HEIGHT/2/camera.yScale;
-	camera.xZoomCenter = std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x));
-	camera.yZoomCenter = std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y));
+	float halfWidth = WINDOW_WIDTH/2/camera.scale.x;
+	float halfHeight = WINDOW_HEIGHT/2/camera.scale.y;
+	camera.zoomCenter = {std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x))
+						,std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y))};
 
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");

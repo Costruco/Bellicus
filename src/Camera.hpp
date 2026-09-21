@@ -5,48 +5,46 @@
 class Camera {
     public:
         float angle;
-        float xOffset, yOffset;
-        float xScale, yScale;
-        float xZoomCenter, yZoomCenter;
-        float xMouseOffset, yMouseOffset;
+        Vector2D offset();
+        Vector2D scale();
+        Vector2D zoomCenter();
+        Vector2D mouseOffset();
 
         Camera() {
             angle = 0.0f;
-            xOffset = 0.0f;
-            yOffset = 0.0f;
-            xScale = 1.0f;
-            yScale = 1.0f;
-            xZoomCenter = 0.0f;
-            yZoomCenter = 0.0f;
-            xMouseOffset = 0.0f;
-            yMouseOffset = 0.0f;
+			scale = Vector2D(1.0f,1.0f);
         }
 
-        void worldToScreen(float worldx, float worldy, float& screenx, float& screeny) {
-            Vector2D screen = {worldx,worldy};
-            screen = screen.rotate(Vector2D{xZoomCenter,yZoomCenter},angle);
-            screen.x = (float)((screen.x-xZoomCenter)*xScale+xOffset);
-            screen.y = (float)((screen.y-yZoomCenter)*yScale+yOffset);
-            screenx = screen.x;
-            screeny = screen.y;
+        void worldToScreen(const Vector2D& world, Vector2D& screen) {
+            screen = (world-zoomCenter)*this->scale+offset;
+            screen = screen.rotate(zoomCenter,angle);
+        }
+        
+        void worldToScreen(Vector2D& world) {
+        	worldToScreen(world,world);
+		}
+		
+		void worldToScreen(const SDL_Rect& world, SDL_Rect& screen) {
+        	Vector2D pos(world.x,world.y), size(world.w,world.h);
+        	worldToScreen(pos);
+        	worldSizeToScreen(size);
+        	screen = {pos.x,pos.y,size.x,size.y};
+		}
+
+        void worldSizeToScreen(const Vector2D& worldSize, Vector2D& screenSize) {
+            screenSize = worldSize*this->scale;
         }
 
-        void worldSizeToScreen(float worldw, float worldh, float& screenw, float& screenh) {
-            screenw = worldw*xScale;
-            screenh = worldh*yScale;
+        void screenToWorld(const Vector2D& screen, Vector2D& world) {
+            world = screen.rotate(zoomCenter,-angle);
+            world = (world-offset)/this->scale+zoomCenter;
         }
+        
+        void screenToWorld(Vector2D& screen) {
+        	screenToWorld(screen,screen);
+		}
 
-        void screenToWorld(float screenx, float screeny, float& worldx, float& worldy) {
-            Vector2D world;
-            world.x = (float)((screenx-xOffset)/xScale+xZoomCenter);
-            world.y = (float)((screeny-yOffset)/yScale+yZoomCenter);
-            world = world.rotate(Vector2D{xZoomCenter,yZoomCenter},-angle);
-            worldx = world.x;
-            worldy = world.y;
-        }
-
-        void screenSizeToWorld(float screenw, float screenh, float& worldw, float& worldh) {
-            worldw = screenw/xScale;
-            worldh = screenh/yScale;
+        void screenSizeToWorld(const Vector2D& screenSize, Vector2D& worldSize) {
+            worldSize = screenSize/this->scale;
         }
 };

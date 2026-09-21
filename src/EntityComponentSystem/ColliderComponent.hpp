@@ -64,12 +64,11 @@ class ColliderComponent : public Component {
 			Polygon trueCollider = this->getWorldPoints();
 			size_t size = trueCollider.points.size();
 			for (size_t i = 0; i < size; i++) {
-				SDL_FRect line = {trueCollider.points[i].x,trueCollider.points[i].y,
-				              trueCollider.points[(i+1)%size].x,
-							  trueCollider.points[(i+1)%size].y};
-				Game::camera.worldToScreen(line.x,line.y,line.x,line.y);
-				Game::camera.worldToScreen(line.w,line.h,line.w,line.h);
-				lineRGBA(Game::ren,line.x,line.y,line.w,line.h,255,0,0,255);
+				Vector2D line1 = {trueCollider.points[i].x,trueCollider.points[i].y};
+				Vector2D line2 = {trueCollider.points[(i+1)%size].x,trueCollider.points[(i+1)%size].y};
+				Game::camera.worldToScreen(line1);
+				Game::camera.worldToScreen(line2);
+				lineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,255,0,0,255);
 			}
 		}
 };
