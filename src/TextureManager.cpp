@@ -4,6 +4,7 @@
 #include "SDL2/SDL_image.h"
 
 #include "Game.hpp"
+#include "Vector2D.hpp"
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -30,20 +31,22 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
 }
 
 void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst) {
-    SDL_FRect screenDst;
-    Game::camera.worldToScreen(*dst,screenDst);
+    SDL_FRect screenDst = *dst;
+    Game::camera.worldToScreen(screenDst);
     SDL_RenderCopyF(Game::ren,tex.get(),src,&screenDst);
 }
 
 void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst, 
     double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
 	
-    SDL_FRect screenDst;
-    Game::camera.worldToScreen(*dst,screenDst);
+    SDL_FRect screenDst = *dst;
+    Game::camera.worldToScreen(screenDst);
 
-    SDL_FPoint screenCenter;
-    if (center)
-        Game::camera.worldSizeToScreen(static_cast<Vector2D>(center),static_cast<Vector2D>(screenCenter));
+    
+    if (center) {
+        SDL_FPoint screenCenter = *center;
+        Game::camera.worldSizeToScreen(screenCenter);
+    }
 	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,(center?&screenCenter:nullptr),flip);
 }
 
