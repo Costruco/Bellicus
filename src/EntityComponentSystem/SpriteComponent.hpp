@@ -67,7 +67,7 @@ class SpriteComponent : public Component {
 				   pos.y-texture_center.y,
 				   transform->width*transform->getScale(),
 				   transform->height*transform->getScale()};
-			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center,SDL_FLIP_NONE);
+			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center);
 		}
 		
 		void play(const std::string& animName) {

@@ -114,15 +114,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 }
 
 void Game::handleEvents() {
-	static int mouseX = 0, mouseY = 0;
+	static Vector2D mouse;
+	int mouseX,mouseY;
 
-	float beforeWorldMouseX, beforeWorldMouseY;
-	camera.screenToWorld((float)mouseX,(float)mouseY,beforeWorldMouseX,beforeWorldMouseY);
-
+	Vector2D beforeWorldMouse = camera.screenToWorld(mouse);
 	SDL_GetMouseState(&mouseX,&mouseY);
+	mouse = {mouseX,mouseY};
 	
-	float afterWorldMouseX, afterWorldMouseY;
-	camera.screenToWorld((float)mouseX,(float)mouseY,afterWorldMouseX,afterWorldMouseY);
+	Vector2D afterWorldMouse = camera.screenToWorld(mouse);
 	
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {
@@ -135,13 +134,13 @@ void Game::handleEvents() {
 				isRunning = false;
 				break;
 			case SDL_MOUSEWHEEL:
-				if (evt.wheel.y > 0 && camera.scale.x+0.1f <= 2.0f) {
+				if (evt.wheel.y > 0 && camera.scale.x+0.1f <= 2.0f)
 					camera.scale += {0.1f,0.1f};
-				} else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f) {
+				else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f)
 					camera.scale -= {0.1f,0.1f};
-				}
 				
-				camera.mouseOffset += {afterWorldMouseX-beforeWorldMouseX,afterWorldMouseY-beforeWorldMouseY}
+				camera.mouseOffset += {afterWorldMouse.x-beforeWorldMouse.x,
+									   afterWorldMouse.y-beforeWorldMouse.y};
 				break;
 			default:
 				break;
@@ -159,8 +158,8 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2}
-	camera.angle = newPlayer.getComponent<TransformComponent>().getDirection();
+	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
+	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
 
 	//destroi o carro para testar fim de jogo e destruicao de entidades
@@ -180,8 +179,8 @@ void Game::update() {
 	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
 	float halfWidth = WINDOW_WIDTH/2/camera.scale.x;
 	float halfHeight = WINDOW_HEIGHT/2/camera.scale.y;
-	camera.zoomCenter = {std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x))
-						,std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y))};
+	camera.focus = {std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x)),
+				    std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y))};
 
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");

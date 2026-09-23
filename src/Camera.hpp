@@ -6,8 +6,8 @@ class Camera {
     public:
         float angle;
         Vector2D offset{};
-        Vector2D scale{};
-        Vector2D zoomCenter{};
+        Vector2D scale;
+        Vector2D focus{};
         Vector2D mouseOffset{};
 
         Camera() {
@@ -15,36 +15,27 @@ class Camera {
 			scale = Vector2D(1.0f,1.0f);
         }
 
-        void worldToScreen(const Vector2D& world, Vector2D& screen) {
-            screen = (world-zoomCenter)*this->scale+offset;
-            screen = screen.rotate(zoomCenter,angle);
+        Vector2D worldToScreen(const Vector2D& world) const {
+            Vector2D screen = world.rotate(focus,-angle);
+            return (screen-focus)*this->scale+offset;
         }
-        void worldToScreen(Vector2D& world) {
-        	worldToScreen(world,world);
-		}
-		void worldToScreen(const SDL_Rect& world, SDL_Rect& screen) {
+		SDL_FRect worldToScreen(const SDL_FRect& world) const {
         	Vector2D pos(world.x,world.y), size(world.w,world.h);
-        	worldToScreen(pos);
-        	worldSizeToScreen(size);
-        	screen = {pos.x,pos.y,size.x,size.y};
+        	pos = worldToScreen(pos);
+        	size = worldSizeToScreen(size);
+        	return {pos.x,pos.y,size.x,size.y};
 		}
 
-        void worldSizeToScreen(const Vector2D& worldSize, Vector2D& screenSize) {
-            screenSize = worldSize*this->scale;
-        }
-        void worldSizeToScreen(Vector2D& screenSize) {
-            worldSizeToScreen(screenSize,screenSize);
+        Vector2D worldSizeToScreen(const Vector2D& worldSize) const {
+            return worldSize*this->scale;
         }
 
-        void screenToWorld(const Vector2D& screen, Vector2D& world) {
-            world = screen.rotate(zoomCenter,-angle);
-            world = (world-offset)/this->scale+zoomCenter;
+        Vector2D screenToWorld(const Vector2D& screen) const {
+            Vector2D world = screen.rotate(focus,angle);
+            return (world-offset)/this->scale+focus;
         }
-        void screenToWorld(Vector2D& screen) {
-        	screenToWorld(screen,screen);
-		}
 
-        void screenSizeToWorld(const Vector2D& screenSize, Vector2D& worldSize) {
-            worldSize = screenSize/this->scale;
+        Vector2D screenSizeToWorld(const Vector2D& screenSize) const {
+            return screenSize/this->scale;
         }
 };

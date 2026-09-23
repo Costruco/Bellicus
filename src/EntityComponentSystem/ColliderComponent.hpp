@@ -66,8 +66,8 @@ class ColliderComponent : public Component {
 			for (size_t i = 0; i < size; i++) {
 				Vector2D line1 = {trueCollider.points[i].x,trueCollider.points[i].y};
 				Vector2D line2 = {trueCollider.points[(i+1)%size].x,trueCollider.points[(i+1)%size].y};
-				Game::camera.worldToScreen(line1);
-				Game::camera.worldToScreen(line2);
+				line1 = Game::camera.worldToScreen(line1);
+				line2 = Game::camera.worldToScreen(line2);
 				lineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,255,0,0,255);
 			}
 		}
