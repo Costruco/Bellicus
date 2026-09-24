@@ -12,12 +12,10 @@
 std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> TextureManager::cache;
 
 TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileName) {
-	auto it = cache.find(fileName);
-    if (it != cache.end()) {
-        if (auto tex = it->second.lock()) {
+    auto it = cache.find(fileName);
+    if (it != cache.end())
+        if (auto tex = it->second.lock())
             return tex;
-        }
-    }
 
     SDL_Texture* raw = IMG_LoadTexture(Game::ren, fileName.c_str());
     if (!raw) {
@@ -30,18 +28,21 @@ TextureManager::TexturePtr TextureManager::loadTexture(const std::string& fileNa
     return tex;
 }
 
-void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect * src, const SDL_FRect * dst, 
-    double angle, SDL_FPoint * center, SDL_RendererFlip flip) {
-	
-    SDL_FRect screenDst = *dst;
-    screenDst = Game::camera.worldToScreen(screenDst);
+void TextureManager::drawTexture(TextureManager::TexturePtr tex, const SDL_Rect* src, const SDL_FRect* dst, 
+                                double angle, SDL_FPoint* center, SDL_RendererFlip flip) {
+    Vector2D localCenter = (center)?Vector2D(center->x,center->y):Vector2D(dst->w/2,dst->h/2);
+    Vector2D worldCenter = localCenter+Vector2D(dst->x,dst->y);
 
-    SDL_FPoint screenCenter;
-    if (center) {
-        screenCenter = *center;
-        screenCenter = Game::camera.worldSizeToScreen(screenCenter);
-    }
-	SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,center,flip);
+    Vector2D screenCenter = Game::camera.worldToScreen(worldCenter);
+    Vector2D screenSize = Game::camera.worldSizeToScreen(Vector2D(dst->w,dst->h));
+    Vector2D scaledCenter = Game::camera.worldSizeToScreen(localCenter);
+
+    SDL_FRect screenDst = {screenCenter.x-scaledCenter.x,
+                           screenCenter.y-scaledCenter.y,
+                           screenSize.x,screenSize.y};
+    SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
+
+    SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
 }
 
 void TextureManager::unload(const std::string& path) {

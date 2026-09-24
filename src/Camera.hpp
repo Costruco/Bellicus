@@ -16,9 +16,9 @@ class Camera {
         }
 
         Vector2D worldToScreen(const Vector2D& world) const {
-            Vector2D screen = world.rotate(focus,-angle);
-            return (screen-focus)*this->scale+offset;
+            return ((world-focus)*scale).rotate(Vector2D(),-angle)+offset;
         }
+
 		SDL_FRect worldToScreen(const SDL_FRect& world) const {
         	Vector2D pos(world.x,world.y), size(world.w,world.h);
         	pos = worldToScreen(pos);
@@ -27,15 +27,14 @@ class Camera {
 		}
 
         Vector2D worldSizeToScreen(const Vector2D& worldSize) const {
-            return worldSize*this->scale;
+            return worldSize*scale;
         }
 
         Vector2D screenToWorld(const Vector2D& screen) const {
-            Vector2D world = screen.rotate(focus,angle);
-            return (world-offset)/this->scale+focus;
+            return (screen-offset).rotate(Vector2D(),angle)/scale+focus;
         }
 
         Vector2D screenSizeToWorld(const Vector2D& screenSize) const {
-            return screenSize/this->scale;
+            return screenSize/scale;
         }
 };
