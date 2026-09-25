@@ -21,6 +21,7 @@ class Game {
 
 		int WINDOW_WIDTH;
 		int WINDOW_HEIGHT;
+	    Vector2D logicalScale;
 		
 		Game();
 		~Game();

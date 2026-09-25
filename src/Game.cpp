@@ -58,10 +58,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
-		WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
+		
 		
 		if (win) {
-			std::cout << "Window created..." << std::endl;
+			SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
+			std::cout << "Window created with screen logical size "<< width<<"x"<<height << "..." << std::endl;
+			std::cout << "Window created with screen real size "<< WINDOW_WIDTH<<"x"<<WINDOW_HEIGHT << "..." << std::endl;
+			logicalScale = {static_cast<float>(width/WINDOW_WIDTH),static_cast<float>(height/WINDOW_HEIGHT)};
+			WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED);
 			SDL_RenderSetLogicalSize(ren,width,height);
@@ -113,18 +117,16 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	vaga.addComponent<TransformComponent>(-200,-200,0.0f,637,90,1);
 	vaga.addComponent<SpriteComponent>("../assets/textures/features/vaga.png");
 	vaga.addGroup(groupGround);
-	std::cout << WINDOW_WIDTH << " " << WINDOW_HEIGHT << std::endl;
 }
 
 void Game::handleEvents() {
 	static Vector2D mouse;
 	int mouseX,mouseY;
 
-	Vector2D beforeWorldMouse = camera.screenToWorld(mouse);
+	Vector2D beforeWorldMouse = camera.screenToWorld(mouse*logicalScale);
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
-	std::cout << mouse << std::endl;
-	Vector2D afterWorldMouse = camera.screenToWorld(mouse);
+	Vector2D afterWorldMouse = camera.screenToWorld(mouse*logicalScale);
 	
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {

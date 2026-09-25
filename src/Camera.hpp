@@ -5,15 +5,12 @@
 class Camera {
     public:
         float angle;
-        Vector2D offset{};
+        Vector2D offset;
         Vector2D scale;
-        Vector2D focus{};
-        Vector2D mouseOffset{};
+        Vector2D focus;
+        Vector2D mouseOffset;
 
-        Camera() {
-            angle = 0.0f;
-			scale = Vector2D(1.0f,1.0f);
-        }
+        Camera() : angle(), offset(), scale(1.0f,1.0f), focus(), mouseOffset() {}
 
         Vector2D worldToScreen(const Vector2D& world) const {
             return ((world-focus)*scale).rotate(Vector2D(),-angle)+offset;
