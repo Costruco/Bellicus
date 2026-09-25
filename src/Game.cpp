@@ -58,12 +58,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
-		SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
+		WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
 		
 		if (win) {
 			std::cout << "Window created..." << std::endl;
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED);
+			SDL_RenderSetLogicalSize(ren,width,height);
 			if (ren) {
 				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
 				SDL_SetRenderDrawColor(ren,0,0,0,255);
@@ -112,6 +113,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	vaga.addComponent<TransformComponent>(-200,-200,0.0f,637,90,1);
 	vaga.addComponent<SpriteComponent>("../assets/textures/features/vaga.png");
 	vaga.addGroup(groupGround);
+	std::cout << WINDOW_WIDTH << " " << WINDOW_HEIGHT << std::endl;
 }
 
 void Game::handleEvents() {
@@ -121,7 +123,7 @@ void Game::handleEvents() {
 	Vector2D beforeWorldMouse = camera.screenToWorld(mouse);
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
-	
+	std::cout << mouse << std::endl;
 	Vector2D afterWorldMouse = camera.screenToWorld(mouse);
 	
 	while (SDL_PollEvent(&evt)) {
@@ -212,6 +214,7 @@ auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
 
 void Game::render() {
+	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_RenderClear(ren);
 	for (auto& t : tiles) {
 		t->draw();
