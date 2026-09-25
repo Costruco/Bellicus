@@ -51,7 +51,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	//inicializa as flags
 	int flags = SDL_WINDOW_SHOWN;
 	if (fullscreen)
-		flags = flags | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP;
+		flags = flags | SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	//inicializa o sdl
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
@@ -59,10 +59,11 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
 		SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
+		
 		if (win) {
 			std::cout << "Window created..." << std::endl;
 			//cria renderizador
-			ren = SDL_CreateRenderer(win,-1,0);
+			ren = SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED);
 			if (ren) {
 				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
 				SDL_SetRenderDrawColor(ren,0,0,0,255);
