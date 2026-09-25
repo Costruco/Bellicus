@@ -182,10 +182,10 @@ void Game::update() {
 	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
 	float top = -mapSizeY/2*TILE_SIZE;
 	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
-	float halfWidth = WINDOW_WIDTH/2/camera.scale.x;
-	float halfHeight = WINDOW_HEIGHT/2/camera.scale.y;
-	camera.focus = {std::max(left+halfWidth,std::min(right-halfWidth,playerPos.x)),
-				    std::max(top+halfHeight,std::min(bottom-halfHeight,playerPos.y))};
+	float cos = std::abs(cosd(camera.angle)), sin = std::abs(sind(camera.angle));
+	Vector2D halfSize = Vector2D(WINDOW_WIDTH*cos+WINDOW_HEIGHT*sin,WINDOW_WIDTH*sin+WINDOW_HEIGHT*cos)/2/camera.scale;
+	camera.focus = {clamp(playerPos.x,left+halfSize.x,right-halfSize.x),
+				    clamp(playerPos.y,top+halfSize.y,bottom-halfSize.y)};
 
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
