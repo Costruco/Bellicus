@@ -288,7 +288,7 @@ class CarMovementComponent : public Component {
 			if (signedVelocity > 0)
 				velocity = Vector2D::max(velocity-velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
 			else
-				velocity = Vector2D::min(velocity+velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
+				velocity = Vector2D::min(velocity-velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
 				
 			yawRate += angularAcceleration * dt;
 			yawRate = moveToward(yawRate, 0.0f, yawDamping*dt);
