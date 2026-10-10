@@ -2,6 +2,7 @@
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_image.h"
+#include "SDL2/SDL_ttf.h"
 
 #include <iostream>
 #include <vector>
@@ -54,7 +55,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		flags = flags | SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	//inicializa o sdl
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && TTF_Init() == 0) {
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
@@ -237,6 +238,8 @@ void Game::clean() {
 	manager.clear();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
+	IMG_Quit();
+	TTF_Quit();
 	SDL_Quit();
 	std::cout << "Game cleaned." << std::endl;
 }
