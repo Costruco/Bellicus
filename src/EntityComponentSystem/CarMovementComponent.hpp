@@ -297,14 +297,11 @@ class CarMovementComponent : public Component {
 			float angularAcceleration = totalTorque/yawInertia();
 
 			velocity += acceleration * dt;
-			
-			Vector2D dir = Vector2D::fromPolar(1,transform->getDirection());
-			float signedVelocity = velocity.dot(dir);
-			if (signedVelocity > 0)
-				velocity = Vector2D::max(velocity-velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
-			else
-				velocity = Vector2D::min(velocity-velocity.getDirection()*groundDrag*GRAVITY*dt,Vector2D(),dir);
-				
+
+			float speed = getSpeed();
+			if (speed > 0.0f)
+				velocity = velocity.getDirection()*std::max(0.0f,speed-groundDrag*GRAVITY*dt);
+
 			yawRate += angularAcceleration * dt;
 			yawRate = moveToward(yawRate, 0.0f, yawDamping*dt);
 			if (getSpeed() < 0.1f)
@@ -320,15 +317,25 @@ class CarMovementComponent : public Component {
 		VehicleControl getInput() {
 			VehicleControl input;
 		
-			float forwardSpeed = velocity.dot(forward());
-		
 			input.steer = static_cast<int>(transform->turnIntent);
 			if (transform->moveIntent == MovementDirection::STILL)
 				return input;
-			if (static_cast<int>(transform->moveIntent) == sign(forwardSpeed) || sign(forwardSpeed) == 0)
-				input.throttle = 1.0f;
-			else
-				input.brake = 1.0f;
+
+			float forwardSpeed = velocity.dot(forward());
+			float speed = getSpeed();
+
+			if (transform->moveIntent == MovementDirection::FORWARD) {
+				if (gearbox.gear == 0 && forwardSpeed < -10.0f)
+					input.brake = 1.0f;
+				else
+					input.throttle = 1.0f;
+			}
+			else if (transform->moveIntent == MovementDirection::BACKWARD) {
+				if (gearbox.gear == 0 || (speed < 15.0f && forwardSpeed <= 5.0f))
+					input.throttle = 1.0f;
+				else
+					input.brake = 1.0f;
+			}
 			return input;
 		}
 
@@ -389,49 +396,38 @@ class CarMovementComponent : public Component {
 			float forwardSpeed = velocity.dot(forward());
 			float speed = getSpeed();
 		
-			if (transform->moveIntent == MovementDirection::STILL && speed == 0.0f) {
+			if (transform->moveIntent == MovementDirection::STILL && speed < 5.0f) {
 				gearbox.setGear(1);
 				return;
 			}
 		
-			if (transform->moveIntent == MovementDirection::BACKWARD) {
-				if (forwardSpeed <= 0.0f)
-					gearbox.setGear(0);
+			if (transform->moveIntent == MovementDirection::BACKWARD && (gearbox.gear == 0 || (speed < 15.0f && forwardSpeed <= 5.0f))) {
+				gearbox.setGear(0);
 				return;
 			}
-			if (transform->moveIntent != MovementDirection::FORWARD)
-				return;
-			if (forwardSpeed < 0.0f)
-				return;
 
-			if (gearbox.gear < 2)
+			if (transform->moveIntent == MovementDirection::FORWARD && gearbox.gear < 2 && forwardSpeed >= -10.0f)
 				gearbox.setGear(2);
-		
-			if (input.throttle <= 0.0f)
-				return;
-		
-			if (shiftCooldown > 0.0f)
+
+			if (gearbox.gear < 2 || shiftCooldown > 0.0f)
 				return;
 		
 			int currentGear = gearbox.gear;
 			int nextGear = currentGear+1;
 			int previousGear = currentGear-1;
+			float wheelRPM = clamp(std::abs(radToRpm((forwardSpeed/wheelRadius)*gearbox.totalRatio())),idleRPM,maxRPM);
 		
-			if (nextGear <= gearbox.maxGear()) {
+			if (input.throttle > 0.0f && nextGear <= gearbox.maxGear() && engineRPM >= maxRPM*0.86f) {
 				float nextRPM = rpmAfterShift(nextGear);
-		
-				if (torqueCurve.getTorque(nextRPM) >= torqueCurve.getTorque(engineRPM)) {
-					gearbox.shiftUp();
-					engineRPM = nextRPM;
-					shiftCooldown = shiftDelay;
-					return;
-				}
+				gearbox.shiftUp();
+				engineRPM = nextRPM;
+				shiftCooldown = shiftDelay;
+				return;
 			}
 		
-			if (previousGear >= 2) {
-				float previousRPM = rpmAfterShift(previousGear);
-		
-				if (torqueCurve.getTorque(previousRPM) >= torqueCurve.getTorque(engineRPM)) {
+			if (previousGear >= 2 && std::min(engineRPM,wheelRPM) <= idleRPM+(maxRPM-idleRPM)*0.35f) {
+				float previousRPM = clamp(std::min(engineRPM,wheelRPM)*std::abs(gearRatioAt(previousGear)/gearRatioAt(currentGear)),idleRPM,maxRPM);
+				if (previousRPM <= maxRPM*0.80f) {
 					gearbox.shiftDown();
 					engineRPM = previousRPM;
 					shiftCooldown = shiftDelay;
@@ -472,10 +468,20 @@ class CarMovementComponent : public Component {
 			if (wheels.empty())
 				return;
 
-			float wheelLoad = weight()/wheels.size();
+			float speedM = getSpeed()/PIXELS_PER_METER;
+			float totalWeight = weight()+downforce*speedM*speedM*PIXELS_PER_METER;
+			float longAcc = clamp(previousAcceleration.dot(forward()),-1.5f*GRAVITY,1.5f*GRAVITY);
+			float latAcc = clamp(previousAcceleration.dot(right()),-1.5f*GRAVITY,1.5f*GRAVITY);
+			float longTransfer = mass*longAcc*cgHeight/wheelBase;
+			float latTransfer = mass*latAcc*cgHeight/trackWidth;
+			float baseLoad = totalWeight/wheels.size();
 
-			for (WheelPhysics& wheel : wheels)
-				wheel.normalLoad = wheelLoad;
+			for (WheelPhysics& wheel : wheels) {
+				float load = baseLoad;
+				load += (wheel.localPosition.x >= 0.0f)?(-0.5f*longTransfer):(0.5f*longTransfer);
+				load += (wheel.localPosition.y >= 0.0f)?(-0.5f*latTransfer):(0.5f*latTransfer);
+				wheel.normalLoad = clamp(load,totalWeight*0.05f,totalWeight*0.60f);
+			}
 		}
 
 		float averageDrivenWheelOmega() const {
@@ -496,38 +502,28 @@ class CarMovementComponent : public Component {
 
 		void updateEngineAndDrivenWheels(float dt, const VehicleControl& input) {
 			float torque = torqueCurve.getTorque(engineRPM);
+			float torqueScale = torque/std::max(1.0f,torqueCurve.maxTorque);
 			float ratio = gearbox.totalRatio();
-		
-			float throttleTargetRPM = idleRPM+input.throttle*(maxRPM-idleRPM);
+			float rpmSpan = maxRPM-idleRPM;
 		
 			if (gearbox.inNeutral()) {
-				float dRPM = (throttleTargetRPM-engineRPM)*engineThrottleGain;
-				dRPM -= (maxRPM-idleRPM)*engineFriction;
-		
-				engineRPM += dRPM * dt;
-				engineRPM = clamp(engineRPM,idleRPM,maxRPM);
-				return;
-			}
-		
-			if (input.throttle <= 0.0f) {	
-				engineRPM -= (maxRPM-idleRPM)*engineFriction*dt;
-				engineRPM = clamp(engineRPM,idleRPM,maxRPM);
+				float friction = (engineRPM-idleRPM)*engineFriction;
+				float dRPM = input.throttle*torqueScale*rpmSpan*engineThrottleGain-friction;
+				engineRPM = clamp(engineRPM+dRPM*dt,idleRPM,maxRPM);
 				return;
 			}
 		
 			float drivenOmega = averageDrivenWheelOmega();
-			float expectedEngineRPM = std::abs(radToRpm(drivenOmega*ratio));
+			float expectedEngineRPM = clamp(std::abs(radToRpm(drivenOmega*ratio)),idleRPM,maxRPM);
 		
-			float throttlePull = (throttleTargetRPM-engineRPM)*engineThrottleGain;
-			float clutchPull = (expectedEngineRPM-engineRPM)*engineSyncGain;
-			float friction = (maxRPM-idleRPM)*engineFriction;
+			float throttlePull = input.throttle*torqueScale*rpmSpan*(engineThrottleGain*0.45f);
+			float clutchPull = (expectedEngineRPM-engineRPM)*(engineSyncGain*3.5f);
+			float friction = (engineRPM-expectedEngineRPM)*engineFriction+(1.0f-input.throttle)*(engineRPM-idleRPM)*(engineFriction*0.35f);
 		
-			engineRPM += (throttlePull+clutchPull-friction)*dt;
-			engineRPM = clamp(engineRPM,idleRPM,maxRPM);
+			engineRPM = clamp(engineRPM+(throttlePull+clutchPull-friction)*dt,idleRPM,maxRPM);
 		
-			float expectedWheelOmega = rpmToRad(engineRPM) / ratio;
-			float torqueScale = torque/std::max(1.0f, torqueCurve.maxTorque);
-			float clutchScale = 0.15f+0.85f*input.throttle;
+			float expectedWheelOmega = rpmToRad(engineRPM)/ratio;
+			float clutchScale = 0.25f+0.75f*input.throttle;
 		
 			for (WheelPhysics& wheel : wheels) {
 				if (!wheel.driven)
@@ -539,6 +535,8 @@ class CarMovementComponent : public Component {
 		}
 
 		void updateFreeWheelsAndBrakes(float dt, const VehicleControl& input) {
+			float gearDir = (gearbox.gear == 0)?-1.0f:1.0f;
+
 			for (WheelPhysics& wheel : wheels) {
 				Vector2D offset = localToWorld(wheel.localPosition);
 				Vector2D wheelVelocity = pointVelocity(offset);
@@ -546,18 +544,37 @@ class CarMovementComponent : public Component {
 				float longitudinalSpeed = wheelVelocity.dot(wf);
 				float freeRollingOmega = longitudinalSpeed / wheelRadius;
 
-				bool freeRolling = !wheel.driven || gearbox.inNeutral() || input.throttle <= 0.0f;
+				if (!wheel.driven || gearbox.inNeutral()) {
+					if (input.brake <= 0.0f)
+						wheel.omega = freeRollingOmega;
+					else
+						wheel.omega += (freeRollingOmega - wheel.omega) * freeWheelFollow * dt;
+				}
+				else {
+					float targetFro = (gearDir > 0.0f)?std::max(0.0f,freeRollingOmega):std::min(0.0f,freeRollingOmega);
+					float roadFollow = freeWheelFollow*(1.0f-0.45f*input.throttle);
+					wheel.omega += (targetFro - wheel.omega) * roadFollow * dt;
+				}
 
-				if (freeRolling)
-					wheel.omega += (freeRollingOmega - wheel.omega) * freeWheelFollow * dt;
-
-				wheel.omega = moveToward(wheel.omega, 0.0f, brakeAngularDecel * input.brake * dt);
+				if (input.brake > 0.0f) {
+					float brakeScale = (wheel.steerable && std::abs(wheelDirection) > 1.0f)?0.55f:1.0f;
+					wheel.omega = moveToward(wheel.omega, 0.0f, brakeAngularDecel * input.brake * brakeScale * dt);
+				}
 				wheel.omega -= wheel.omega * wheelAngularDrag * dt;
 			}
 		}
 
 		void addTireForces(float dt, Vector2D& totalForce, float& totalTorque) {
 			float relaxation = clamp(tireRelaxation * dt, 0.0f, 1.0f);
+			Vector2D f = forward();
+			Vector2D r = right();
+			float speed = getSpeed();
+			float forwardSpeed = velocity.dot(f);
+			float gearDir = (gearbox.gear == 0)?-1.0f:1.0f;
+			float alignedSpeed = forwardSpeed*gearDir;
+			float slideRatio = clamp((speed*0.65f-std::max(0.0f,alignedSpeed))/std::max(speed*0.65f,slipAngleDenom),0.0f,1.0f);
+			float steerTurnRatio = std::abs(wheelDirection)/std::max(1.0f,maxSteerAngle);
+			float avgGrip = tireMu*(weight()/std::max<size_t>(1,wheels.size()));
 
 			for (WheelPhysics& wheel : wheels) {
 				Vector2D offset = localToWorld(wheel.localPosition);
@@ -587,8 +604,10 @@ class CarMovementComponent : public Component {
 
 				float maxGrip = tireMu * wheel.normalLoad;
 
-				float fx = longitudinalCurve.evaluate(wheel.slipRatio) * maxGrip;
-				float fy = -lateralCurve.evaluate(wheel.slipAngle) * maxGrip;
+				float fx = longitudinalCurve.evaluate(wheel.slipRatio) * maxGrip * std::max(0.20f,1.0f-1.35f*std::abs(wheel.slipAngle));
+				float fy = -lateralCurve.evaluate(wheel.slipAngle) * maxGrip * (1.0f-0.35f*std::abs(wheel.slipRatio)*steerTurnRatio);
+				if (!wheel.steerable)
+					fy *= (1.0f-0.30f*steerTurnRatio*clamp(speed/200.0f,0.0f,1.0f));
 				float forceMag = std::sqrt(fx * fx + fy * fy);
 
 				if (forceMag > maxGrip && forceMag > 0.0001f) {
@@ -597,7 +616,14 @@ class CarMovementComponent : public Component {
 					fy *= scale;
 				}
 
-				Vector2D tireForce = wf * fx + wr * fy;
+				Vector2D rollingForce = wf * fx + (wheel.steerable ? r : wr) * fy;
+				Vector2D rotVel = offset.perpendicular() * yawRate;
+				Vector2D kineticDrag = velocity.getDirection()*(-0.35f*avgGrip) - rotVel.getDirection()*(0.32f*avgGrip*clamp(rotVel.getModule()/160.0f,0.0f,1.0f));
+				Vector2D steerForce = wheel.steerable ? (r * sind(wheel.steerAngle * gearDir) * (0.88f * avgGrip * clamp(speed / 120.0f, 0.0f, 1.0f))) : Vector2D();
+				Vector2D driveSlide = f * (fx * 0.55f);
+				Vector2D kineticForce = kineticDrag + steerForce + driveSlide;
+
+				Vector2D tireForce = rollingForce * (1.0f - slideRatio) + kineticForce * slideRatio;
 				totalForce += tireForce;
 				totalTorque += offset.x * tireForce.y - offset.y * tireForce.x;
 			}
