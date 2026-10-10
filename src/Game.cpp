@@ -93,20 +93,19 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	newPlayer.addComponent<KeyboardController>();
 	
-	CarMovementConfig carConfig(260.0f,1102.0f,104.0f,48.0f,27.5f,15.8f,0.92f,900.0f,800.0f,6500.0f,
-								5.0f,3.0f,0.7f,12.0f,18.0f,120.0f,0.10f,
-								38.0f,0.025f,1.15f,1.0f,45.0f,45.0f,22.0f,22.0f,
-								Vector2D(),Vector2D(),Vector2D(),0.0f,0.0f,
-								TorqueCurve(157.0f,70.0f,4000.0f,1.0f,6000.0f),
-								GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f),
-								PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
-								PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
-								{CarWheelConfig(Vector2D(31.6f,10.3f),true,false),
-								 CarWheelConfig(true,false),
-								 CarWheelConfig(false,true),
-								 CarWheelConfig(false,true)});
-	
-	newPlayer.addComponent<CarMovementComponent>(&manager,carConfig,"../assets/textures/entities/pneu.png",groupGround);
+	newPlayer.addComponent<CarMovementComponent>(&manager,
+												 260.0f,1102.0f,104.0f,48.0f,27.5f,15.8f,0.92f,800.0f,6500.0f,
+												 5.0f,3.0f,0.7f,12.0f,18.0f,120.0f,0.10f,
+												 38.0f,0.025f,1.15f,1.0f,45.0f,45.0f,22.0f,22.0f,
+												 TorqueCurve(157.0f,70.0f,4000.0f,1.0f,6000.0f),
+												 GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f),
+												 PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
+												 PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
+												 std::vector<CarWheelConfig>{CarWheelConfig(Vector2D(31.6f,10.3f),true,false),
+																			 CarWheelConfig(true,false),
+																			 CarWheelConfig(false,true),
+																			 CarWheelConfig(false,true)},
+												 "../assets/textures/entities/pneu.png",groupGround);
 	newPlayer.addGroup(groupPlayers);
 	
 	wall.addComponent<TransformComponent>(200,200,45.0f,200,300,1);

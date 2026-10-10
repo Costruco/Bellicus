@@ -42,123 +42,6 @@ struct CarWheelConfig {
 		driven(driven) {}
 };
 
-struct CarMovementConfig {
-	float turningSpeed;
-
-	float mass;
-	float wheelBase;
-	float trackWidth;
-	float cgHeight;
-	float wheelRadius;
-	float tireMu;
-
-	float engineRPM;
-	float idleRPM;
-	float maxRPM;
-
-	float engineThrottleGain;
-	float engineSyncGain;
-	float engineFriction;
-	float wheelSyncGain;
-	float freeWheelFollow;
-	float brakeAngularDecel;
-	float wheelAngularDrag;
-
-	float maxSteerAngle;
-	float groundDrag;
-	float downforce;
-	float yawDamping;
-	float tireRelaxation;
-	float lowSpeedLateralGripSpeed;
-	float slipRatioDenom;
-	float slipAngleDenom;
-
-	Vector2D velocity;
-	Vector2D acceleration;
-	Vector2D previousAcceleration;
-	float yawRate;
-	float wheelDirection;
-
-	TorqueCurve torqueCurve;
-	GearBox gearbox;
-	PacejkaCurve longitudinalCurve;
-	PacejkaCurve lateralCurve;
-	std::vector<CarWheelConfig> wheels;
-
-	CarMovementConfig(
-		float turningSpeed,
-		float mass,
-		float wheelBase,
-		float trackWidth,
-		float cgHeight,
-		float wheelRadius,
-		float tireMu,
-		float engineRPM,
-		float idleRPM,
-		float maxRPM,
-		float engineThrottleGain,
-		float engineSyncGain,
-		float engineFriction,
-		float wheelSyncGain,
-		float freeWheelFollow,
-		float brakeAngularDecel,
-		float wheelAngularDrag,
-		float maxSteerAngle,
-		float groundDrag,
-		float downforce,
-		float yawDamping,
-		float tireRelaxation,
-		float lowSpeedLateralGripSpeed,
-		float slipRatioDenom,
-		float slipAngleDenom,
-		Vector2D velocity,
-		Vector2D acceleration,
-		Vector2D previousAcceleration,
-		float yawRate,
-		float wheelDirection,
-		TorqueCurve torqueCurve,
-		GearBox gearbox,
-		PacejkaCurve longitudinalCurve,
-		PacejkaCurve lateralCurve,
-		std::vector<CarWheelConfig> wheels
-	) :
-		turningSpeed(turningSpeed),
-		mass(mass),
-		wheelBase(wheelBase),
-		trackWidth(trackWidth),
-		cgHeight(cgHeight),
-		wheelRadius(wheelRadius),
-		tireMu(tireMu),
-		engineRPM(engineRPM),
-		idleRPM(idleRPM),
-		maxRPM(maxRPM),
-		engineThrottleGain(engineThrottleGain),
-		engineSyncGain(engineSyncGain),
-		engineFriction(engineFriction),
-		wheelSyncGain(wheelSyncGain),
-		freeWheelFollow(freeWheelFollow),
-		brakeAngularDecel(brakeAngularDecel),
-		wheelAngularDrag(wheelAngularDrag),
-		maxSteerAngle(maxSteerAngle),
-		groundDrag(groundDrag),
-		downforce(downforce),
-		yawDamping(yawDamping),
-		tireRelaxation(tireRelaxation),
-		lowSpeedLateralGripSpeed(lowSpeedLateralGripSpeed),
-		slipRatioDenom(slipRatioDenom),
-		slipAngleDenom(slipAngleDenom),
-		velocity(velocity),
-		acceleration(acceleration),
-		previousAcceleration(previousAcceleration),
-		yawRate(yawRate),
-		wheelDirection(wheelDirection),
-		torqueCurve(std::move(torqueCurve)),
-		gearbox(std::move(gearbox)),
-		longitudinalCurve(std::move(longitudinalCurve)),
-		lateralCurve(std::move(lateralCurve)),
-		wheels(std::move(wheels)) {}
-};
-
 class CarMovementComponent : public Component {
 	public:
 		TransformComponent * transform;
@@ -217,46 +100,79 @@ class CarMovementComponent : public Component {
 		std::vector<WheelPhysics> wheels;
 
 		CarMovementComponent() = default;
-		CarMovementComponent(Manager * manager, const CarMovementConfig& config, const std::string& path, Group group) :
+		CarMovementComponent(
+			Manager * manager,
+			float turningSpeed,
+			float mass,
+			float wheelBase,
+			float trackWidth,
+			float cgHeight,
+			float wheelRadius,
+			float tireMu,
+			float idleRPM,
+			float maxRPM,
+			float engineThrottleGain,
+			float engineSyncGain,
+			float engineFriction,
+			float wheelSyncGain,
+			float freeWheelFollow,
+			float brakeAngularDecel,
+			float wheelAngularDrag,
+			float maxSteerAngle,
+			float groundDrag,
+			float downforce,
+			float yawDamping,
+			float tireRelaxation,
+			float lowSpeedLateralGripSpeed,
+			float slipRatioDenom,
+			float slipAngleDenom,
+			TorqueCurve torqueCurve,
+			GearBox gearbox,
+			PacejkaCurve longitudinalCurve,
+			PacejkaCurve lateralCurve,
+			const std::vector<CarWheelConfig>& wheels,
+			const std::string& path,
+			Group group
+		) :
 			transform(nullptr),
 			group(group),
 			manager(manager),
 			wheelTexturePath(path),
-			wheelDirection(config.wheelDirection),
-			turningSpeed(config.turningSpeed),
-			wheelBase(std::max(0.1f, config.wheelBase)),
-			mass(std::max(1.0f, config.mass)),
-			trackWidth(std::max(0.1f, config.trackWidth)),
-			cgHeight(std::max(0.0f, config.cgHeight)),
-			wheelRadius(std::max(0.01f, config.wheelRadius)),
-			tireMu(std::max(0.0f, config.tireMu)),
-			engineRPM(config.engineRPM),
-			idleRPM(config.idleRPM),
-			maxRPM(config.maxRPM),
-			engineThrottleGain(config.engineThrottleGain),
-			engineSyncGain(config.engineSyncGain),
-			engineFriction(config.engineFriction),
-			wheelSyncGain(config.wheelSyncGain),
-			freeWheelFollow(config.freeWheelFollow),
-			brakeAngularDecel(config.brakeAngularDecel),
-			wheelAngularDrag(config.wheelAngularDrag),
-			maxSteerAngle(config.maxSteerAngle),
-			groundDrag(config.groundDrag),
-			downforce(config.downforce),
-			yawDamping(config.yawDamping),
-			tireRelaxation(config.tireRelaxation),
-			lowSpeedLateralGripSpeed(config.lowSpeedLateralGripSpeed),
-			slipRatioDenom(config.slipRatioDenom),
-			slipAngleDenom(config.slipAngleDenom),
-			velocity(config.velocity),
-			acceleration(config.acceleration),
-			previousAcceleration(config.previousAcceleration),
-			yawRate(config.yawRate),
-			torqueCurve(config.torqueCurve),
-			gearbox(config.gearbox),
-			longitudinalCurve(config.longitudinalCurve),
-			lateralCurve(config.lateralCurve) {
-			setWheels(config.wheels);
+			wheelDirection(0.0f),
+			turningSpeed(turningSpeed),
+			wheelBase(std::max(0.1f, wheelBase)),
+			mass(std::max(1.0f, mass)),
+			trackWidth(std::max(0.1f, trackWidth)),
+			cgHeight(std::max(0.0f, cgHeight)),
+			wheelRadius(std::max(0.01f, wheelRadius)),
+			tireMu(std::max(0.0f, tireMu)),
+			engineRPM(idleRPM),
+			idleRPM(idleRPM),
+			maxRPM(maxRPM),
+			engineThrottleGain(engineThrottleGain),
+			engineSyncGain(engineSyncGain),
+			engineFriction(engineFriction),
+			wheelSyncGain(wheelSyncGain),
+			freeWheelFollow(freeWheelFollow),
+			brakeAngularDecel(brakeAngularDecel),
+			wheelAngularDrag(wheelAngularDrag),
+			maxSteerAngle(maxSteerAngle),
+			groundDrag(groundDrag),
+			downforce(downforce),
+			yawDamping(yawDamping),
+			tireRelaxation(tireRelaxation),
+			lowSpeedLateralGripSpeed(lowSpeedLateralGripSpeed),
+			slipRatioDenom(slipRatioDenom),
+			slipAngleDenom(slipAngleDenom),
+			velocity(Vector2D()),
+			acceleration(Vector2D()),
+			previousAcceleration(Vector2D()),
+			yawRate(0.0f),
+			torqueCurve(std::move(torqueCurve)),
+			gearbox(std::move(gearbox)),
+			longitudinalCurve(std::move(longitudinalCurve)),
+			lateralCurve(std::move(lateralCurve)) {
+			setWheels(wheels);
 		}
 
 		void init() override {
