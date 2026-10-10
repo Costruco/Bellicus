@@ -1,10 +1,11 @@
 #include "ResourceManager.hpp"
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
 #include "Game.hpp"
 #include "Vector2D.hpp"
+#include <vector>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -65,7 +66,7 @@ ResourceManager::SoundPtr ResourceManager::loadSound(const std::string& fileName
 }
 
 void ResourceManager::drawTexture(ResourceManager::TexturePtr tex, const SDL_Rect* src, const SDL_FRect* dst, 
-                                double angle, SDL_FPoint* center, SDL_RendererFlip flip) {
+    double angle, SDL_FPoint* center, SDL_RendererFlip flip) {
     Vector2D localCenter = (center)?Vector2D(center->x,center->y):Vector2D(dst->w/2,dst->h/2);
     Vector2D worldCenter = localCenter+Vector2D(dst->x,dst->y);
 
@@ -79,6 +80,11 @@ void ResourceManager::drawTexture(ResourceManager::TexturePtr tex, const SDL_Rec
     SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
 
     SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
+}
+
+void ResourceManager::drawMessageBox(FontPtr font, const SDL_FRect * dst, const std::vector<std::string>& lines,
+	SDL_Color text, SDL_Color border, SDL_Color background) {
+    ;
 }
 
 void ResourceManager::unloadTexture(const std::string& path) {
