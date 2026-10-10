@@ -3,17 +3,17 @@
 #include "Components.hpp"
 #include "SDL2/SDL.h"
 #include <string>
-#include "TextureManager.hpp"
+#include "ResourceManager.hpp"
 
 class TileComponent : public Component {
 	public:
-		TextureManager::TexturePtr texture;
+		ResourceManager::TexturePtr texture;
 		SDL_Rect src;
 		SDL_FRect dst;
 
 		TileComponent() = default;
 		TileComponent(int srcx, int srcy, int x, int y, const std::string& path) {
-			texture = TextureManager::loadTexture(path);
+			texture = ResourceManager::loadTexture(path);
 			src.x = srcx;
 			src.y = srcy;
 			src.w = src.h = TILE_SIZE;
@@ -26,6 +26,6 @@ class TileComponent : public Component {
 		}
 
 		void draw() override {
-			TextureManager::drawTexture(texture,&src,&dst);
+			ResourceManager::drawTexture(texture,&src,&dst);
 		}
 };

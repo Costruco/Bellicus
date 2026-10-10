@@ -1,0 +1,100 @@
+#include "ResourceManager.hpp"
+
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
+
+#include "Game.hpp"
+#include "Vector2D.hpp"
+#include <unordered_map>
+#include <string>
+#include <memory>
+
+std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> ResourceManager::textureCache;
+std::unordered_map<std::string,std::weak_ptr<TTF_Font>> ResourceManager::fontCache;
+std::unordered_map<std::string,std::weak_ptr<Mix_Chunk>> ResourceManager::soundCache;
+
+ResourceManager::TexturePtr ResourceManager::loadTexture(const std::string& fileName) {
+    auto it = textureCache.find(fileName);
+    if (it != textureCache.end())
+        if (auto tex = it->second.lock())
+            return tex;
+
+    SDL_Texture* raw = IMG_LoadTexture(Game::ren, fileName.c_str());
+    if (!raw) {
+        SDL_Log("Failed to load texture: %s",IMG_GetError());
+        return nullptr;
+    }
+
+    ResourceManager::TexturePtr tex(raw,SDL_DestroyTexture);
+    textureCache[fileName] = tex;
+    return tex;
+}
+
+ResourceManager::FontPtr ResourceManager::loadFont(const std::string& fileName, int fontSize) {
+    auto it = fontCache.find(fileName);
+    if (it != fontCache.end())
+        if (auto font = it->second.lock())
+            return font;
+
+    TTF_Font* raw = TTF_OpenFont(fileName.c_str(), fontSize);
+    if (!raw) {
+        SDL_Log("Failed to load font: %s", TTF_GetError());
+        return nullptr;
+    }
+
+    ResourceManager::FontPtr font(raw, TTF_CloseFont);
+    fontCache[fileName] = font;
+    return font;
+}
+
+ResourceManager::SoundPtr ResourceManager::loadSound(const std::string& fileName) {
+    auto it = soundCache.find(fileName);
+    if (it != soundCache.end())
+        if (auto sound = it->second.lock())
+            return sound;
+
+    Mix_Chunk* raw = Mix_LoadWAV(fileName.c_str());
+    if (!raw) {
+        SDL_Log("Failed to load sound: %s", Mix_GetError());
+        return nullptr;
+    }
+
+    ResourceManager::SoundPtr sound(raw, Mix_FreeChunk);
+    soundCache[fileName] = sound;
+    return sound;
+}
+
+void ResourceManager::drawTexture(ResourceManager::TexturePtr tex, const SDL_Rect* src, const SDL_FRect* dst, 
+                                double angle, SDL_FPoint* center, SDL_RendererFlip flip) {
+    Vector2D localCenter = (center)?Vector2D(center->x,center->y):Vector2D(dst->w/2,dst->h/2);
+    Vector2D worldCenter = localCenter+Vector2D(dst->x,dst->y);
+
+    Vector2D screenCenter = Game::camera.worldToScreen(worldCenter);
+    Vector2D screenSize = Game::camera.worldSizeToScreen(Vector2D(dst->w,dst->h));
+    Vector2D scaledCenter = Game::camera.worldSizeToScreen(localCenter);
+
+    SDL_FRect screenDst = {screenCenter.x-scaledCenter.x,
+                           screenCenter.y-scaledCenter.y,
+                           screenSize.x,screenSize.y};
+    SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
+
+    SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
+}
+
+void ResourceManager::unloadTexture(const std::string& path) {
+    textureCache.erase(path);
+}
+
+void ResourceManager::unloadFont(const std::string& path) {
+    fontCache.erase(path);
+}
+
+void ResourceManager::unloadSound(const std::string& path) {
+    soundCache.erase(path);
+}
+
+void ResourceManager::clear() {
+    textureCache.clear();
+    fontCache.clear();
+    soundCache.clear();
+}

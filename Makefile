@@ -2,7 +2,7 @@
 SRCS = src/main.cpp \
        src/Game.cpp \
        src/FrameManager.cpp \
-       src/TextureManager.cpp \
+       src/ResourceManager.cpp \
        src/Map.cpp \
        src/Vector2D.cpp \
        src/Collision.cpp \

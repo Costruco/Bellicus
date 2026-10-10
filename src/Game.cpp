@@ -1,14 +1,15 @@
 #include "Game.hpp"
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_image.h"
-#include "SDL2/SDL_ttf.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <iostream>
 #include <vector>
 
 #include "FrameManager.hpp"
-#include "TextureManager.hpp"
+#include "ResourceManager.hpp"
 #include "Map.hpp"
 #include "Camera.hpp"
 
@@ -55,7 +56,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		flags = flags | SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	//inicializa o sdl
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && TTF_Init() == 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && TTF_Init() == 0 && Mix_Init(MIX_INIT_MP3) == MIX_INIT_MP3) {
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
@@ -234,7 +235,7 @@ void Game::render() {
 }
 
 void Game::clean() {
-	TextureManager::clear();
+	ResourceManager::clear();
 	manager.clear();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);

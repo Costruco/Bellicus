@@ -4,14 +4,14 @@
 
 #include <string>
 #include "Components.hpp"
-#include "TextureManager.hpp"
+#include "ResourceManager.hpp"
 #include "Animation.hpp"
 #include <map>
 
 class SpriteComponent : public Component {
 	private:
 		TransformComponent * transform;
-		TextureManager::TexturePtr texture;
+		ResourceManager::TexturePtr texture;
 		SDL_Rect src;
 		SDL_FRect dst;
 		SDL_FPoint texture_center;
@@ -44,7 +44,7 @@ class SpriteComponent : public Component {
 		}
 		
 		void setTexture(const std::string& path) {
-			texture = TextureManager::loadTexture(path);
+			texture = ResourceManager::loadTexture(path);
 		}
 		
 		void init() override {
@@ -67,7 +67,7 @@ class SpriteComponent : public Component {
 				   pos.y-texture_center.y,
 				   transform->width*transform->getScale(),
 				   transform->height*transform->getScale()};
-			TextureManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center);
+			ResourceManager::drawTexture(texture,&src,&dst,transform->getDirection(),&texture_center);
 		}
 		
 		void play(const std::string& animName) {
