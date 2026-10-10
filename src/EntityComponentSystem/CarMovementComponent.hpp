@@ -211,6 +211,7 @@ class CarMovementComponent : public Component {
 		GearBox gearbox;
 		float shiftCooldown = 0.0f;
 		float shiftDelay = 1.5f;
+		float maxSubstep = 0.005f;
 		PacejkaCurve longitudinalCurve;
 		PacejkaCurve lateralCurve;
 		std::vector<WheelPhysics> wheels;
@@ -264,9 +265,23 @@ class CarMovementComponent : public Component {
 		}
 
 		void update() override {
-			float dt = FrameManager::getDeltaTime();
+			float frameDt = FrameManager::getDeltaTime();
 			VehicleControl input = getInput();
-			
+			int steps = std::max(1,static_cast<int>(std::ceil(frameDt/maxSubstep)));
+			float dt = frameDt/steps;
+
+			for (int i = 0; i < steps; i++)
+				step(dt, input);
+
+			updateWheelEntities();
+		}
+
+		float getSpeed() const {
+			return velocity.getModule();
+		}
+
+	private:
+		void step(float dt, const VehicleControl& input) {
 			updateSteering(dt, input.steer);
 			updateTransmission(dt, input);
 			updateNormalLoads();
@@ -299,15 +314,9 @@ class CarMovementComponent : public Component {
 			transform->velocity = velocity;
 			transform->angularVelocity = yawRate * toDeg;
 			
-			updateWheelEntities();
 			previousAcceleration = acceleration;
 		}
 
-		float getSpeed() const {
-			return velocity.getModule();
-		}
-
-	private:
 		VehicleControl getInput() {
 			VehicleControl input;
 		
