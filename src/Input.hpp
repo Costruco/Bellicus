@@ -3,8 +3,8 @@
 //MovementDirection
 enum class MovementDirection : int {
 	BACKWARD = -1,
-	STILL = 0,
-	FORWARD = 1
+	STILL    =  0,
+	FORWARD  =  1
 };
 
 inline MovementDirection& operator+=(MovementDirection& md, int delta) {
@@ -25,9 +25,9 @@ inline MovementDirection& operator-=(MovementDirection& md, int delta) {
 
 //TurnDirection
 enum class TurnDirection : int {
-	LEFT = -1,
-	STRAIGHT = 0,
-	RIGHT = 1
+	LEFT     = -1,
+	STRAIGHT =  0,
+	RIGHT    =  1
 };
 
 inline TurnDirection& operator+=(TurnDirection& td, int delta) {
