@@ -17,35 +17,67 @@ class MessageBoxComponent : public Component {
         ResourceManager::FontPtr font;
         ScreenAlignment alignment;
         std::vector<std::string> lines;
-        std::vector<std::vector<float*>> values;
+        std::vector<std::vector<float>> values;
+        SDL_Color textColor = {255,255,255,255};
+        SDL_Color borderColor = {0,0,0,255};
+        SDL_Color backgroundColor = {0,0,0,128};
 
     public:
         MessageBoxComponent() = default;
-        MessageBoxComponent(const std::vector<std::string>& lines, const std::vector<std::vector<float*>>& values, 
+        MessageBoxComponent(const std::string& path, int fontSize,const std::vector<std::string>& lines,
             ScreenAlignment alignment = ScreenAlignment::CENTER) :
             lines(lines),
-            values(values),
-            alignment(alignment) {}
+            alignment(alignment) {
+                setFont(path,fontSize);
+            }
         
+        void setColor(SDL_Color text, SDL_Color border, SDL_Color background) {
+            textColor = text;
+            borderColor = border;
+            backgroundColor = background;
+        }
+
+        void setValues(const std::vector<std::vector<float>>& values) {
+            this->values = values;
+        }
+
+        void setFont(const std::string& path, int fontSize) {
+            font = ResourceManager::loadFont(path, fontSize);
+        }
+
         void init() override {
+            if (!entity->hasComponent<TransformComponent>())
+                entity->addComponent<TransformComponent>();
             transform = &entity->getComponent<TransformComponent>();
             int maxWidth = 0, maxHeight = TTF_FontLineSkip(font.get());
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
-                for (const auto& value : values[i]) {
-                    line = line.replace(line.find("[]"),2,"{}");
-                    line = std::vformat(line,std::make_format_args(*value));
-                    int width;
-                    TTF_SizeUTF8(font.get(),line.c_str(),&width,nullptr);
-                    maxWidth = std::max(maxWidth,width);
+                while (line.find("[") != std::string::npos && line.find("]") != std::string::npos) {
+                    line = line.replace(line.find("["),1,"{");
+                    line = line.replace(line.find("]"),1,"}");
+                    float aux = 1.0f;
+                    line = std::vformat(line,std::make_format_args(aux));
                 }
+                int width;
+                TTF_SizeUTF8(font.get(),line.c_str(),&width,nullptr);
+                maxWidth = std::max(maxWidth,width);
             }
             transform->width = maxWidth;
             transform->height = maxHeight*lines.size();
         }
 
         void draw() override {
+            std::vector<std::string> linesCopy;
+            for (size_t i = 0; i < lines.size(); i++) {
+                std::string line = lines[i];
+                for (const auto& value : values[i]) {
+                    line = line.replace(line.find("["),1,"{");
+                    line = line.replace(line.find("]"),1,"}");
+                    line = std::vformat(line,std::make_format_args(value));
+                }
+                linesCopy.push_back(line);
+            }
             SDL_FRect dst = {transform->position.x,transform->position.y,transform->width,transform->height};
-            ResourceManager::drawMessageBox(font,&dst,lines,{255,255,255,255},{0,0,0,255},{0,0,0,128});
+            ResourceManager::drawMessageBox(font,&dst,alignment,linesCopy,textColor,borderColor,backgroundColor);
         }
 };

@@ -19,8 +19,8 @@ class Game {
 		static const Uint8* keystate;
 		static Camera camera;
 
-		int WINDOW_WIDTH;
-		int WINDOW_HEIGHT;
+		static int WINDOW_WIDTH;
+		static int WINDOW_HEIGHT;
 	    Vector2D logicalScale;
 		
 		Game();

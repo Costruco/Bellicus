@@ -21,6 +21,8 @@
 Manager manager;
 
 SDL_Renderer * Game::ren = nullptr;
+int Game::WINDOW_WIDTH = 0;
+int Game::WINDOW_HEIGHT = 0;
 SDL_Event Game::evt;
 std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
@@ -29,6 +31,7 @@ Camera Game::camera;
 auto& newPlayer(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& vaga(manager.addEntity());
+auto& info(manager.addEntity());
 
 int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
@@ -38,7 +41,8 @@ enum GroupLabels : std::size_t {
 	groupGround,
 	groupPlayers,
 	groupEnemies,
-	groupColliders
+	groupColliders,
+	groupUI
 };
 
 Game::Game() {
@@ -56,7 +60,10 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		flags = flags | SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 	//inicializa o sdl
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && TTF_Init() == 0 && Mix_Init(MIX_INIT_MP3) == MIX_INIT_MP3) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && 
+		IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && 
+		TTF_Init() == 0 && 
+		Mix_Init(MIX_INIT_MP3) == MIX_INIT_MP3) {
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
@@ -118,6 +125,11 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	vaga.addComponent<TransformComponent>(-200,-200,0.0f,637,90,1);
 	vaga.addComponent<SpriteComponent>("../assets/textures/features/vaga.png");
 	vaga.addGroup(groupGround);
+
+	info.addComponent<MessageBoxComponent>("../assets/fonts/terminal-f4.ttf",14,
+											std::vector<std::string>{"Velocidade: [:4.1f] km/h","Marcha: [:1.0f]","RPM: [:4.0f]"},
+											ScreenAlignment::TOP_LEFT);
+	info.addGroup(groupUI);
 }
 
 void Game::handleEvents() {
@@ -128,7 +140,6 @@ void Game::handleEvents() {
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
 	Vector2D afterWorldMouse = camera.screenToWorld(mouse*logicalScale);
-	
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {
 			case SDL_KEYUP:
@@ -164,6 +175,12 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
+	CarMovementComponent& car = newPlayer.getComponent<CarMovementComponent>();
+	float velocity = car.velocity.getModule()/PIXELS_PER_METER*3.6f;
+	float rpm = car.engineRPM;
+	float gear = car.gearbox.gear;
+	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{{velocity},{gear},{rpm}});
+	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
 	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
@@ -215,6 +232,7 @@ auto& tiles(manager.getGroup(groupMap));
 auto& ground(manager.getGroup(groupGround));
 auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
+auto& ui(manager.getGroup(groupUI));
 
 void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
@@ -230,6 +248,9 @@ void Game::render() {
 	}
 	for (auto& e : enemies) {
 		e->draw();
+	}
+	for(auto& u : ui) {
+		u->draw();
 	}
 	SDL_RenderPresent(ren);
 }

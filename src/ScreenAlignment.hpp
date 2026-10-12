@@ -4,12 +4,12 @@
 
 enum class ScreenAlignment : std::uint8_t {
     NONE    =      0,
-    BOTTOM  = 1 >> 0,
-    VCENTER = 1 >> 1,
-    TOP     = 1 >> 2,
-    LEFT    = 1 >> 3,
-    HCENTER = 1 >> 4,
-    RIGHT   = 1 >> 5,
+    BOTTOM  = 1 << 0,
+    VCENTER = 1 << 1,
+    TOP     = 1 << 2,
+    LEFT    = 1 << 3,
+    HCENTER = 1 << 4,
+    RIGHT   = 1 << 5,
 
     HORIZONTAL = LEFT   | HCENTER | RIGHT,
     VERTICAL   = BOTTOM | VCENTER | TOP,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL2/SDL.h>
 #include <vector>
 #include "Vector2D.hpp"
 #include "Math.hpp"
@@ -14,6 +15,9 @@ class Polygon {
 		}
 		Polygon(const std::vector<Vector2D>& pts) : points(std::move(pts)) {}
 		Polygon(std::initializer_list<Vector2D> pts) : points(pts) {}
+		Polygon(const SDL_FRect& rect) {
+			points = {{rect.x,rect.y},{rect.x+rect.w,rect.y},{rect.x+rect.w,rect.y+rect.h},{rect.x,rect.y+rect.h}};
+		}
 		
 		Polygon rotate(const Vector2D& center, float angle) {
 			std::vector<Vector2D> result;
