@@ -2,12 +2,14 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
-#include <unordered_map>
-#include <string>
-#include <vector>
+#include <SDL2/SDL_ttf.h>
+
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "ScreenAlignment.hpp"
 
 class ResourceManager {

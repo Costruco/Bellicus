@@ -1,7 +1,7 @@
-#include "Vector2D.hpp"
+#include <SDL2/SDL.h>
 
-#include "SDL2/SDL.h"
 #include "Math.hpp"
+#include "Vector2D.hpp"
 
 Vector2D::Vector2D() {
 	x = 0.0f;

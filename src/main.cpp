@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-#include "Game.hpp"
 #include "FrameManager.hpp"
+#include "Game.hpp"
 
 Game * game = nullptr;
 

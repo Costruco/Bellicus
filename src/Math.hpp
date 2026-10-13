@@ -1,8 +1,8 @@
 #pragma once
 
-#include <numbers>
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))

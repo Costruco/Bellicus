@@ -1,12 +1,13 @@
 #pragma once
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
+#include <map>
 #include <string>
+
+#include "Animation.hpp"
 #include "Components.hpp"
 #include "ResourceManager.hpp"
-#include "Animation.hpp"
-#include <map>
 
 class SpriteComponent : public Component {
 	private:

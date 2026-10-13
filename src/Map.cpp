@@ -1,8 +1,8 @@
-#include "Map.hpp"
-
-#include "Game.hpp"
 #include <fstream>
 #include <string>
+
+#include "Game.hpp"
+#include "Map.hpp"
 
 Map::Map() {
 }

@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Components.hpp"
-#include <vector>
 #include <algorithm>
-#include "Vector2D.hpp"
+#include <vector>
+
+#include "Components.hpp"
 #include "Input.hpp"
 #include "Math.hpp"
+#include "Vector2D.hpp"
 
 class TransformComponent : public Component {
 	public:

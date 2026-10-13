@@ -1,18 +1,18 @@
-#include "ResourceManager.hpp"
-
 #include <SDL2/SDL.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 
-#include "Game.hpp"
-#include "ScreenAlignment.hpp"
-#include "Collision.hpp"
-#include "Vector2D.hpp"
-#include <vector>
-#include <unordered_map>
-#include <string>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "Collision.hpp"
+#include "Game.hpp"
+#include "ResourceManager.hpp"
+#include "ScreenAlignment.hpp"
+#include "Vector2D.hpp"
 
 std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> ResourceManager::textureCache;
 std::unordered_map<std::string,std::weak_ptr<TTF_Font>> ResourceManager::fontCache;

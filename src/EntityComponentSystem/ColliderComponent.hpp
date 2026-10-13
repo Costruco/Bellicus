@@ -1,13 +1,15 @@
 #pragma once
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL2_gfxPrimitives.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
+
 #include <string>
 #include <vector>
-#include "Vector2D.hpp"
+
 #include "Components.hpp"
 #include "Game.hpp"
 #include "Polygon.hpp"
+#include "Vector2D.hpp"
 
 class ColliderComponent : public Component {
 	public:

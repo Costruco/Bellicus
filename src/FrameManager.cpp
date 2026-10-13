@@ -1,6 +1,6 @@
-#include "FrameManager.hpp"
+#include <SDL2/SDL.h>
 
-#include "SDL2/SDL.h"
+#include "FrameManager.hpp"
 
 int FrameManager::targetFPS = 0,
 	FrameManager::trueWait = 0,

@@ -3,13 +3,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 
-#include "Components.hpp"
-#include "Vector2D.hpp"
-#include "ScreenAlignment.hpp"
-#include "ResourceManager.hpp"
+#include <format>
 #include <string>
 #include <vector>
-#include <format>
+
+#include "Components.hpp"
+#include "ResourceManager.hpp"
+#include "ScreenAlignment.hpp"
+#include "Vector2D.hpp"
 
 class MessageBoxComponent : public Component {
     private:

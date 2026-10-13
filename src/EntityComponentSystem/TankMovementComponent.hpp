@@ -1,16 +1,17 @@
 #pragma once
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
+
+#include <iostream>
+#include <iterator>
+#include <vector>
 
 #include "Components.hpp"
-#include "Vector2D.hpp"
+#include "FrameManager.hpp"
 #include "Input.hpp"
 #include "Math.hpp"
 #include "Physics.hpp"
-#include "FrameManager.hpp"
-#include <iterator>
-#include <vector>
-#include <iostream>
+#include "Vector2D.hpp"
 
 //{0.25f,0.17f}
 

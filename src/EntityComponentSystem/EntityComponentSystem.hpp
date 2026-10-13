@@ -1,11 +1,11 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <array>
-#include <memory>
 #include <algorithm>
+#include <array>
 #include <bitset>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 class Component;
 class Entity;

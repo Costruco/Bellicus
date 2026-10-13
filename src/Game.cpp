@@ -1,22 +1,19 @@
-#include "Game.hpp"
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <iostream>
 #include <vector>
 
-#include "FrameManager.hpp"
-#include "ResourceManager.hpp"
-#include "Map.hpp"
 #include "Camera.hpp"
-
-#include "Vector2D.hpp"
-#include "EntityComponentSystem/Components.hpp"
-
 #include "Collision.hpp"
+#include "EntityComponentSystem/Components.hpp"
+#include "FrameManager.hpp"
+#include "Game.hpp"
+#include "Map.hpp"
+#include "ResourceManager.hpp"
+#include "Vector2D.hpp"
 
 Manager manager;
 

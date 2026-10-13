@@ -1,9 +1,11 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+
 #include <vector>
-#include "Vector2D.hpp"
+
 #include "Math.hpp"
+#include "Vector2D.hpp"
 
 class Polygon {
 	public:

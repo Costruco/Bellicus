@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Math.hpp"
-#include "Vector2D.hpp"
-
-#include <vector>
+#include <algorithm>
+#include <cmath>
 #include <initializer_list>
 #include <utility>
-#include <cmath>
-#include <algorithm>
+#include <vector>
+
+#include "Math.hpp"
+#include "Vector2D.hpp"
 
 constexpr float PIXELS_PER_METER = 50.0f;
 constexpr float GRAVITY = 9.81f*PIXELS_PER_METER; //lembrando que ta em pixels/s�

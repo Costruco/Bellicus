@@ -1,12 +1,12 @@
-#include "Collision.hpp"
-
-#include "EntityComponentSystem/ColliderComponent.hpp"
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 #include <array>
-#include "Vector2D.hpp"
-#include "Polygon.hpp"
+
+#include "Collision.hpp"
+#include "EntityComponentSystem/ColliderComponent.hpp"
 #include "Math.hpp"
+#include "Polygon.hpp"
+#include "Vector2D.hpp"
 
 static void project(const std::vector<Vector2D>& pts, const Vector2D& axis, float& min, float& max) {
     min = max = pts[0].dot(axis);

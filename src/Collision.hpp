@@ -1,9 +1,10 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 #include "EntityComponentSystem/ColliderComponent.hpp"
-#include "SDL2/SDL.h"
-#include "Vector2D.hpp"
 #include "Polygon.hpp"
+#include "Vector2D.hpp"
 
 class Collision {
 	public:

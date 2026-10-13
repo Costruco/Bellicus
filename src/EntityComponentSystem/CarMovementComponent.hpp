@@ -1,24 +1,24 @@
 #pragma once
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "Components.hpp"
-#include "Map.hpp"
-#include "Vector2D.hpp"
+#include "FrameManager.hpp"
+#include "Game.hpp"
 #include "Input.hpp"
+#include "Map.hpp"
 #include "Math.hpp"
 #include "Physics.hpp"
 #include "Polygon.hpp"
-#include "FrameManager.hpp"
-#include <SDL2/SDL2_gfxPrimitives.h>
-#include "Game.hpp"
-
-#include <vector>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <utility>
-#include <string>
+#include "Vector2D.hpp"
 
 struct CarWheelConfig {
 	Vector2D localPosition;
