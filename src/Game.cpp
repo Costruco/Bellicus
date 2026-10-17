@@ -18,6 +18,7 @@
 Manager manager;
 
 SDL_Renderer * Game::ren = nullptr;
+SDL_Texture * Game::canva = nullptr;
 int Game::WINDOW_WIDTH = 0;
 int Game::WINDOW_HEIGHT = 0;
 SDL_Event Game::evt;
@@ -70,11 +71,12 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 			SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
 			std::cout << "Window created with screen logical size "<< width<<"x"<<height << "..." << std::endl;
 			std::cout << "Window created with screen real size "<< WINDOW_WIDTH<<"x"<<WINDOW_HEIGHT << "..." << std::endl;
-			logicalScale = {static_cast<float>(width/WINDOW_WIDTH),static_cast<float>(height/WINDOW_HEIGHT)};
+			logicalScale = {static_cast<float>(width)/WINDOW_WIDTH, static_cast<float>(height)/WINDOW_HEIGHT};
 			WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED);
-			SDL_RenderSetLogicalSize(ren,width,height);
+			SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"0");
+			canva = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,WINDOW_WIDTH,WINDOW_HEIGHT);
 			if (ren) {
 				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
 				SDL_SetRenderDrawColor(ren,0,0,0,255);
@@ -123,9 +125,10 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	vaga.addComponent<SpriteComponent>("../assets/textures/features/vaga.png");
 	vaga.addGroup(groupGround);
 
-	info.addComponent<MessageBoxComponent>("../assets/fonts/terminal-f4.ttf",14,
+	info.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
 											std::vector<std::string>{"Velocidade: [:4.1f] km/h","Marcha: [:1.0f]","RPM: [:4.0f]"},
 											ScreenAlignment::TOP_LEFT);
+	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,0,0,255},{0,0,0,255});
 	info.addGroup(groupUI);
 }
 
@@ -197,10 +200,21 @@ void Game::update() {
 	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
 	float top = -mapSizeY/2*TILE_SIZE;
 	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
-	float cos = std::abs(cosd(camera.angle)), sin = std::abs(sind(camera.angle));
-	Vector2D halfSize = Vector2D(WINDOW_WIDTH*cos+WINDOW_HEIGHT*sin,WINDOW_WIDTH*sin+WINDOW_HEIGHT*cos)/2/camera.scale;
-	camera.focus = {clamp(playerPos.x,left+halfSize.x,right-halfSize.x),
-				    clamp(playerPos.y,top+halfSize.y,bottom-halfSize.y)};
+
+	float cos = std::abs(cosd(camera.angle));
+	float sin = std::abs(sind(camera.angle));
+	float viewW = WINDOW_WIDTH/camera.scale.x;
+	float viewH = WINDOW_HEIGHT/camera.scale.y;
+	float halfSizeX = (viewW*cos+viewH*sin)*0.5f;
+    float halfSizeY = (viewW*sin+viewH*cos)*0.5f;
+
+	left = left+halfSizeX;
+	right = right-halfSizeX;
+	top = top+halfSizeY;
+	bottom = bottom-halfSizeY;
+
+	camera.focus.x = (left>right)?(left+right)*0.5f:clamp(playerPos.x,left,right);
+	camera.focus.y = (top>bottom)?(top+bottom)*0.5f:clamp(playerPos.y,top,bottom);
 
 	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
@@ -233,6 +247,10 @@ auto& ui(manager.getGroup(groupUI));
 
 void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
+	SDL_SetRenderTarget(ren, canva);
+	float scaleX = 800.0f/WINDOW_WIDTH;
+    float scaleY = 450.0f/WINDOW_HEIGHT;
+    SDL_RenderSetScale(ren,1.0f,1.0f);
 	SDL_RenderClear(ren);
 	for (auto& t : tiles) {
 		t->draw();
@@ -246,6 +264,13 @@ void Game::render() {
 	for (auto& e : enemies) {
 		e->draw();
 	}
+	
+	SDL_SetRenderTarget(ren, NULL);
+	SDL_RenderSetScale(ren,1.0f,1.0f);
+	SDL_SetRenderDrawColor(ren,0,0,0,255);
+	SDL_RenderClear(ren);
+	SDL_RenderCopy(ren, canva, NULL, NULL);
+	SDL_RenderSetScale(ren,3.0f,3.0f);
 	for(auto& u : ui) {
 		u->draw();
 	}

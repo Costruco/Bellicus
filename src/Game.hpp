@@ -20,6 +20,7 @@ class Game {
 		static std::vector<ColliderComponent*> colliders;
 		static const Uint8* keystate;
 		static Camera camera;
+		static SDL_Texture * canva;
 
 		static int WINDOW_WIDTH;
 		static int WINDOW_HEIGHT;

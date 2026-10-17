@@ -126,9 +126,10 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
         if (!surface)
             continue;
         SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::ren,surface);
-        float x = boxDst.x+(boxDst.w-surface->w)/2.0f;
+        float x = boxDst.x;
         float y = boxDst.y+(boxDst.h/lines.size())*i+(boxDst.h/lines.size()-surface->h)/2.0f;
-        SDL_FRect textDst = {x,y,static_cast<float>(surface->w),static_cast<float>(surface->h)};
+        stringRGBA(Game::ren,x+surface->w+10,y,line.c_str(),0,0,255,255);
+        SDL_FRect textDst = {x,y,surface->w,surface->h};
         SDL_FreeSurface(surface);
         if (texture) {
             SDL_SetTextureAlphaMod(texture,text.a);
