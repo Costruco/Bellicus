@@ -70,7 +70,7 @@ class ColliderComponent : public Component {
 				Vector2D line2 = {trueCollider.points[(i+1)%size].x,trueCollider.points[(i+1)%size].y};
 				line1 = Game::camera.worldToScreen(line1);
 				line2 = Game::camera.worldToScreen(line2);
-				lineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,255,0,0,255);
+				thickLineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,2,255,0,0,255);
 			}
 		}
 };
