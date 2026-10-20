@@ -69,7 +69,7 @@ struct GearBox {
 	}
 
 	int maxGear() const {
-		return MAX(0,static_cast<int>(ratios.size())-1);
+		return std::max(0,static_cast<int>(ratios.size())-1);
 	}
 
 	float totalRatio() const {

@@ -4,13 +4,10 @@
 #include <cmath>
 #include <numbers>
 
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-
 constexpr float PI = std::numbers::pi_v<float>;
 constexpr float E  = std::numbers::e_v<float>;
-constexpr float toRad = PI / 180.0f;
-constexpr float toDeg = 180.0f / PI;
+constexpr float toRad = PI/180.0f;
+constexpr float toDeg = 180.0f/PI;
 
 inline float cosd(float angle) {
 	return std::cos(angle * toRad);
@@ -85,9 +82,9 @@ inline bool aproxEqual(float n, float np) {
 }
 
 inline float rpmToRad(float rpm) {
-	return rpm * 2.0f * PI / 60.0f;
+	return rpm*PI/30.0f;
 }
 
 inline float radToRpm(float rad) {
-	return rad * 60.0f / (2.0f * PI);
+	return rad*30.0f/PI;
 }

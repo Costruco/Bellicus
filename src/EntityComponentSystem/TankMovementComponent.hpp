@@ -67,56 +67,60 @@ class TankMovementComponent : public Component {
 			//std::cout << groundDrag << std::endl;
 			
 			//atualiza a currentGear do tanque com base na currentGear atual, speed e controle
+			float gearMin = gearsMaxSpeed[currentGear].x;
+			float gearMax = gearsMaxSpeed[currentGear].y;
 			if (currentGear == neutralGear) {
-				if (aproxEqual(speed,gearsMaxSpeed[currentGear].y) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
+				if (aproxEqual(speed,gearMax) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
 					gearChangeStart = SDL_GetTicks();
 					increasing = true;
-				} else if (aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
+				} else if (aproxEqual(speed,gearMin) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
 					gearChangeStart = SDL_GetTicks();
 					decreasing = true;
 				}
 			} else {
-				if (currentGear != nGears-1 && aproxEqual(speed,gearsMaxSpeed[currentGear].y) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
+				if (currentGear != nGears-1 && aproxEqual(speed,gearMax) && increasing == false && transform->moveIntent == MovementDirection::FORWARD) {
 					gearChangeStart = SDL_GetTicks();
 					increasing = true;
-				} else if (currentGear > neutralGear && aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
-					currentGear = MAX(currentGear-1,neutralGear);
-				} else if (currentGear > neutralGear && aproxEqual(speed,gearsMaxSpeed[currentGear].x) && decreasing == false && transform->moveIntent == MovementDirection::STILL) {
+				} else if (currentGear > neutralGear && aproxEqual(speed,gearMin) && decreasing == false && transform->moveIntent == MovementDirection::BACKWARD) {
+					currentGear = std::max(currentGear-1,neutralGear);
+				} else if (currentGear > neutralGear && aproxEqual(speed,gearMin) && decreasing == false && transform->moveIntent == MovementDirection::STILL) {
 					gearChangeStart = SDL_GetTicks();
 					decreasing = true;
 				}
 			}
 			
 			if (increasing == true && SDL_GetTicks()-gearChangeStart >= 250) {
-				currentGear = MIN(currentGear+1,nGears-1);
+				currentGear = std::min(currentGear+1,nGears-1);
 				increasing = false;
 			} else if (decreasing == true && SDL_GetTicks()-gearChangeStart >= 250) {
-				currentGear = MAX(currentGear-1,0);
+				currentGear = std::max(currentGear-1,0);
 				decreasing = false;
 			}
 			
 			//movement
 			int troca = (increasing == true || decreasing == true);
 			double TURNING = 0.035*(transform->turnIntent != TurnDirection::STRAIGHT);
+			gearMin = gearsMaxSpeed[currentGear].x;
+			gearMax = gearsMaxSpeed[currentGear].y;
 			if (speed < 0) {
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*dt);
+					speed = std::min(gearMax,speed+desacc(brakePower,mass)*32.5f*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+desacc(brakePower,mass)*32.5*dt);
+					speed = std::min(gearMax,speed+desacc(brakePower,mass)*32.5f*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
+					speed = std::max(gearMin,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed == 0) {
 				if (transform->moveIntent == MovementDirection::FORWARD && !troca)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
+					speed = std::max(gearMin,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
+					speed = std::min(gearMax,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed > 0){
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*dt);
+					speed = std::max(gearMin,speed-desacc(brakePower,mass)*32.5f*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD && !troca)
-					speed = MIN(gearsMaxSpeed[currentGear].y,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
+					speed = std::min(gearMax,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD)
-					speed = MAX(gearsMaxSpeed[currentGear].x,speed-desacc(brakePower,mass)*32.5*dt);
+					speed = std::max(gearMin,speed-desacc(brakePower,mass)*32.5f*dt);
 			}
 			transform->position += Vector2D::fromPolar(speed,transform->direction)*dt;
 		
