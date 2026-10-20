@@ -9,9 +9,9 @@
 #include "Components.hpp"
 #include "FrameManager.hpp"
 #include "Input.hpp"
-#include "Math.hpp"
-#include "Physics.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Math.hpp"
+#include "Utils/Physics.hpp"
+#include "Utils/Vector2D.hpp"
 
 //{0.25f,0.17f}
 

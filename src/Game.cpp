@@ -7,13 +7,13 @@
 #include <vector>
 
 #include "Camera.hpp"
-#include "Collision.hpp"
+#include "Utils/Collision.hpp"
 #include "EntityComponentSystem/Components.hpp"
 #include "FrameManager.hpp"
 #include "Game.hpp"
 #include "Map.hpp"
 #include "ResourceManager.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Vector2D.hpp"
 
 Manager manager;
 

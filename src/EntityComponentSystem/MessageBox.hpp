@@ -10,7 +10,7 @@
 #include "Components.hpp"
 #include "ResourceManager.hpp"
 #include "ScreenAlignment.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Vector2D.hpp"
 
 class MessageBoxComponent : public Component {
     private:

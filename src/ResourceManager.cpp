@@ -8,11 +8,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Collision.hpp"
+#include "Utils/Collision.hpp"
 #include "Game.hpp"
 #include "ResourceManager.hpp"
 #include "ScreenAlignment.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Vector2D.hpp"
 
 std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> ResourceManager::textureCache;
 std::unordered_map<std::string,std::weak_ptr<TTF_Font>> ResourceManager::fontCache;

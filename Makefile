@@ -4,8 +4,8 @@ SRCS = src/main.cpp \
        src/FrameManager.cpp \
        src/ResourceManager.cpp \
        src/Map.cpp \
-       src/Vector2D.cpp \
-       src/Collision.cpp \
+       src/Utils/Vector2D.cpp \
+       src/Utils/Collision.cpp \
        src/EntityComponentSystem/EntityComponentSystem.cpp
 
 CC     = g++

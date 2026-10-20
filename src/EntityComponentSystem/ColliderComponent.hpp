@@ -8,8 +8,8 @@
 
 #include "Components.hpp"
 #include "Game.hpp"
-#include "Polygon.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Polygon.hpp"
+#include "Utils/Vector2D.hpp"
 
 class ColliderComponent : public Component {
 	public:

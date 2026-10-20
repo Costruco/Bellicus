@@ -15,10 +15,10 @@
 #include "Game.hpp"
 #include "Input.hpp"
 #include "Map.hpp"
-#include "Math.hpp"
-#include "Physics.hpp"
-#include "Polygon.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Math.hpp"
+#include "Utils/Physics.hpp"
+#include "Utils/Polygon.hpp"
+#include "Utils/Vector2D.hpp"
 
 struct CarWheelConfig {
 	Vector2D localPosition;

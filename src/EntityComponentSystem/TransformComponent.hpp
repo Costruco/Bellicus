@@ -5,8 +5,8 @@
 
 #include "Components.hpp"
 #include "Input.hpp"
-#include "Math.hpp"
-#include "Vector2D.hpp"
+#include "Utils/Math.hpp"
+#include "Utils/Vector2D.hpp"
 
 class TransformComponent : public Component {
 	public:
