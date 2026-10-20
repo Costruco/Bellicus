@@ -126,9 +126,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	vaga.addGroup(groupGround);
 
 	info.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
-											std::vector<std::string>{"Velocidade: [:4.1f] km/h","Marcha: [:1.0f]","RPM: [:4.0f]"},
+											std::vector<std::string>{
+											"x: /right[:1.0f]",
+											"y: /right[:1.0f]",
+											"Angulo: /right[:1.2f]",
+											"Velocidade: /right[:1.1f]",
+											"Pontos: /right[:1.0f]"},
 											ScreenAlignment::TOP_LEFT);
-	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,0,0,255},{0,0,0,255});
+	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
 }
 
@@ -179,7 +184,12 @@ void Game::update() {
 	float velocity = car.velocity.getModule()/PIXELS_PER_METER*3.6f;
 	float rpm = car.engineRPM;
 	float gear = car.gearbox.gear;
-	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{{velocity},{gear},{rpm}});
+	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
+													   {0},
+													   {-0},
+													   {0},
+													   {0},
+													   {0}});
 	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
 	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
@@ -270,7 +280,7 @@ void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_RenderClear(ren);
 	SDL_RenderCopy(ren, canva, NULL, NULL);
-	SDL_RenderSetScale(ren,3.0f,3.0f);
+	SDL_RenderSetScale(ren,2.0f,2.0f);
 	for(auto& u : ui) {
 		u->draw();
 	}

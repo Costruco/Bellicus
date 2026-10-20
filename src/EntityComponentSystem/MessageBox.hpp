@@ -22,6 +22,8 @@ class MessageBoxComponent : public Component {
         SDL_Color textColor = {255,255,255,255};
         SDL_Color borderColor = {0,0,0,255};
         SDL_Color backgroundColor = {0,0,0,128};
+        int padding = 2;
+        int lineSpacing = 3;
 
     public:
         MessageBoxComponent() = default;
@@ -53,6 +55,10 @@ class MessageBoxComponent : public Component {
             int maxWidth = 0, maxHeight = TTF_FontLineSkip(font.get());
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
+                if (line.find("/center") != std::string::npos)
+                    line.replace(line.find("/center"),7,"");
+                if (line.find("/right") != std::string::npos)
+                    line.replace(line.find("/right"),6,"");
                 while (line.find("[") != std::string::npos && line.find("]") != std::string::npos) {
                     line = line.replace(line.find("["),1,"{");
                     line = line.replace(line.find("]"),1,"}");
@@ -79,6 +85,7 @@ class MessageBoxComponent : public Component {
                 linesCopy.push_back(line);
             }
             SDL_FRect dst = {transform->position.x,transform->position.y,transform->width,transform->height};
-            ResourceManager::drawMessageBox(font,&dst,alignment,linesCopy,textColor,borderColor,backgroundColor);
+            ResourceManager::drawMessageBox(font,&dst,alignment,padding,lineSpacing,linesCopy,
+                textColor,borderColor,backgroundColor);
         }
 };

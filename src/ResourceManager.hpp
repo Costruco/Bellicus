@@ -28,7 +28,8 @@ class ResourceManager {
 		static void drawTexture(const TexturePtr& tex, const SDL_Rect * src, const SDL_FRect * dst, 
 			double angle = 0, SDL_FPoint * center = nullptr, SDL_RendererFlip flip = SDL_FLIP_NONE);
 		static void drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
-			const std::vector<std::string>& lines, SDL_Color text, SDL_Color border, SDL_Color background);
+			int padding, int lineSpacing, const std::vector<std::string>& lines, 
+			SDL_Color text, SDL_Color border, SDL_Color background);
 		static void unloadTexture(const std::string& path);
 		static void unloadFont(const std::string& path);
 		static void unloadSound(const std::string& path);

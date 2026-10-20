@@ -92,10 +92,15 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
 }
 
 void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
-    const std::vector<std::string>& lines, SDL_Color text, SDL_Color border, SDL_Color background) {
+    int padding, int lineSpacing, const std::vector<std::string>& lines, 
+    SDL_Color text, SDL_Color border, SDL_Color background) {
     ScreenAlignment h = alignment & ScreenAlignment::HORIZONTAL;
     ScreenAlignment v = alignment & ScreenAlignment::VERTICAL;
     SDL_FRect boxDst = *dst;
+    boxDst.x += 1;
+    boxDst.y += 1;
+    boxDst.w += 2*padding;
+    boxDst.h += 2*padding+lineSpacing*(lines.size()-1);
     switch (h) {
         case ScreenAlignment::LEFT:
             break;
@@ -116,26 +121,40 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
             boxDst.y = boxDst.y+Game::WINDOW_HEIGHT-boxDst.h;
             break;
     }
-    boxRGBA(Game::ren,boxDst.x,boxDst.y,boxDst.x+boxDst.w,boxDst.y+boxDst.h,background.r,background.g,background.b,background.a);
-    rectangleRGBA(Game::ren,boxDst.x,boxDst.y,boxDst.x+boxDst.w+1,boxDst.y+boxDst.h+1,border.r,border.g,border.b,border.a);
+    boxRGBA(Game::ren,boxDst.x,boxDst.y,boxDst.x+boxDst.w,boxDst.y+boxDst.h,
+        background.r,background.g,background.b,background.a);
+    rectangleRGBA(Game::ren,boxDst.x-1,boxDst.y-1,boxDst.x+boxDst.w+1,boxDst.y+boxDst.h+1,
+        border.r,border.g,border.b,border.a);
     for (size_t i = 0; i < lines.size(); i++) {
         const std::string& line = lines[i];
-        if (line.empty())
-            continue;
-        SDL_Surface* surface = TTF_RenderUTF8_Solid(font.get(),line.c_str(),text);
-        if (!surface)
-            continue;
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::ren,surface);
-        float x = boxDst.x;
-        float y = boxDst.y+(boxDst.h/lines.size())*i+(boxDst.h/lines.size()-surface->h)/2.0f;
-        stringRGBA(Game::ren,x+surface->w+10,y,line.c_str(),0,0,255,255);
-        SDL_FRect textDst = {x,y,surface->w,surface->h};
-        SDL_FreeSurface(surface);
-        if (texture) {
-            SDL_SetTextureAlphaMod(texture,text.a);
-            SDL_RenderCopyF(Game::ren,texture,nullptr,&textDst);
-            SDL_DestroyTexture(texture);
-        }
+        auto centerPos = line.find("/center");
+        auto rightPos = line.find("/right");
+        bool c = (centerPos != std::string::npos);
+        bool r = (rightPos != std::string::npos);
+        std::string left = line.substr(0,(c?centerPos:rightPos));
+        std::string center = (c?line.substr(centerPos+7,(r?rightPos-(centerPos+7):r)):"");
+        std::string right = (r?line.substr(rightPos+6):"");
+        auto drawText = [&](const std::string& s, int alignment) {
+            if (s.empty())
+                return;
+            SDL_Surface* surface = TTF_RenderUTF8_Solid(font.get(),s.c_str(),text);
+            if (!surface)
+                return;
+            SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::ren,surface);
+            float x = padding+boxDst.x+(boxDst.w-padding*2.0f-surface->w)*alignment/2.0f;
+            float lineHeight = (boxDst.h-padding*2+lineSpacing)/lines.size()-lineSpacing;
+            float y = padding+boxDst.y+(lineHeight+lineSpacing)*i+(lineHeight-surface->h)/2.0f;
+            SDL_FRect textDst = {x,y,static_cast<float>(surface->w),static_cast<float>(surface->h)};
+            SDL_FreeSurface(surface);
+            if (texture) {
+                SDL_SetTextureAlphaMod(texture,text.a);
+                SDL_RenderCopyF(Game::ren,texture,nullptr,&textDst);
+                SDL_DestroyTexture(texture);
+            }
+        };
+        drawText(left,0);
+        drawText(center,1);
+        drawText(right,2);
     }
 }
 
