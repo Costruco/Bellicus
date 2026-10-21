@@ -130,8 +130,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 											"x: /right[:1.0f]",
 											"y: /right[:1.0f]",
 											"Angulo: /right[:1.2f]",
-											"Velocidade: /right[:1.1f]",
-											"Pontos: /right[:1.0f]"},
+											"Velocidade: /right[:5.1f]",
+											"RPM: /right[:1.0f]"},
 											ScreenAlignment::TOP_LEFT);
 	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
@@ -180,16 +180,16 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	CarMovementComponent& car = newPlayer.getComponent<CarMovementComponent>();
+	auto car = newPlayer.getComponent<CarMovementComponent>();
+	auto transform = newPlayer.getComponent<TransformComponent>();
 	float velocity = car.velocity.getModule()/PIXELS_PER_METER*3.6f;
 	float rpm = car.engineRPM;
-	float gear = car.gearbox.gear;
 	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
-													   {0},
-													   {-0},
-													   {0},
-													   {0},
-													   {0}});
+													   {transform.getPosition().x},
+													   {transform.getPosition().y},
+													   {transform.getDirection()},
+													   {velocity},
+													   {rpm}});
 	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
 	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
