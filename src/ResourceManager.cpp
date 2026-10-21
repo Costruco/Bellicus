@@ -94,13 +94,15 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
 void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
     int padding, int lineSpacing, const std::vector<std::string>& lines, 
     SDL_Color text, SDL_Color border, SDL_Color background) {
-    ScreenAlignment h = alignment & ScreenAlignment::HORIZONTAL;
-    ScreenAlignment v = alignment & ScreenAlignment::VERTICAL;
+    
     SDL_FRect boxDst = *dst;
     boxDst.x += 1;
     boxDst.y += 1;
     boxDst.w += 2*padding;
     boxDst.h += 2*padding+lineSpacing*(lines.size()-1);
+
+    ScreenAlignment h = alignment & ScreenAlignment::HORIZONTAL;
+    ScreenAlignment v = alignment & ScreenAlignment::VERTICAL;
     switch (h) {
         case ScreenAlignment::LEFT:
             break;
@@ -121,19 +123,23 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
             boxDst.y = boxDst.y+Game::WINDOW_HEIGHT-boxDst.h;
             break;
     }
+
     boxRGBA(Game::ren,boxDst.x,boxDst.y,boxDst.x+boxDst.w,boxDst.y+boxDst.h,
         background.r,background.g,background.b,background.a);
     rectangleRGBA(Game::ren,boxDst.x-1,boxDst.y-1,boxDst.x+boxDst.w+1,boxDst.y+boxDst.h+1,
         border.r,border.g,border.b,border.a);
+
     for (size_t i = 0; i < lines.size(); i++) {
         const std::string& line = lines[i];
         auto centerPos = line.find("/center");
         auto rightPos = line.find("/right");
         bool c = (centerPos != std::string::npos);
         bool r = (rightPos != std::string::npos);
+        
         std::string left = line.substr(0,(c?centerPos:rightPos));
         std::string center = (c?line.substr(centerPos+7,(r?rightPos-(centerPos+7):r)):"");
         std::string right = (r?line.substr(rightPos+6):"");
+
         auto drawText = [&](const std::string& s, int alignment) {
             if (s.empty())
                 return;

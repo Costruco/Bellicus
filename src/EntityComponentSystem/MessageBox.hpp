@@ -10,6 +10,7 @@
 #include "Components.hpp"
 #include "ResourceManager.hpp"
 #include "ScreenAlignment.hpp"
+#include "Utils/String.hpp"
 #include "Utils/Vector2D.hpp"
 
 class MessageBoxComponent : public Component {
@@ -55,13 +56,11 @@ class MessageBoxComponent : public Component {
             int maxWidth = 0, maxHeight = TTF_FontLineSkip(font.get());
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
-                if (line.find("/center") != std::string::npos)
-                    line.replace(line.find("/center"),7,"");
-                if (line.find("/right") != std::string::npos)
-                    line.replace(line.find("/right"),6,"");
+                safeReplace(line,"/center");
+                safeReplace(line,"/right");
                 while (line.find("[") != std::string::npos && line.find("]") != std::string::npos) {
-                    line = line.replace(line.find("["),1,"{");
-                    line = line.replace(line.find("]"),1,"}");
+                    safeReplace(line,"[","{");
+                    safeReplace(line,"]","}");
                     float aux = 1.0f;
                     line = std::vformat(line,std::make_format_args(aux));
                 }
@@ -78,8 +77,8 @@ class MessageBoxComponent : public Component {
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
                 for (const auto& value : values[i]) {
-                    line = line.replace(line.find("["),1,"{");
-                    line = line.replace(line.find("]"),1,"}");
+                    safeReplace(line,"[","{");
+                    safeReplace(line,"]","}");
                     line = std::vformat(line,std::make_format_args(value));
                 }
                 linesCopy.push_back(line);
