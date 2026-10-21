@@ -11,11 +11,31 @@ inline std::string& safeReplace(std::string& str, const std::string& out, const 
     return str;
 }
 
-inline void getNumber(std::istream& file, int& n) {
+inline bool getNumber(std::istream& file, int& n) {
     n = 0;
     char c;
-    while (file.get(c) && !std::isdigit(static_cast<unsigned char>(c))) {}
-    do {
+    bool negative = false;
+
+    while (file.get(c)) {
+        if (std::isdigit(static_cast<unsigned char>(c)))
+            break;
+        if (c == '-' && std::isdigit(file.peek())) {
+            negative = true;
+            file.get(c);
+            break;
+        }
+    }
+
+    if (!file)
+        return false;
+
+    n = (c-'0');
+    while (std::isdigit(file.peek())) {
+        file.get(c);
         n = n*10+(c-'0');
-    } while (file.get(c) && std::isdigit(static_cast<unsigned char>(c)));
+    }
+    
+    if (negative)
+        n = -n;
+    return true;
 }
