@@ -1,47 +1,45 @@
 #pragma once
 
+#include <cstdint>
+
 //MovementDirection
-enum class MovementDirection : int {
-	BACKWARD = -1,
-	STILL    =  0,
-	FORWARD  =  1
+enum class MovementDirection : std::uint8_t {
+	STILL    = 0,
+	BACKWARD = 1 << 0,
+	FORWARD  = 1 << 1,
+
+    BRAKE = BACKWARD | FORWARD
 };
 
-inline MovementDirection& operator+=(MovementDirection& md, int delta) {
-    int v = static_cast<int>(md) + delta;
-
-    if (v < static_cast<int>(MovementDirection::BACKWARD))
-		v = static_cast<int>(MovementDirection::BACKWARD);
-    if (v > static_cast<int>(MovementDirection::FORWARD)) 
-		v = static_cast<int>(MovementDirection::FORWARD);
-
-    md = static_cast<MovementDirection>(v);
-    return md;
+constexpr MovementDirection operator|(MovementDirection a, MovementDirection b) {
+    return static_cast<MovementDirection>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
 }
 
-inline MovementDirection& operator-=(MovementDirection& md, int delta) {
-	return md += -delta;
+constexpr MovementDirection operator&(MovementDirection a, MovementDirection b) {
+    return static_cast<MovementDirection>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
+}
+
+constexpr MovementDirection operator~(MovementDirection a) {
+    return static_cast<MovementDirection>(~static_cast<std::uint8_t>(a));
 }
 
 //TurnDirection
-enum class TurnDirection : int {
-	LEFT     = -1,
-	STRAIGHT =  0,
-	RIGHT    =  1
+enum class TurnDirection : std::uint8_t {
+	STRAIGHT = 0,
+	LEFT     = 1 << 0,
+	RIGHT    = 1 << 1,
+
+    STRAIGHT = LEFT | RIGHT
 };
 
-inline TurnDirection& operator+=(TurnDirection& td, int delta) {
-    int v = static_cast<int>(td)+delta;
-
-	if (v < static_cast<int>(TurnDirection::LEFT))
-		v = static_cast<int>(TurnDirection::LEFT);
-    if (v > static_cast<int>(TurnDirection::RIGHT))
-		v = static_cast<int>(TurnDirection::RIGHT);
-
-    td = static_cast<TurnDirection>(v);
-    return td;
+constexpr TurnDirection operator|(TurnDirection a, TurnDirection b) {
+    return static_cast<TurnDirection>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
 }
 
-inline TurnDirection& operator-=(TurnDirection& td, int delta) {
-	return td += -delta;
+constexpr TurnDirection operator&(TurnDirection a, TurnDirection b) {
+    return static_cast<TurnDirection>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
+}
+
+constexpr TurnDirection operator~(TurnDirection a) {
+    return static_cast<TurnDirection>(~static_cast<std::uint8_t>(a));
 }
