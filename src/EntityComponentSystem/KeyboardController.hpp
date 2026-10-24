@@ -18,15 +18,15 @@ class KeyboardController : public Component {
 			//direction
 			transform->turnIntent = TurnDirection::STRAIGHT;
 			if (keystate[SDL_SCANCODE_A])
-				transform->turnIntent -= 1;
+				transform->turnIntent = transform->turnIntent | TurnDirection::LEFT;
 			if (keystate[SDL_SCANCODE_D])
-				transform->turnIntent += 1;
+				transform->turnIntent = transform->turnIntent | TurnDirection::RIGHT;
 		        
 			//movement
 			transform->moveIntent = MovementDirection::STILL;
-			if (keystate[SDL_SCANCODE_W])
-				transform->moveIntent += 1;
 			if (keystate[SDL_SCANCODE_S])
-				transform->moveIntent -= 1;
+				transform->moveIntent = transform->moveIntent | MovementDirection::BACKWARD;
+			if (keystate[SDL_SCANCODE_W])
+				transform->moveIntent = transform->moveIntent | MovementDirection::FORWARD;
 		}
 };

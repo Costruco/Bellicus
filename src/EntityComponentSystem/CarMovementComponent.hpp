@@ -233,25 +233,24 @@ class CarMovementComponent : public Component {
 		VehicleControl getInput() {
 			VehicleControl input;
 		
-			input.steer = static_cast<int>(transform->turnIntent);
+			if (transform->turnIntent == TurnDirection::LEFT)
+				input.steer = -1;
+			else if (transform->turnIntent == TurnDirection::RIGHT)
+				input.steer = 1;
+			else
+				input.steer = 0;
 			if (transform->moveIntent == MovementDirection::STILL)
 				return input;
 
 			float forwardSpeed = velocity.dot(forward());
 			float speed = getSpeed();
 
-			if (transform->moveIntent == MovementDirection::FORWARD) {
-				if (gearbox.gear == 0 && forwardSpeed < -10.0f)
-					input.brake = 1.0f;
-				else
-					input.throttle = 1.0f;
-			}
-			else if (transform->moveIntent == MovementDirection::BACKWARD) {
-				if (gearbox.gear == 0 || (speed < 15.0f && forwardSpeed <= 5.0f))
-					input.throttle = 1.0f;
-				else
-					input.brake = 1.0f;
-			}
+			if (transform->moveIntent == MovementDirection::BRAKE)
+				input.brake = 1.0f;
+			else if (transform->moveIntent == MovementDirection::FORWARD)
+				input.throttle = 1.0f;
+			else if (transform->moveIntent == MovementDirection::BACKWARD)
+				input.throttle = 1.0f;
 			return input;
 		}
 
