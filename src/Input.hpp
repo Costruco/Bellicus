@@ -29,7 +29,7 @@ enum class TurnDirection : std::uint8_t {
 	LEFT     = 1 << 0,
 	RIGHT    = 1 << 1,
 
-    STRAIGHT = LEFT | RIGHT
+    NONE = LEFT | RIGHT
 };
 
 constexpr TurnDirection operator|(TurnDirection a, TurnDirection b) {
