@@ -72,6 +72,7 @@ class SpriteComponent : public Component {
 		}
 		
 		void play(const std::string& animName) {
+			if (!animated) return;
 			animIndex = animations[animName].index;
 			frames = animations[animName].frames;
 			frameDelay = animations[animName].frameDelay;

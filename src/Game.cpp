@@ -95,24 +95,24 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
 	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});*/
 	
-	newPlayer.addComponent<TransformComponent>(0,0,0.0f,/*220,118*/180,88,1);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",true);
-	newPlayer.addComponent<ColliderComponent>("player",158,64);
+	newPlayer.addComponent<TransformComponent>(0,0,180.0f,/*220,118*/220,118,1);
+	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/sandero.png",false);
+	newPlayer.addComponent<ColliderComponent>("player",199,97);
 	
 	newPlayer.addComponent<KeyboardController>();
 	
 	newPlayer.addComponent<CarMovementComponent>(&manager,
-												 260.0f,1102.0f,104.0f,48.0f,27.5f,15.8f,0.92f,800.0f,6500.0f,
-												 5.0f,3.0f,0.7f,12.0f,18.0f,120.0f,0.10f,
-												 38.0f,0.025f,1.15f,1.0f,45.0f,45.0f,22.0f,22.0f,
-												 TorqueCurve(157.0f,70.0f,4000.0f,1.0f,6000.0f),
+												 210.0f,1155.0f,129.5f,74.6f,29.25f,15.4f,0.90f,750.0f,6000.0f,
+												 4.5f,3.5f,0.75f,2.0f,18.0f,125.0f,0.005f,
+												 31.5f,0.015f,0.02f,1.2f,32.0f,35.0f,25.0f,25.0f,
+												 TorqueCurve(152.0f,74.0f,2850.0f,1.0f,6000.0f),
 												 GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f),
-												 PacejkaCurve(13.5f,1.9f,1.0f,0.92f),
-												 PacejkaCurve(7.0f,1.55f,0.88f,0.78f),
-												 std::vector<CarWheelConfig>{CarWheelConfig(Vector2D(31.6f,10.3f),true,false),
-																			 CarWheelConfig(true,false),
-																			 CarWheelConfig(false,true),
-																			 CarWheelConfig(false,true)},
+												 PacejkaCurve(11.5f,1.85f,1.0f,0.94f),
+												 PacejkaCurve(14.0f,1.38f,1.0f,0.35f),
+												 std::vector<CarWheelConfig>{CarWheelConfig(Vector2D(31.6f,10.3f),true,true),
+																			 CarWheelConfig(true,true),
+																			 CarWheelConfig(false,false),
+																			 CarWheelConfig(false,false)},
 												 "../assets/textures/entities/pneu.png",groupGround);
 	newPlayer.addGroup(groupPlayers);
 	
@@ -127,11 +127,24 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 
 	info.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
 											std::vector<std::string>{
-											"x: /right[:1.0f]",
-											"y: /right[:1.0f]",
+											"x,y: /right[:1.0f],[:1.0f]",
 											"Angulo: /right[:1.2f]",
 											"Velocidade: /right[:5.1f]",
-											"RPM: /right[:1.0f]"},
+											"Gear: /right[:1.0f]",
+											"RPM: /right[:1.0f]",
+											"TX: /right[:1.0f]",
+											"TY: /right[:1.0f]",
+											"Throttle: /right[:1.0f]",
+											"Turn: /right[:1.0f]",
+											"Brake: /right[:1.0f]",
+											"Wheel dir: /right[:1.2f]",
+											"Vel x: /right[:1.2f]",
+											"Vel y: /right[:1.2f]",
+											"Acc x: /right[:1.2f]",
+											"Acc y: /right[:1.2f]",
+											"PrevAcc x: /right[:1.2f]",
+											"PrevAcc y: /right[:1.2f]",
+											"Yaw rate: /right[:1.2f]"},
 											ScreenAlignment::TOP_LEFT);
 	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
@@ -182,14 +195,27 @@ void Game::update() {
 
 	auto car = newPlayer.getComponent<CarMovementComponent>();
 	auto transform = newPlayer.getComponent<TransformComponent>();
-	float velocity = car.velocity.getModule()/PIXELS_PER_METER*3.6f;
+	float velocity = car.getSpeed()*3.6f;
 	float rpm = car.engineRPM;
 	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
-													   {transform.getPosition().x},
-													   {transform.getPosition().y},
+													   {transform.getPosition().x,transform.getPosition().y},
 													   {transform.getDirection()},
 													   {velocity},
-													   {rpm}});
+													   {car.gearbox.gear},
+													   {rpm},
+													   {car.totalForce.x},
+													   {car.totalForce.y},
+													   {car.input.throttle},
+													   {car.input.steer},
+													   {car.input.brake},
+													   {car.wheelDirection},
+													   {car.velocity.x*3.6f},
+													   {car.velocity.y*3.6f},
+													   {car.acceleration.x},
+													   {car.acceleration.y},
+													   {car.previousAcceleration.x},
+													   {car.previousAcceleration.y},
+													   {car.yawRate}});
 	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
 	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
@@ -226,7 +252,7 @@ void Game::update() {
 	camera.focus.x = (left>right)?(left+right)*0.5f:clamp(playerPos.x,left,right);
 	camera.focus.y = (top>bottom)?(top+bottom)*0.5f:clamp(playerPos.y,top,bottom);
 
-	if (newPlayer.getComponent<CarMovementComponent>().velocity.getModule() > 1)
+	if (newPlayer.getComponent<TransformComponent>().velocity.getModule() > 1)
 		newPlayer.getComponent<SpriteComponent>().play("walk");
 	else
 		newPlayer.getComponent<SpriteComponent>().play("idle");

@@ -10,6 +10,7 @@
 #include "Vector2D.hpp"
 
 constexpr float PIXELS_PER_METER = 50.0f;
+constexpr float GRAVITY_SI = 9.81f;
 constexpr float GRAVITY = 9.81f*PIXELS_PER_METER; //lembrando que ta em pixels/s�
 
 struct TorqueCurve {
@@ -153,4 +154,8 @@ inline float desacc(float brakePower, float mass) {
 
 inline float acc(float force, float mass) {
 	return force / mass;
+}
+
+inline Vector2D acc(Vector2D force, float mass) {
+	return force/mass;
 }
