@@ -89,6 +89,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	} else
 		isRunning = false;
 	
+	manager.setComponentEnable<ColliderComponent>(false,EnableMode::DRAW);
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
 	
 
@@ -135,18 +136,22 @@ void Game::handleEvents() {
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
 
-	auto turret = &tankTurret.getComponent<TransformComponent>();
-	auto chassis = &tankChassis.getComponent<TransformComponent>();
+	if (tankTurret.isActive() && tankTurret.isComponentEnabled<TransformComponent>(EnableMode::UPDATE)) {
+		auto turret = &tankTurret.getComponent<TransformComponent>();
+		auto chassis = &tankChassis.getComponent<TransformComponent>();
 
-	double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse*logicalScale));
-	turret->direction = 180+targetAngle-chassis->getDirection();
+		double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse*logicalScale));
+		turret->direction = 180+targetAngle-chassis->getDirection();
+	}
 
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {
-			case SDL_KEYUP:
 			case SDL_KEYDOWN:
 				if (evt.key.keysym.sym == SDLK_ESCAPE)
 					camera.mouseOffset = Vector2D();
+				if (evt.key.keysym.sym == SDLK_F1)
+					manager.setComponentEnable<ColliderComponent>(
+					!manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW), EnableMode::DRAW);
 				break;
 			case SDL_QUIT:
 				isRunning = false;
