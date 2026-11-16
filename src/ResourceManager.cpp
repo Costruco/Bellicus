@@ -69,23 +69,39 @@ ResourceManager::SoundPtr ResourceManager::loadSound(const std::string& fileName
     return sound;
 }
 
+namespace {
+    struct CachedTextTexture {
+        ResourceManager::TexturePtr texture;
+        int w = 0;
+        int h = 0;
+    };
+    std::unordered_map<std::string, CachedTextTexture> textTextureCache;
+}
+
 void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, const SDL_FRect* dst, 
     double angle, SDL_FPoint* center, SDL_RendererFlip flip) {
     Vector2D localCenter = (center)?Vector2D(center->x,center->y):Vector2D(dst->w/2,dst->h/2);
     Vector2D worldCenter = localCenter+Vector2D(dst->x,dst->y);
+    Vector2D screenSize = Game::camera.worldSizeToScreen(Vector2D(dst->w,dst->h));
+    float radius = (screenSize.x+screenSize.y)*0.5f;
+
+    float dx = std::abs(worldCenter.x-Game::camera.focus.x)*Game::camera.scale.x;
+    float dy = std::abs(worldCenter.y-Game::camera.focus.y)*Game::camera.scale.y;
+    float maxExtent = (Game::WINDOW_WIDTH+Game::WINDOW_HEIGHT)*0.5f+radius*2.0f;
+    if (dx > maxExtent || dy > maxExtent) {
+        return;
+    }
 
     Vector2D screenCenter = Game::camera.worldToScreen(worldCenter);
-    Vector2D screenSize = Game::camera.worldSizeToScreen(Vector2D(dst->w,dst->h));
-    Vector2D scaledCenter = Game::camera.worldSizeToScreen(localCenter);
-
-    SDL_FRect screenDst = {screenCenter.x-scaledCenter.x,
-                           screenCenter.y-scaledCenter.y,
-                           screenSize.x,screenSize.y};
-    float radius = (screenSize.x+screenSize.y)*0.5f;
     if (screenCenter.x+radius < 0 || screenCenter.x-radius > Game::WINDOW_WIDTH ||
         screenCenter.y+radius < 0 || screenCenter.y-radius > Game::WINDOW_HEIGHT) {
         return;
     }
+
+    Vector2D scaledCenter = Game::camera.worldSizeToScreen(localCenter);
+    SDL_FRect screenDst = {screenCenter.x-scaledCenter.x,
+                           screenCenter.y-scaledCenter.y,
+                           screenSize.x,screenSize.y};
     SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
 
     SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
@@ -129,6 +145,10 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
     rectangleRGBA(Game::ren,boxDst.x-1,boxDst.y-1,boxDst.x+boxDst.w+1,boxDst.y+boxDst.h+1,
         border.r,border.g,border.b,border.a);
 
+    if (textTextureCache.size() > 512) {
+        textTextureCache.clear();
+    }
+
     for (size_t i = 0; i < lines.size(); i++) {
         const std::string& line = lines[i];
         auto centerPos = line.find("/center");
@@ -143,20 +163,37 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
         auto drawText = [&](const std::string& s, int alignment) {
             if (s.empty())
                 return;
-            SDL_Surface* surface = TTF_RenderUTF8_Solid(font.get(),s.c_str(),text);
-            if (!surface)
-                return;
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::ren,surface);
-            float x = padding+boxDst.x+(boxDst.w-padding*2.0f-surface->w)*alignment/2.0f;
-            float lineHeight = (boxDst.h-padding*2+lineSpacing)/lines.size()-lineSpacing;
-            float y = padding+boxDst.y+(lineHeight+lineSpacing)*i+(lineHeight-surface->h)/2.0f;
-            SDL_FRect textDst = {x,y,static_cast<float>(surface->w),static_cast<float>(surface->h)};
-            SDL_FreeSurface(surface);
-            if (texture) {
-                SDL_SetTextureAlphaMod(texture,text.a);
-                SDL_RenderCopyF(Game::ren,texture,nullptr,&textDst);
-                SDL_DestroyTexture(texture);
+            std::string key;
+            key.reserve(s.size() + 16);
+            key.append(reinterpret_cast<const char*>(&font), sizeof(TTF_Font*));
+            key.push_back(static_cast<char>(text.r));
+            key.push_back(static_cast<char>(text.g));
+            key.push_back(static_cast<char>(text.b));
+            key.append(s);
+
+            auto it = textTextureCache.find(key);
+            if (it == textTextureCache.end()) {
+                SDL_Surface* surface = TTF_RenderUTF8_Solid(font.get(),s.c_str(),text);
+                if (!surface)
+                    return;
+                SDL_Texture* rawTex = SDL_CreateTextureFromSurface(Game::ren,surface);
+                int w = surface->w;
+                int h = surface->h;
+                SDL_FreeSurface(surface);
+                if (!rawTex)
+                    return;
+                it = textTextureCache.emplace(std::move(key), CachedTextTexture{
+                    TexturePtr(rawTex, SDL_DestroyTexture), w, h
+                }).first;
             }
+
+            const auto& cached = it->second;
+            float x = padding+boxDst.x+(boxDst.w-padding*2.0f-cached.w)*alignment/2.0f;
+            float lineHeight = (boxDst.h-padding*2+lineSpacing)/lines.size()-lineSpacing;
+            float y = padding+boxDst.y+(lineHeight+lineSpacing)*i+(lineHeight-cached.h)/2.0f;
+            SDL_FRect textDst = {x,y,static_cast<float>(cached.w),static_cast<float>(cached.h)};
+            SDL_SetTextureAlphaMod(cached.texture.get(),text.a);
+            SDL_RenderCopyF(Game::ren,cached.texture.get(),nullptr,&textDst);
         };
         drawText(left,0);
         drawText(center,1);
@@ -177,6 +214,7 @@ void ResourceManager::unloadSound(const std::string& path) {
 }
 
 void ResourceManager::clear() {
+    textTextureCache.clear();
     textureCache.clear();
     fontCache.clear();
     soundCache.clear();

@@ -13,28 +13,6 @@ void Entity::removeSonOnly(Entity * son) {
 }
 
 //public
-void Entity::update() {
-	if (!active || !isUpdateEnabled())
-		return;
-	ComponentBitSet updateMask = manager.getEffectiveComponentUpdateMask(groupBitSet);
-	for (auto& c : components) {
-		if (c->isUpdateEnabled() && updateMask.test(c->getTypeID())) {
-			c->update();
-		}
-	}
-}
-
-void Entity::draw() {
-	if (!active || !isDrawEnabled())
-		return;
-	ComponentBitSet drawMask = manager.getEffectiveComponentDrawMask(groupBitSet);
-	for (auto& c : components) {
-		if (c->isDrawEnabled() && drawMask.test(c->getTypeID())) {
-			c->draw();
-		}
-	}
-}
-
 void Entity::setEnable(bool enabled, EnableMode mode, bool recursive) {
 	if ((mode & EnableMode::UPDATE) != EnableMode::NONE)
 		updateEnabled = enabled;
@@ -47,23 +25,6 @@ void Entity::setEnable(bool enabled, EnableMode mode, bool recursive) {
 				son->setEnable(enabled, mode, true);
 		}
 	}
-}
-
-bool Entity::isUpdateEnabled() const {
-	return updateEnabled && manager.isGroupUpdateAllowed(groupBitSet);
-}
-
-bool Entity::isDrawEnabled() const {
-	return drawEnabled && manager.isGroupDrawAllowed(groupBitSet);
-}
-
-bool Entity::isEnabled(EnableMode mode) const {
-	bool result = true;
-	if ((mode & EnableMode::UPDATE) != EnableMode::NONE)
-		result = result && isUpdateEnabled();
-	if ((mode & EnableMode::DRAW) != EnableMode::NONE)
-		result = result && isDrawEnabled();
-	return result;
 }
 
 void Entity::addGroup(Group mGroup) {

@@ -136,10 +136,7 @@ class Entity {
 			return active;
 		}
 		
-		void destroy() {
-			active = false;
-			destroySonsRecursive();
-		}
+		void destroy();
 
 		void setEnable(bool enabled, EnableMode mode = EnableMode::BOTH, bool recursive = true);
 		bool isUpdateEnabled() const;
@@ -151,9 +148,7 @@ class Entity {
 		}
 		
 		void addGroup(Group mGroup);
-		void delGroup(Group mGroup) {
-			groupBitSet[mGroup] = false;
-		}
+		void delGroup(Group mGroup);
 		
 		template <typename T> bool hasComponent() const {
 			return componentBitSet[getComponentTypeID<T>()];
@@ -210,6 +205,7 @@ class Manager {
 		std::vector<std::unique_ptr<Entity>> entities;
 		std::array<std::vector<Entity*>,maxGroups> groupedEntities;
 
+		bool needsRefresh = false;
 		bool globalUpdateEnabled = true;
 		bool globalDrawEnabled = true;
 		ComponentBitSet componentUpdateMask;
@@ -224,6 +220,10 @@ class Manager {
 	public:
 		Manager() {
 			resetEnableMasks();
+		}
+
+		void requestRefresh() {
+			needsRefresh = true;
 		}
 
 		void resetEnableMasks() {
@@ -370,6 +370,10 @@ class Manager {
 		}
 		
 		void refresh() {
+			if (!needsRefresh)
+				return;
+			needsRefresh = false;
+
 			for (auto i(0u); i < maxGroups; i++) {
 				auto& v(groupedEntities[i]);
 				v.erase(std::remove_if(std::begin(v),std::end(v),
@@ -405,8 +409,61 @@ class Manager {
 		        group.clear();
 		    }
 		    entities.clear();
+		    needsRefresh = false;
 		}
 };
+
+inline bool Entity::isUpdateEnabled() const {
+	return updateEnabled && manager.isGroupUpdateAllowed(groupBitSet);
+}
+
+inline bool Entity::isDrawEnabled() const {
+	return drawEnabled && manager.isGroupDrawAllowed(groupBitSet);
+}
+
+inline bool Entity::isEnabled(EnableMode mode) const {
+	bool result = true;
+	if ((mode & EnableMode::UPDATE) != EnableMode::NONE)
+		result = result && isUpdateEnabled();
+	if ((mode & EnableMode::DRAW) != EnableMode::NONE)
+		result = result && isDrawEnabled();
+	return result;
+}
+
+inline void Entity::update() {
+	if (!active || !isUpdateEnabled())
+		return;
+	ComponentBitSet updateMask = manager.getEffectiveComponentUpdateMask(groupBitSet);
+	for (auto& c : components) {
+		if (c->isUpdateEnabled() && updateMask.test(c->getTypeID())) {
+			c->update();
+		}
+	}
+}
+
+inline void Entity::draw() {
+	if (!active || !isDrawEnabled())
+		return;
+	ComponentBitSet drawMask = manager.getEffectiveComponentDrawMask(groupBitSet);
+	for (auto& c : components) {
+		if (c->isDrawEnabled() && drawMask.test(c->getTypeID())) {
+			c->draw();
+		}
+	}
+}
+
+inline void Entity::destroy() {
+	active = false;
+	manager.requestRefresh();
+	destroySonsRecursive();
+}
+
+inline void Entity::delGroup(Group mGroup) {
+	if (groupBitSet[mGroup]) {
+		groupBitSet[mGroup] = false;
+		manager.requestRefresh();
+	}
+}
 
 template <typename T>
 bool Entity::isComponentEnabled(EnableMode mode) const {

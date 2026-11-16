@@ -29,7 +29,7 @@ ifeq ($(PLATFORM),windows)
     INCLUDE_PATHS  = -I./src -I$(SDL2_ROOT)/include/SDL2
     LIBRARY_PATHS  = -L$(SDL2_ROOT)/lib
     OBJ_NAME       = bin/Bellicus.exe
-    COMPILER_FLAGS = $(CXXSTD) -static-libgcc -static-libstdc++
+    COMPILER_FLAGS = $(CXXSTD) -O3 -static-libgcc -static-libstdc++
 
     PKG_LIBS := $(shell pkg-config --static --libs sdl2 SDL2_image SDL2_mixer SDL2_ttf SDL2_gfx)
     PKG_LIBS := $(filter-out -mwindows,$(PKG_LIBS))
@@ -40,7 +40,7 @@ else
     INCLUDE_PATHS  = -I./src $(shell pkg-config --cflags sdl2 SDL2_image SDL2_mixer SDL2_ttf SDL2_gfx)
     LIBRARY_PATHS  =
     OBJ_NAME       = bin/Bellicus
-    COMPILER_FLAGS = $(CXXSTD)
+    COMPILER_FLAGS = $(CXXSTD) -O3
     LINKER_FLAGS   = $(shell pkg-config --libs sdl2 SDL2_image SDL2_mixer SDL2_ttf SDL2_gfx)
 endif
 

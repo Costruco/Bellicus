@@ -68,9 +68,11 @@ Vector2D Vector2D::perpendicular() {
 	return {-y,x};
 }
 Vector2D Vector2D::rotate(const Vector2D& o, float angle) const {
-	Vector2D newv = {(this->x-o.x)*cosd(angle)-(this->y-o.y)*sind(angle)+o.x,
-	                 (this->x-o.x)*sind(angle)+(this->y-o.y)*cosd(angle)+o.y};
-	return newv;
+	float c = cosd(angle);
+	float s = sind(angle);
+	float dx = this->x-o.x;
+	float dy = this->y-o.y;
+	return {dx*c-dy*s+o.x,dx*s+dy*c+o.y};
 }
 float Vector2D::angle(const Vector2D& v1, const Vector2D& v2) {
 	Vector2D v1v2 = v2-v1;

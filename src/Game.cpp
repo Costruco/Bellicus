@@ -91,6 +91,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	manager.setComponentEnable<ColliderComponent>(false,EnableMode::DRAW);
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
+	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
+	manager.setComponentEnable<ColliderComponent>(false, EnableMode::DRAW);
 	
 
 	//inicializa entidades
