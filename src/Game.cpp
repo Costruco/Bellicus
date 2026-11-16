@@ -92,19 +92,18 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	manager.setComponentEnable<ColliderComponent>(false,EnableMode::DRAW);
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
 	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
-	manager.setComponentEnable<ColliderComponent>(false, EnableMode::DRAW);
 	
 
 	//inicializa entidades
 	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
-	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false);
+	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false,true);
 	tankChassis.addComponent<ColliderComponent>("player",195,96);
 	tankChassis.addComponent<TankMovementComponent>(0,54.0f,370000,36250,94000,0.15,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	tankChassis.addComponent<KeyboardController>();
 	tankChassis.addGroup(groupPlayers);
 	
 	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
-	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false);
+	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
 	tankTurret.addComponent<ColliderComponent>("player",138,60);
 	tankTurret.addGroup(groupPlayers);
 

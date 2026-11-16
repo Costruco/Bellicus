@@ -18,6 +18,7 @@ class SpriteComponent : public Component {
 		SDL_FPoint texture_center;
 		
 		bool animated = false;
+		bool linear = false;
 		int frames;
 		int frameDelay;
 	
@@ -29,8 +30,8 @@ class SpriteComponent : public Component {
 		SpriteComponent(const std::string& path) {
 			setTexture(path);
 		}
-		SpriteComponent(const std::string& path, bool isAnimated) {
-			setTexture(path);
+		SpriteComponent(const std::string& path, bool isAnimated, bool isLinear = false) {
+			setTexture(path, isLinear);
 			if (animated = isAnimated) {
 				Animation idle = Animation(0,2,500);
 				Animation walk = Animation(1,2,500);
@@ -44,8 +45,17 @@ class SpriteComponent : public Component {
 		~SpriteComponent() {
 		}
 		
-		void setTexture(const std::string& path) {
+		void setTexture(const std::string& path, bool isLinear = false) {
+			linear = isLinear;
+			if (linear)
+				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 			texture = ResourceManager::loadTexture(path);
+			if (linear)
+				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+		}
+
+		bool isLinear() const {
+			return linear;
 		}
 		
 		void init() override {
