@@ -54,7 +54,7 @@ class ColliderComponent : public Component {
 			result.reserve(collider.points.size());
 		
 			for (const auto& p : collider.points) {
-				Vector2D scaledPoint = p*realScale;
+				Vector2D scaledPoint = (p-transform->center_offset)*realScale;
 				Vector2D rotatedPoint = scaledPoint.rotate({0, 0},transform->getDirection());
 				result.push_back(center+rotatedPoint);
 			}

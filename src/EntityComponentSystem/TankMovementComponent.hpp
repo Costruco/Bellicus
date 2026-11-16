@@ -114,7 +114,7 @@ class TankMovementComponent : public Component {
 					speed = std::max(gearMin,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
 					speed = std::min(gearMax,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
-			} else if (speed > 0){
+			} else if (speed > 0) {
 				if (transform->moveIntent == MovementDirection::STILL)
 					speed = std::max(gearMin,speed-desacc(brakePower,mass)*32.5f*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD && !troca)

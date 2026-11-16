@@ -10,8 +10,7 @@
 #include "Vector2D.hpp"
 
 constexpr float PIXELS_PER_METER = 50.0f;
-constexpr float GRAVITY_SI = 9.81f;
-constexpr float GRAVITY = 9.81f*PIXELS_PER_METER; //lembrando que ta em pixels/s�
+constexpr float GRAVITY = 9.81f;
 
 struct TorqueCurve {
 	float maxTorque;

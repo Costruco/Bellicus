@@ -298,7 +298,7 @@ class CarMovementComponent : public Component {
 
 			// Real Coulomb rolling resistance: F_rr = C_rr * mass * g opposing motion (impulse-clamped at v -> 0)
 			Vector2D predictedVel = velocity + (netForce / mass) * dt;
-			float rollingForceMag = groundDrag * mass * GRAVITY_SI;
+			float rollingForceMag = groundDrag * mass * GRAVITY;
 			float rollingDeltaV = (rollingForceMag / mass) * dt;
 			Vector2D rollingFriction = (predictedVel.getModule() > rollingDeltaV)
 				? predictedVel.getDirection() * (-rollingForceMag)
@@ -506,14 +506,14 @@ class CarMovementComponent : public Component {
 
 		float updateNormalLoads() {
 			float speed = getSpeed();
-			float totalWeight = mass * GRAVITY_SI + downforce * speed * speed;
+			float totalWeight = mass * GRAVITY + downforce * speed * speed;
 			if (wheels.empty())
 				return totalWeight;
 
 			Vector2D f = forward();
 			Vector2D r = right();
-			float longAcc = clamp(previousAcceleration.dot(f), -1.5f * GRAVITY_SI, 1.5f * GRAVITY_SI);
-			float latAcc = clamp(previousAcceleration.dot(r), -1.5f * GRAVITY_SI, 1.5f * GRAVITY_SI);
+			float longAcc = clamp(previousAcceleration.dot(f), -1.5f * GRAVITY, 1.5f * GRAVITY);
+			float latAcc = clamp(previousAcceleration.dot(r), -1.5f * GRAVITY, 1.5f * GRAVITY);
 
 			float wb = wheelBaseMeters();
 			float tw = trackWidthMeters();
@@ -727,7 +727,7 @@ class CarMovementComponent : public Component {
 				if (stepInput.brake > 0.0f) {
 					float brakeBias = wheel.steerable ? 1.40f : 0.60f;
 					float maxBrakeTorque = stepInput.brake * brakeBias
-						* (1.25f * tireMu * (mass * GRAVITY_SI / std::max<size_t>(1, wheels.size())) * Rw)
+						* (1.25f * tireMu * (mass * GRAVITY / std::max<size_t>(1, wheels.size())) * Rw)
 						* (brakeAngularDecel / 120.0f);
 					float maxBrakeDeltaOmega = (maxBrakeTorque * dt) / denom;
 					float absFloorOmega = 0.0f;

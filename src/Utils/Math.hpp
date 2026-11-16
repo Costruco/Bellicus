@@ -4,6 +4,8 @@
 #include <cmath>
 #include <numbers>
 
+#include "Vector2D.hpp"
+
 constexpr float PI = std::numbers::pi_v<float>;
 constexpr float E  = std::numbers::e_v<float>;
 constexpr float toRad = PI/180.0f;
@@ -25,6 +27,15 @@ inline float atand(float y, float x) {
 	if (x == 0.0f || y == 0.0f)
 		return 0.0f;
 	return std::atan(y/x) * toDeg;
+}
+
+inline float atan2d(float y, float x) {
+	return std::atan2(y, x) * toDeg;
+}
+
+inline float angleBetweenPoints(const Vector2D& p1, const Vector2D& p2) {
+	float angle = atan2d(p1.y - p2.y, p1.x - p2.x);
+	return (angle < 0.0f) ? angle + 360.0f : angle;
 }
 
 inline float sign(float n) {

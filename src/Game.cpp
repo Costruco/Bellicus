@@ -26,7 +26,8 @@ std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
 Camera Game::camera;
 	
-auto& newPlayer(manager.addEntity());
+auto& tankChassis(manager.addEntity());
+auto& tankTurret(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& vaga(manager.addEntity());
 auto& info(manager.addEntity());
@@ -90,32 +91,22 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
 	
+
 	//inicializa entidades
-	/*newPlayer.addComponent<TransformComponent>(100,100,0.0f,180,88,1);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/carro.png",2,500);
-	newPlayer.addComponent<ColliderComponent>("player",Polygon{{-79,-32},{79,-32},{79,32},{-79,32}});*/
+	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
+	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false);
+	tankChassis.addComponent<ColliderComponent>("player",195,96);
+	tankChassis.addComponent<TankMovementComponent>(0,54.0f,370000,36250,94000,0.15,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
+	tankChassis.addComponent<KeyboardController>();
+	tankChassis.addGroup(groupPlayers);
 	
-	newPlayer.addComponent<TransformComponent>(0,0,180.0f,/*220,118*/220,118,1);
-	newPlayer.addComponent<SpriteComponent>("../assets/textures/entities/sandero.png",false);
-	newPlayer.addComponent<ColliderComponent>("player",199,97);
-	
-	newPlayer.addComponent<KeyboardController>();
-	
-	newPlayer.addComponent<CarMovementComponent>(&manager,
-												 210.0f,1155.0f,129.5f,74.6f,29.25f,15.4f,0.90f,750.0f,6000.0f,
-												 4.5f,3.5f,0.75f,2.0f,18.0f,125.0f,0.005f,
-												 31.5f,0.015f,0.02f,1.2f,32.0f,35.0f,25.0f,25.0f,
-												 TorqueCurve(152.0f,74.0f,2850.0f,1.0f,6000.0f),
-												 GearBox({-3.545f,0.0f,3.727f,2.048f,1.393f,1.029f,0.795f},4.067f),
-												 PacejkaCurve(11.5f,1.85f,1.0f,0.94f),
-												 PacejkaCurve(14.0f,1.38f,1.0f,0.35f),
-												 std::vector<CarWheelConfig>{CarWheelConfig(Vector2D(31.6f,10.3f),true,true),
-																			 CarWheelConfig(true,true),
-																			 CarWheelConfig(false,false),
-																			 CarWheelConfig(false,false)},
-												 "../assets/textures/entities/pneu.png",groupGround);
-	newPlayer.addGroup(groupPlayers);
-	
+	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
+	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false);
+	tankTurret.addComponent<ColliderComponent>("player",138,60);
+	tankTurret.addGroup(groupPlayers);
+
+	tankTurret.setFather(&tankChassis);
+
 	wall.addComponent<TransformComponent>(200,200,45.0f,200,300,1);
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
 	wall.addComponent<ColliderComponent>("wall");
@@ -130,34 +121,26 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 											"x,y: /right[:1.0f],[:1.0f]",
 											"Angulo: /right[:1.2f]",
 											"Velocidade: /right[:5.1f]",
-											"Gear: /right[:1.0f]",
-											"RPM: /right[:1.0f]",
-											"TX: /right[:1.0f]",
-											"TY: /right[:1.0f]",
-											"Throttle: /right[:1.0f]",
-											"Turn: /right[:1.0f]",
-											"Brake: /right[:1.0f]",
-											"Wheel dir: /right[:1.2f]",
-											"Vel x: /right[:1.2f]",
-											"Vel y: /right[:1.2f]",
-											"Acc x: /right[:1.2f]",
-											"Acc y: /right[:1.2f]",
-											"PrevAcc x: /right[:1.2f]",
-											"PrevAcc y: /right[:1.2f]",
-											"Yaw rate: /right[:1.2f]"},
+											"Gear: /right[:1.0f]"},
 											ScreenAlignment::TOP_LEFT);
 	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
 }
 
 void Game::handleEvents() {
+	keystate = SDL_GetKeyboardState(NULL);
+
 	static Vector2D mouse;
 	int mouseX,mouseY;
-
-	Vector2D beforeWorldMouse = camera.screenToWorld(mouse*logicalScale);
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
-	Vector2D afterWorldMouse = camera.screenToWorld(mouse*logicalScale);
+
+	auto turret = &tankTurret.getComponent<TransformComponent>();
+	auto chassis = &tankChassis.getComponent<TransformComponent>();
+
+	double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse*logicalScale));
+	turret->direction = 180+targetAngle-chassis->getDirection();
+
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {
 			case SDL_KEYUP:
@@ -173,57 +156,34 @@ void Game::handleEvents() {
 					camera.scale += {0.1f,0.1f};
 				else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f)
 					camera.scale -= {0.1f,0.1f};
-				
-				camera.mouseOffset += {afterWorldMouse.x-beforeWorldMouse.x,
-									   afterWorldMouse.y-beforeWorldMouse.y};
 				break;
 			default:
 				break;
 		}
 	}
-	//std::cout << "Camera scale: " << camera.xScale << std::endl;
-	//std::cout << "Mouse screen position: " << mouseX << "," << mouseY << std::endl;
-	//std::cout << "Before world position: " << beforeWorldMouseX << "," << beforeWorldMouseY <<std::endl;
-	//std::cout << "After world position: " << afterWorldMouseX << "," << afterWorldMouseY << std::endl;
-	//std::cout << "Offset: " << camera.xMouseOffset+camera.xOffset << "," << camera.yMouseOffset+camera.yOffset << std::endl;
-	keystate = SDL_GetKeyboardState(NULL);
 }
 
 void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	auto car = newPlayer.getComponent<CarMovementComponent>();
-	auto transform = newPlayer.getComponent<TransformComponent>();
-	float velocity = car.getSpeed()*3.6f;
-	float rpm = car.engineRPM;
+	auto transform = tankChassis.getComponent<TransformComponent>();
+	auto tank = tankChassis.getComponent<TankMovementComponent>();
+	float speed = tank.speed/PIXELS_PER_METER*3.6f;
+	float gear = tank.currentGear;
 	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
 													   {transform.getPosition().x,transform.getPosition().y},
 													   {transform.getDirection()},
-													   {velocity},
-													   {car.gearbox.gear},
-													   {rpm},
-													   {car.totalForce.x},
-													   {car.totalForce.y},
-													   {car.input.throttle},
-													   {car.input.steer},
-													   {car.input.brake},
-													   {car.wheelDirection},
-													   {car.velocity.x*3.6f},
-													   {car.velocity.y*3.6f},
-													   {car.acceleration.x},
-													   {car.acceleration.y},
-													   {car.previousAcceleration.x},
-													   {car.previousAcceleration.y},
-													   {car.yawRate}});
+													   {speed},
+													   {gear}});
 	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
-	camera.angle = 90+newPlayer.getComponent<TransformComponent>().getDirection();
-	SDL_FPoint playerPos = newPlayer.getComponent<TransformComponent>().getPosition();
+	camera.angle = 90+tankChassis.getComponent<TransformComponent>().getDirection();
+	SDL_FPoint playerPos = tankChassis.getComponent<TransformComponent>().getPosition();
 
 	//destroi o carro para testar fim de jogo e destruicao de entidades
 	if (playerPos.x > 800) {
-		newPlayer.destroy();
+		tankChassis.destroy();
 		manager.refresh();
 		Game::render();
 		SDL_Delay(1000);
@@ -251,25 +211,20 @@ void Game::update() {
 
 	camera.focus.x = (left>right)?(left+right)*0.5f:clamp(playerPos.x,left,right);
 	camera.focus.y = (top>bottom)?(top+bottom)*0.5f:clamp(playerPos.y,top,bottom);
-
-	if (newPlayer.getComponent<TransformComponent>().velocity.getModule() > 1)
-		newPlayer.getComponent<SpriteComponent>().play("walk");
-	else
-		newPlayer.getComponent<SpriteComponent>().play("idle");
 	
 	updateCounter++;
 
 	if (updateCounter == 10) {
 		//std::cout << Vector2D(playerPos) << std::endl;
-		//std::cout << newPlayer.getComponent<TransformComponent>().getDirection() << std::endl;
+		//std::cout << tankChassis.getComponent<TransformComponent>().getDirection() << std::endl;
 		//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
-		//std::cout << newPlayer.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
-		//std::cout << newPlayer.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
-		//std::cout << newPlayer.getComponent<CarMovementComponent>().engineRPM << std::endl;
+		//std::cout << tankChassis.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
+		//std::cout << tankChassis.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
+		//std::cout << tankChassis.getComponent<CarMovementComponent>().engineRPM << std::endl;
 	}
 	
 	for (auto c : colliders) {
-		if (Collision::SAT(newPlayer.getComponent<ColliderComponent>(),*c)) {
+		if (Collision::SAT(tankChassis.getComponent<ColliderComponent>(),*c)) {
 			//std::cout << "Bateu!" << std::endl;
 		}
 	}
