@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
@@ -8,6 +9,7 @@
 
 #include "Camera.hpp"
 #include "Utils/Collision.hpp"
+#include "Utils/Timer.hpp"
 #include "EntityComponentSystem/Components.hpp"
 #include "FrameManager.hpp"
 #include "Game.hpp"
@@ -25,6 +27,8 @@ SDL_Event Game::evt;
 std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
 Camera Game::camera;
+Vector2D mouse;
+Timer reload = Timer(1000);
 	
 auto& tankChassis(manager.addEntity());
 auto& tankTurret(manager.addEntity());
@@ -132,7 +136,6 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 void Game::handleEvents() {
 	keystate = SDL_GetKeyboardState(NULL);
 
-	static Vector2D mouse;
 	int mouseX,mouseY;
 	SDL_GetMouseState(&mouseX,&mouseY);
 	mouse = {mouseX,mouseY};
@@ -144,7 +147,7 @@ void Game::handleEvents() {
 		double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse*logicalScale));
 		turret->direction = 180+targetAngle-chassis->getDirection();
 	}
-
+	
 	while (SDL_PollEvent(&evt)) {
 		switch (evt.type) {
 			case SDL_KEYDOWN:
@@ -162,6 +165,10 @@ void Game::handleEvents() {
 					camera.scale += {0.1f,0.1f};
 				else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f)
 					camera.scale -= {0.1f,0.1f};
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				if (evt.button.button == SDL_BUTTON_LEFT && reload.ifReset()) {
+				}
 				break;
 			default:
 				break;
@@ -267,6 +274,8 @@ void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_RenderClear(ren);
 	SDL_RenderCopy(ren, canva, NULL, NULL);
+	boxRGBA(ren,mouse.x,mouse.y,mouse.x+100,mouse.y+10,255,0,0,255);
+	boxRGBA(ren,mouse.x,mouse.y,mouse.x+reload.progress()*100,mouse.y+10,0,255,0,255);
 	SDL_RenderSetScale(ren,2.0f,2.0f);
 	for(auto& u : ui) {
 		u->draw();
