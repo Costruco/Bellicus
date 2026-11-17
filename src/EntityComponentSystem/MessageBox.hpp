@@ -25,13 +25,15 @@ class MessageBoxComponent : public Component {
         SDL_Color backgroundColor = {0,0,0,128};
         int padding = 2;
         int lineSpacing = 3;
+        float scale = 1.0f;
 
     public:
         MessageBoxComponent() = default;
         MessageBoxComponent(const std::string& path, int fontSize,const std::vector<std::string>& lines,
-            ScreenAlignment alignment = ScreenAlignment::CENTER) :
+            ScreenAlignment alignment = ScreenAlignment::CENTER, float scale = 1.0f) :
             lines(lines),
-            alignment(alignment) {
+            alignment(alignment),
+            scale(scale) {
                 setFont(path,fontSize);
             }
         
@@ -39,6 +41,12 @@ class MessageBoxComponent : public Component {
             textColor = text;
             borderColor = border;
             backgroundColor = background;
+        }
+
+        void setScale(float scale) {
+            this->scale = scale;
+            if (transform)
+                transform->scale = scale;
         }
 
         void setValues(const std::vector<std::vector<float>>& values) {
@@ -53,6 +61,8 @@ class MessageBoxComponent : public Component {
             if (!entity->hasComponent<TransformComponent>())
                 entity->addComponent<TransformComponent>();
             transform = &entity->getComponent<TransformComponent>();
+            if (scale != 1.0f)
+                transform->scale = scale;
             int maxWidth = 0, maxHeight = TTF_FontLineSkip(font.get());
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
@@ -83,8 +93,9 @@ class MessageBoxComponent : public Component {
                 }
                 linesCopy.push_back(line);
             }
-            SDL_FRect dst = {transform->position.x,transform->position.y,transform->width,transform->height};
+            Vector2D pos = transform->getPosition();
+            SDL_FRect dst = {pos.x,pos.y,transform->width,transform->height};
             ResourceManager::drawMessageBox(font,&dst,alignment,padding,lineSpacing,linesCopy,
-                textColor,borderColor,backgroundColor);
+                textColor,borderColor,backgroundColor,transform->getScale());
         }
 };

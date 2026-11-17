@@ -109,34 +109,46 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
 
 void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
     int padding, int lineSpacing, const std::vector<std::string>& lines, 
-    SDL_Color text, SDL_Color border, SDL_Color background) {
+    SDL_Color text, SDL_Color border, SDL_Color background, float scale) {
     
+    int outW, outH;
+    SDL_GetRendererOutputSize(Game::ren, &outW, &outH);
+    float scaleX, scaleY;
+    SDL_RenderGetScale(Game::ren, &scaleX, &scaleY);
+    float screenW = outW / scaleX;
+    float screenH = outH / scaleY;
+
+    float scaledPadding = padding * scale;
+    float scaledLineSpacing = lineSpacing * scale;
+
     SDL_FRect boxDst = *dst;
-    boxDst.x += 1;
-    boxDst.y += 1;
-    boxDst.w += 2*padding;
-    boxDst.h += 2*padding+lineSpacing*(lines.size()-1);
+    boxDst.w = boxDst.w * scale + 2.0f * scaledPadding;
+    boxDst.h = boxDst.h * scale + 2.0f * scaledPadding + scaledLineSpacing * (lines.size() - 1);
 
     ScreenAlignment h = alignment & ScreenAlignment::HORIZONTAL;
     ScreenAlignment v = alignment & ScreenAlignment::VERTICAL;
     switch (h) {
         case ScreenAlignment::LEFT:
+        default:
+            boxDst.x += 1;
             break;
         case ScreenAlignment::HCENTER:
-            boxDst.x = boxDst.x+Game::WINDOW_WIDTH/2-boxDst.w/2;
+            boxDst.x += (screenW - boxDst.w) / 2.0f;
             break;
         case ScreenAlignment::RIGHT:
-            boxDst.x = boxDst.x+Game::WINDOW_WIDTH-boxDst.w;
+            boxDst.x += screenW - boxDst.w - 2;
             break;
     }
     switch (v) {
         case ScreenAlignment::TOP:
+        default:
+            boxDst.y += 1;
             break;
         case ScreenAlignment::VCENTER:
-            boxDst.y = boxDst.y+Game::WINDOW_HEIGHT/2-boxDst.h/2;
+            boxDst.y += (screenH - boxDst.h) / 2.0f;
             break;
         case ScreenAlignment::BOTTOM:
-            boxDst.y = boxDst.y+Game::WINDOW_HEIGHT-boxDst.h;
+            boxDst.y += screenH - boxDst.h - 2;
             break;
     }
 
@@ -157,7 +169,7 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
         bool r = (rightPos != std::string::npos);
         
         std::string left = line.substr(0,(c?centerPos:rightPos));
-        std::string center = (c?line.substr(centerPos+7,(r?rightPos-(centerPos+7):r)):"");
+        std::string center = (c?line.substr(centerPos+7,(r?rightPos-(centerPos+7):std::string::npos)):"");
         std::string right = (r?line.substr(rightPos+6):"");
 
         auto drawText = [&](const std::string& s, int alignment) {
@@ -188,10 +200,12 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
             }
 
             const auto& cached = it->second;
-            float x = padding+boxDst.x+(boxDst.w-padding*2.0f-cached.w)*alignment/2.0f;
-            float lineHeight = (boxDst.h-padding*2+lineSpacing)/lines.size()-lineSpacing;
-            float y = padding+boxDst.y+(lineHeight+lineSpacing)*i+(lineHeight-cached.h)/2.0f;
-            SDL_FRect textDst = {x,y,static_cast<float>(cached.w),static_cast<float>(cached.h)};
+            float texW = cached.w * scale;
+            float texH = cached.h * scale;
+            float x = scaledPadding+boxDst.x+(boxDst.w-scaledPadding*2.0f-texW)*alignment/2.0f;
+            float lineHeight = (boxDst.h-scaledPadding*2.0f+scaledLineSpacing)/lines.size()-scaledLineSpacing;
+            float y = scaledPadding+boxDst.y+(lineHeight+scaledLineSpacing)*i+(lineHeight-texH)/2.0f;
+            SDL_FRect textDst = {x,y,texW,texH};
             SDL_SetTextureAlphaMod(cached.texture.get(),text.a);
             SDL_RenderCopyF(Game::ren,cached.texture.get(),nullptr,&textDst);
         };

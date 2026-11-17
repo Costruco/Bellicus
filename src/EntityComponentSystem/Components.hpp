@@ -10,3 +10,4 @@
 #include "ColliderComponent.hpp"
 #include "TileComponent.hpp"
 #include "MessageBox.hpp"
+#include "ProgressBar.hpp"

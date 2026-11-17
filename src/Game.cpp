@@ -35,6 +35,7 @@ auto& tankTurret(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& vaga(manager.addEntity());
 auto& info(manager.addEntity());
+auto& reloadBar(manager.addEntity());
 
 int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
@@ -128,9 +129,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 											"Angulo: /right[:1.2f]",
 											"Velocidade: /right[:5.1f]",
 											"Gear: /right[:1.0f]"},
-											ScreenAlignment::TOP_LEFT);
+											ScreenAlignment::TOP_CENTER,2.0f);
 	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
+
+	reloadBar.addComponent<TransformComponent>(0,0,0.0f,100,20);
+	reloadBar.addComponent<ProgressBar>(0,100);
+	reloadBar.addGroup(groupUI);
 }
 
 void Game::handleEvents() {
@@ -194,6 +199,9 @@ void Game::update() {
 	camera.angle = 90+tankChassis.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = tankChassis.getComponent<TransformComponent>().getPosition();
 
+	reloadBar.getComponent<ProgressBar>().setProgress(reload.progress()*reloadBar.getComponent<ProgressBar>().getCapacity());
+	reloadBar.getComponent<TransformComponent>().position = {mouse.x,mouse.y};
+
 	//destroi o carro para testar fim de jogo e destruicao de entidades
 	if (playerPos.x > 800) {
 		tankChassis.destroy();
@@ -226,15 +234,6 @@ void Game::update() {
 	camera.focus.y = (top>bottom)?(top+bottom)*0.5f:clamp(playerPos.y,top,bottom);
 	
 	updateCounter++;
-
-	if (updateCounter == 10) {
-		//std::cout << Vector2D(playerPos) << std::endl;
-		//std::cout << tankChassis.getComponent<TransformComponent>().getDirection() << std::endl;
-		//std::cout << "---------------------------------------------------------------------------------------" << std::endl;
-		//std::cout << tankChassis.getComponent<CarMovementComponent>().velocity.getModule()/PIXELS_PER_METER*3.6f << "Km/h" << std::endl;
-		//std::cout << tankChassis.getComponent<CarMovementComponent>().gearbox.gear << std::endl;
-		//std::cout << tankChassis.getComponent<CarMovementComponent>().engineRPM << std::endl;
-	}
 	
 	for (auto c : colliders) {
 		if (Collision::SAT(tankChassis.getComponent<ColliderComponent>(),*c)) {
@@ -252,9 +251,6 @@ auto& ui(manager.getGroup(groupUI));
 void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_SetRenderTarget(ren, canva);
-	float scaleX = 800.0f/WINDOW_WIDTH;
-    float scaleY = 450.0f/WINDOW_HEIGHT;
-    SDL_RenderSetScale(ren,1.0f,1.0f);
 	SDL_RenderClear(ren);
 	for (auto& t : tiles) {
 		t->draw();
@@ -270,13 +266,9 @@ void Game::render() {
 	}
 	
 	SDL_SetRenderTarget(ren, NULL);
-	SDL_RenderSetScale(ren,1.0f,1.0f);
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_RenderClear(ren);
 	SDL_RenderCopy(ren, canva, NULL, NULL);
-	boxRGBA(ren,mouse.x,mouse.y,mouse.x+100,mouse.y+10,255,0,0,255);
-	boxRGBA(ren,mouse.x,mouse.y,mouse.x+reload.progress()*100,mouse.y+10,0,255,0,255);
-	SDL_RenderSetScale(ren,2.0f,2.0f);
 	for(auto& u : ui) {
 		u->draw();
 	}
