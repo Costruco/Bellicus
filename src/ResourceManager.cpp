@@ -107,6 +107,30 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
     SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
 }
 
+void ResourceManager::drawThickRectangle(Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Uint8 thickness, SDL_Color color) {
+    if (thickness == 0)
+        return;
+    if (x1 > x2) std::swap(x1, x2);
+    if (y1 > y2) std::swap(y1, y2);
+
+    boxRGBA(Game::ren, x1, y1, x2, y1 + thickness - 1, color.r, color.g, color.b, color.a);
+    boxRGBA(Game::ren, x1, y2 - thickness + 1, x2, y2, color.r, color.g, color.b, color.a);
+    if (y2 - y1 >= 2 * thickness) {
+        boxRGBA(Game::ren, x1, y1 + thickness, x1 + thickness - 1, y2 - thickness, color.r, color.g, color.b, color.a);
+        boxRGBA(Game::ren, x2 - thickness + 1, y1 + thickness, x2, y2 - thickness, color.r, color.g, color.b, color.a);
+    }
+}
+
+void ResourceManager::drawThickRectangle(const SDL_FRect * dst, Uint8 thickness, SDL_Color color) {
+    drawThickRectangle(
+        static_cast<Sint16>(dst->x),
+        static_cast<Sint16>(dst->y),
+        static_cast<Sint16>(dst->x + dst->w),
+        static_cast<Sint16>(dst->y + dst->h),
+        thickness, color
+    );
+}
+
 void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
     int padding, int lineSpacing, const std::vector<std::string>& lines, 
     SDL_Color text, SDL_Color border, SDL_Color background, float scale) {
@@ -120,6 +144,7 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
 
     float scaledPadding = padding * scale;
     float scaledLineSpacing = lineSpacing * scale;
+    int borderThickness = std::max(1, static_cast<int>(scale));
 
     SDL_FRect boxDst = *dst;
     boxDst.w = boxDst.w * scale + 2.0f * scaledPadding;
@@ -130,32 +155,37 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
     switch (h) {
         case ScreenAlignment::LEFT:
         default:
-            boxDst.x += 1;
+            boxDst.x += borderThickness;
             break;
         case ScreenAlignment::HCENTER:
             boxDst.x += (screenW - boxDst.w) / 2.0f;
             break;
         case ScreenAlignment::RIGHT:
-            boxDst.x += screenW - boxDst.w - 2;
+            boxDst.x += screenW - boxDst.w - borderThickness - 1;
             break;
     }
     switch (v) {
         case ScreenAlignment::TOP:
         default:
-            boxDst.y += 1;
+            boxDst.y += borderThickness;
             break;
         case ScreenAlignment::VCENTER:
             boxDst.y += (screenH - boxDst.h) / 2.0f;
             break;
         case ScreenAlignment::BOTTOM:
-            boxDst.y += screenH - boxDst.h - 2;
+            boxDst.y += screenH - boxDst.h - borderThickness - 1;
             break;
     }
 
     boxRGBA(Game::ren,boxDst.x,boxDst.y,boxDst.x+boxDst.w,boxDst.y+boxDst.h,
         background.r,background.g,background.b,background.a);
-    rectangleRGBA(Game::ren,boxDst.x-1,boxDst.y-1,boxDst.x+boxDst.w+1,boxDst.y+boxDst.h+1,
-        border.r,border.g,border.b,border.a);
+    drawThickRectangle(
+        boxDst.x - borderThickness,
+        boxDst.y - borderThickness,
+        boxDst.x + boxDst.w + borderThickness,
+        boxDst.y + boxDst.h + borderThickness,
+        borderThickness, border
+    );
 
     if (textTextureCache.size() > 512) {
         textTextureCache.clear();

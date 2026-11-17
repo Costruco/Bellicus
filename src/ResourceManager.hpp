@@ -27,6 +27,8 @@ class ResourceManager {
 		static SoundPtr loadSound(const std::string& fileName);
 		static void drawTexture(const TexturePtr& tex, const SDL_Rect * src, const SDL_FRect * dst, 
 			double angle = 0, SDL_FPoint * center = nullptr, SDL_RendererFlip flip = SDL_FLIP_NONE);
+		static void drawThickRectangle(Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Uint8 thickness, SDL_Color color);
+		static void drawThickRectangle(const SDL_FRect * dst, Uint8 thickness, SDL_Color color);
 		static void drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
 			int padding, int lineSpacing, const std::vector<std::string>& lines, 
 			SDL_Color text, SDL_Color border, SDL_Color background, float scale = 1.0f);
