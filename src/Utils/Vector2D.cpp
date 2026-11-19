@@ -22,8 +22,8 @@ Vector2D::Vector2D(const SDL_Point& p) {
 Vector2D::Vector2D(const SDL_FPoint& p) {
 	x = p.x;
 	y = p.y;
-}	
-Vector2D Vector2D::fromPolar(float module, float angle) {
+}
+Vector2D Vector2D::fromPolar(float angle, float module) {
  	return Vector2D(cosd(angle)*module,sind(angle)*module);
 }
 Vector2D Vector2D::max(const Vector2D& v1, const Vector2D& v2, const Vector2D& dir) {

@@ -607,7 +607,7 @@ class CarMovementComponent : public Component {
 		}
 
 		Vector2D forward() const {
-			return Vector2D::fromPolar(1.0f, transform->direction);
+			return Vector2D::fromPolar(transform->direction);
 		}
 
 		Vector2D right() const {
@@ -620,7 +620,7 @@ class CarMovementComponent : public Component {
 		}
 
 		Vector2D wheelForward(const WheelPhysics& wheel) const {
-			return Vector2D::fromPolar(1.0f, transform->direction + wheel.steerAngle);
+			return Vector2D::fromPolar(transform->direction+wheel.steerAngle);
 		}
 
 		Vector2D pointVelocity(Vector2D offsetMeters) const {

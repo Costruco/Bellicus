@@ -47,7 +47,7 @@ class SimpleMovementComponent : public Component {
 			
 			//movement
 			if (directionSign != 0.0f) {
-				Vector2D velocity = Vector2D::fromPolar(speed,transform->direction)*directionSign;
+				Vector2D velocity = Vector2D::fromPolar(transform->direction,speed)*directionSign;
 				transform->position += velocity*dt;
 			}	
 		}	
