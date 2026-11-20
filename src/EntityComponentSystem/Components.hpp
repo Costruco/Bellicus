@@ -11,4 +11,5 @@
 #include "TileComponent.hpp"
 #include "MessageBox.hpp"
 #include "ProgressBar.hpp"
+#include "ProjectileComponent.hpp"
 #include "WeaponComponent.hpp"
