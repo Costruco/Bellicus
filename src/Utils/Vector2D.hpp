@@ -25,9 +25,9 @@ class Vector2D {
 		float getDistance(const Vector2D& v) const;
 		float dot(const Vector2D& v) const;
 		float cross(const Vector2D& v) const;
-		Vector2D getDirection();
-		Vector2D normalize();
-		Vector2D perpendicular();
+		Vector2D getDirection() const;
+		Vector2D normalize() const;
+		Vector2D perpendicular() const;
 		Vector2D rotate(const Vector2D& o, float angle) const;
 		static float angle(const Vector2D& v1, const Vector2D& v2);
 		

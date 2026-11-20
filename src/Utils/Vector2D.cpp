@@ -54,17 +54,17 @@ float Vector2D::cross(const Vector2D& v) const {
 	return x*v.y-y*v.x;
 }
 
-Vector2D Vector2D::getDirection() {
+Vector2D Vector2D::getDirection() const {
 	float module = this->getModule();
 	if (module)
 		return (*this)/module;
 	else
 		return Vector2D();
 }
-Vector2D Vector2D::normalize() {
+Vector2D Vector2D::normalize() const {
 	return this->getDirection();
 }
-Vector2D Vector2D::perpendicular() {
+Vector2D Vector2D::perpendicular() const {
 	return {-y,x};
 }
 Vector2D Vector2D::rotate(const Vector2D& o, float angle) const {
