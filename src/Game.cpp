@@ -105,7 +105,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
 	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false,true);
 	tankChassis.addComponent<ColliderComponent>("player",195,96);
-	tankChassis.addComponent<TankMovementComponent>(0,54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-100,0},{0,0},{0,100},{100,208},{208,346},{346,750}});
+	tankChassis.addComponent<TankMovementComponent>(54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-100,0},{0,0},{0,100},{100,208},{208,346},{346,750}});
 	tankChassis.addComponent<KeyboardController>();
 	tankChassis.addGroup(groupPlayers);
 	camera.setTarget(tankChassis);
@@ -205,9 +205,9 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	auto transform = tankChassis.getComponent<TransformComponent>();
-	auto tank = tankChassis.getComponent<TankMovementComponent>();
-	float speed = tank.speed/PIXELS_PER_METER*3.6f;
+	const auto& transform = tankChassis.getComponent<TransformComponent>();
+	const auto& tank = tankChassis.getComponent<TankMovementComponent>();
+	float speed = transform.getForwardSpeed()/PIXELS_PER_METER*3.6f;
 	float gear = tank.currentGear;
 	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
 													   {transform.getPosition().x,transform.getPosition().y},
