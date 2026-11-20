@@ -32,6 +32,8 @@ Timer reload = Timer(1000);
 	
 auto& tankChassis(manager.addEntity());
 auto& tankTurret(manager.addEntity());
+auto& tankCupola(manager.addEntity());
+auto& tankMachineGun(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& vaga(manager.addEntity());
 auto& info(manager.addEntity());
@@ -99,6 +101,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet");
 
 	//inicializa entidades
+	//tanque
 	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
 	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false,true);
 	tankChassis.addComponent<ColliderComponent>("player",195,96);
@@ -106,6 +109,20 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addComponent<KeyboardController>();
 	tankChassis.addGroup(groupPlayers);
 	camera.setTarget(tankChassis);
+
+	tankMachineGun.addComponent<TransformComponent>(64.5f,18.0f,0.0f,14,8,1,-4,0);
+	tankMachineGun.addComponent<SpriteComponent>("../assets/textures/entities/T-34/metralhadora_chassi.png",false,true);
+	tankMachineGun.addComponent<ColliderComponent>("player",14,8);
+	auto& machineGun = tankMachineGun.addComponent<WeaponComponent>();
+	machineGun.addGun("machine_gun", {11.0f, 0.0f});
+	tankMachineGun.setFather(&tankChassis);
+	tankMachineGun.addGroup(groupPlayers);
+
+	tankCupola.addComponent<TransformComponent>(62.0f,18.0f,0.0f,11,12,1);
+	tankCupola.addComponent<SpriteComponent>("../assets/textures/entities/T-34/cupola_metralhadora_chassi.png",false,true);
+	tankCupola.addComponent<ColliderComponent>("player",11,12);
+	tankCupola.setFather(&tankChassis);
+	tankCupola.addGroup(groupPlayers);
 	
 	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
 	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
@@ -113,9 +130,9 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	auto& turretWeapons = tankTurret.addComponent<WeaponComponent>();
 	turretWeapons.addGun("tank_cannon", {105.0f, 0.0f});
 	turretWeapons.addGun("machine_gun", {42.0f, 7.5f});
-	tankTurret.addGroup(groupPlayers);
-
 	tankTurret.setFather(&tankChassis);
+	tankTurret.addGroup(groupPlayers);
+	//fim do tanque
 
 	wall.addComponent<TransformComponent>(200,200,45.0f,200,300,1);
 	wall.addComponent<SpriteComponent>("../assets/textures/entities/brick_wall.png");
