@@ -73,6 +73,10 @@ inline float clockLimit(float n, float floor, float ceil) {
 	return n + floor;
 }
 
+inline float shortestAngleDiff(float from, float to) {
+	return clockLimit(to - from + 180.0f, 0.0f, 360.0f) - 180.0f;
+}
+
 inline bool insideInterval(float n, float a, float b) {
 	if (a < b)
 		return n >= a && n <= b;
