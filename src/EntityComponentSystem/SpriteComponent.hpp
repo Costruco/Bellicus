@@ -30,6 +30,9 @@ class SpriteComponent : public Component {
 		SpriteComponent(const std::string& path) {
 			setTexture(path);
 		}
+		SpriteComponent(const ResourceManager::TexturePtr& tex) {
+			setTexture(tex);
+		}
 		SpriteComponent(const std::string& path, bool isAnimated, bool isLinear = false) {
 			setTexture(path, isLinear);
 			if (animated = isAnimated) {
@@ -54,12 +57,24 @@ class SpriteComponent : public Component {
 				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 		}
 
+		void setTexture(const ResourceManager::TexturePtr& tex) {
+			texture = tex;
+		}
+
 		bool isLinear() const {
 			return linear;
 		}
 		
 		void init() override {
 			transform = &entity->getComponent<TransformComponent>();
+			if ((transform->width == 0.0f || transform->height == 0.0f) && texture) {
+				int w = 0, h = 0;
+				SDL_QueryTexture(texture.get(), nullptr, nullptr, &w, &h);
+				if (transform->width == 0.0f)
+					transform->width = static_cast<float>(w);
+				if (transform->height == 0.0f)
+					transform->height = static_cast<float>(h);
+			}
 			src = {0,0,static_cast<int>(transform->width),static_cast<int>(transform->height)};
 		}
 		
