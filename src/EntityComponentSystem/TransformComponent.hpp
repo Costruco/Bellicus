@@ -83,6 +83,21 @@ class TransformComponent : public Component {
 			height = h;
 			scale = 1.0f;
 		}
+
+		TransformComponent(Vector2D pos, float w, float h) :
+			TransformComponent(pos.x, pos.y, w, h) {}
+
+		TransformComponent(Vector2D pos, float angle, float w, float h) :
+			TransformComponent(pos.x, pos.y, angle, w, h) {}
+
+		TransformComponent(Vector2D pos, float angle, float w, float h, float sc) :
+			TransformComponent(pos.x, pos.y, angle, w, h, sc) {}
+
+		TransformComponent(Vector2D pos, float angle, float w, float h, float sc, Vector2D offset) :
+			TransformComponent(pos.x, pos.y, angle, w, h, sc, offset.x, offset.y) {}
+
+		TransformComponent(Vector2D pos, float angle, float w, float h, Vector2D offset) :
+			TransformComponent(pos.x, pos.y, angle, w, h, offset.x, offset.y) {}
 		
 		Vector2D getPosition() const {
 			const Entity * fatherEntity = entity->getFather();
