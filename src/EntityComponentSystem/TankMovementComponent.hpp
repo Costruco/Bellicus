@@ -104,9 +104,9 @@ class TankMovementComponent : public Component {
 			gearMax = gearsMaxSpeed[currentGear].y;
 			if (speed < 0) {
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = std::min(gearMax,speed+desacc(brakePower,mass)*32.5f*dt);
+					speed = std::min(gearMax,speed+desacc(brakePower,mass)*PIXELS_PER_METER*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD)
-					speed = std::min(gearMax,speed+desacc(brakePower,mass)*32.5f*dt);
+					speed = std::min(gearMax,speed+desacc(brakePower,mass)*PIXELS_PER_METER*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD && !troca)
 					speed = std::max(gearMin,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed == 0) {
@@ -116,11 +116,11 @@ class TankMovementComponent : public Component {
 					speed = std::min(gearMax,speed-acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 			} else if (speed > 0) {
 				if (transform->moveIntent == MovementDirection::STILL)
-					speed = std::max(gearMin,speed-desacc(brakePower,mass)*32.5f*dt);
+					speed = std::max(gearMin,speed-desacc(brakePower,mass)*PIXELS_PER_METER*dt);
 				else if (transform->moveIntent == MovementDirection::FORWARD && !troca)
 					speed = std::min(gearMax,speed+acc(speed,mass,enginePower,groundDrag,rollingDrag+TURNING)*dt);
 				else if (transform->moveIntent == MovementDirection::BACKWARD)
-					speed = std::max(gearMin,speed-desacc(brakePower,mass)*32.5f*dt);
+					speed = std::max(gearMin,speed-desacc(brakePower,mass)*PIXELS_PER_METER*dt);
 			}
 			transform->position += Vector2D::fromPolar(transform->direction,speed)*dt;
 		
