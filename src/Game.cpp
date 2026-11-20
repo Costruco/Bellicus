@@ -87,6 +87,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	
 	manager.setComponentEnable<ColliderComponent>(false,EnableMode::DRAW);
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
+	camera.setMapSize(mapSizeX,mapSizeY);
 	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
 	
 	//inicializa especificacoes de projeteis e armas
@@ -104,6 +105,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addComponent<TankMovementComponent>(0,54.0f,370000,36250,94000,0.15,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	tankChassis.addComponent<KeyboardController>();
 	tankChassis.addGroup(groupPlayers);
+	camera.setTarget(tankChassis);
 	
 	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
 	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
@@ -195,10 +197,6 @@ void Game::update() {
 													   {transform.getDirection()},
 													   {speed},
 													   {gear}});
-	
-	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
-	camera.angle = 0;//90+tankChassis.getComponent<TransformComponent>().getDirection();
-	SDL_FPoint playerPos = tankChassis.getComponent<TransformComponent>().getPosition();
 
 	if (tankTurret.isActive() && tankTurret.hasComponent<WeaponComponent>()) {
 		auto& weapons = tankTurret.getComponent<WeaponComponent>();
@@ -212,7 +210,7 @@ void Game::update() {
 	reloadBar.getComponent<TransformComponent>().position = {mouse.x,mouse.y};
 
 	//destroi o carro para testar fim de jogo e destruicao de entidades
-	if (playerPos.x > 800) {
+	if (transform.getPosition().x > 800) {
 		tankChassis.destroy();
 		manager.refresh();
 		Game::render();
@@ -221,26 +219,7 @@ void Game::update() {
 		return;
 	}
 
-	//bloqueia a visão da parte exterior do mapa
-	float left = -mapSizeX/2*TILE_SIZE;
-	float right = (mapSizeX-mapSizeX/2)*TILE_SIZE;
-	float top = -mapSizeY/2*TILE_SIZE;
-	float bottom = (mapSizeY-mapSizeY/2)*TILE_SIZE;
-
-	float cos = std::abs(cosd(camera.angle));
-	float sin = std::abs(sind(camera.angle));
-	float viewW = WINDOW_WIDTH/camera.scale.x;
-	float viewH = WINDOW_HEIGHT/camera.scale.y;
-	float halfSizeX = (viewW*cos+viewH*sin)*0.5f;
-    float halfSizeY = (viewW*sin+viewH*cos)*0.5f;
-
-	left = left+halfSizeX;
-	right = right-halfSizeX;
-	top = top+halfSizeY;
-	bottom = bottom-halfSizeY;
-
-	camera.focus.x = (left>right)?(left+right)*0.5f:clamp(playerPos.x,left,right);
-	camera.focus.y = (top>bottom)?(top+bottom)*0.5f:clamp(playerPos.y,top,bottom);
+	camera.update();
 	
 	updateCounter++;
 	

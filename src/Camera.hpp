@@ -2,6 +2,8 @@
 
 #include "Utils/Vector2D.hpp"
 
+class Entity;
+
 class Camera {
     public:
         float angle;
@@ -9,8 +11,12 @@ class Camera {
         Vector2D scale;
         Vector2D focus;
         Vector2D mouseOffset;
+        Entity * target = nullptr;
+        bool followAngle = false;
+        int mapSizeX = 0;
+        int mapSizeY = 0;
 
-        Camera() : angle(), offset(), scale(1.0f,1.0f), focus(), mouseOffset() {}
+        Camera() : angle(0.0f), offset(), scale(1.0f,1.0f), focus(), mouseOffset() {}
 
         Vector2D worldToScreen(const Vector2D& world) const {
             return ((world-focus)*scale).rotate(Vector2D(),-angle)+offset;
@@ -33,5 +39,27 @@ class Camera {
 
         Vector2D screenSizeToWorld(const Vector2D& screenSize) const {
             return screenSize/scale;
+        }
+
+        void setTarget(Entity * newTarget, bool followDirection = false) {
+            target = newTarget;
+            followAngle = followDirection;
+        }
+
+        void setTarget(Entity& newTarget, bool followDirection = false) {
+            target = &newTarget;
+            followAngle = followDirection;
+        }
+
+        void setMapSize(int sizeX, int sizeY) {
+            mapSizeX = sizeX;
+            mapSizeY = sizeY;
+        }
+
+        void update();
+
+        void update(int sizeX, int sizeY) {
+            setMapSize(sizeX, sizeY);
+            update();
         }
 };
