@@ -15,6 +15,7 @@
 #include "Game.hpp"
 #include "Input.hpp"
 #include "Map.hpp"
+#include "MovementComponent.hpp"
 #include "Utils/Math.hpp"
 #include "Utils/Physics.hpp"
 #include "Utils/Polygon.hpp"
@@ -42,10 +43,8 @@ struct CarWheelConfig {
 		driven(driven) {}
 };
 
-class CarMovementComponent : public Component {
+class CarMovementComponent : public MovementComponent {
 	public:
-		TransformComponent * transform;
-		
 		Manager * manager = nullptr;
 		std::vector<Entity*> wheelEntities;
 		
@@ -54,6 +53,7 @@ class CarMovementComponent : public Component {
 		Group group;
 
 		VehicleControl input;
+		MovementDirection effectiveMoveIntent = MovementDirection::STILL;
 		Vector2D totalForce;
 		float totalTorque = 0.0f;
 		float airDrag = 0.485f;
@@ -89,11 +89,6 @@ class CarMovementComponent : public Component {
 		float lowSpeedLateralGripSpeed;
 		float slipRatioDenom;
 		float slipAngleDenom;
-
-		Vector2D velocity;
-		Vector2D acceleration;
-		Vector2D previousAcceleration;
-		float yawRate;
 
 		TorqueCurve torqueCurve;
 		GearBox gearbox;
@@ -142,7 +137,6 @@ class CarMovementComponent : public Component {
 			const std::string& path,
 			Group group
 		) :
-			transform(nullptr),
 			manager(manager),
 			wheelTexturePath(path),
 			group(group),
@@ -172,10 +166,6 @@ class CarMovementComponent : public Component {
 			lowSpeedLateralGripSpeed(lowSpeedLateralGripSpeed),
 			slipRatioDenom(slipRatioDenom),
 			slipAngleDenom(slipAngleDenom),
-			velocity(Vector2D()),
-			acceleration(Vector2D()),
-			previousAcceleration(Vector2D()),
-			yawRate(0.0f),
 			torqueCurve(std::move(torqueCurve)),
 			gearbox(std::move(gearbox)),
 			longitudinalCurve(std::move(longitudinalCurve)),
@@ -184,16 +174,20 @@ class CarMovementComponent : public Component {
 		}
 
 		void init() override {
-			transform = &entity->getComponent<TransformComponent>();
+			MovementComponent::init();
 			createWheelEntities();
 		}
 
 		void update() override {
 			float frameDt = FrameManager::getDeltaTime();
-			if (frameDt <= 0.0f)
+			if (frameDt <= 0.0f || !transform) {
+				resetCommands();
 				return;
+			}
 
-			input = getInput();
+			resolveTargets();
+
+			input = getInput(frameDt);
 			int steps = std::max(1, static_cast<int>(std::ceil(frameDt / maxSubstep)));
 			float dt = frameDt / steps;
 
@@ -201,13 +195,25 @@ class CarMovementComponent : public Component {
 				step(dt, input);
 
 			updateWheelEntities();
+			resetCommands();
 		}
 
 		float getSpeed() const {
-			return velocity.getModule();
+			return velocityMeters().getModule();
 		}
 
 	private:
+		Vector2D velocityMeters() const {
+			return transform ? (transform->velocity / PIXELS_PER_METER) : Vector2D();
+		}
+
+		Vector2D accelerationMeters() const {
+			return transform ? (transform->acceleration / PIXELS_PER_METER) : Vector2D();
+		}
+
+		float yawRateRad() const {
+			return transform ? (transform->angularVelocity * toRad) : 0.0f;
+		}
 		float wheelBaseMeters() const {
 			return std::max(0.1f, wheelBase / PIXELS_PER_METER);
 		}
@@ -291,13 +297,16 @@ class CarMovementComponent : public Component {
 			float yawTorque = 0.0f;
 			addTireForces(dt, stepInput, totalWeight, axleTorque, tireForces, yawTorque);
 
+			Vector2D velM = velocityMeters();
+			float prevYawRate = yawRateRad();
+
 			// Quadratic aerodynamic drag: F_drag = -C_drag * v * |v|
-			float speed = getSpeed();
-			Vector2D airResistance = velocity * (-airDrag * speed);
+			float speed = velM.getModule();
+			Vector2D airResistance = velM * (-airDrag * speed);
 			Vector2D netForce = tireForces + airResistance;
 
 			// Real Coulomb rolling resistance: F_rr = C_rr * mass * g opposing motion (impulse-clamped at v -> 0)
-			Vector2D predictedVel = velocity + (netForce / mass) * dt;
+			Vector2D predictedVel = velM + (netForce / mass) * dt;
 			float rollingForceMag = groundDrag * mass * GRAVITY;
 			float rollingDeltaV = (rollingForceMag / mass) * dt;
 			Vector2D rollingFriction = (predictedVel.getModule() > rollingDeltaV)
@@ -307,49 +316,139 @@ class CarMovementComponent : public Component {
 			totalForce = netForce + rollingFriction;
 			totalTorque = yawTorque;
 
-			acceleration = totalForce / mass;
-			velocity += acceleration * dt;
-			if (velocity.getModule() < 1e-5f)
-				velocity.zero();
+			Vector2D accM = totalForce / mass;
+			velM += accM * dt;
+			if (velM.getModule() < 1e-5f)
+				velM.zero();
 
 			float angularAcceleration = totalTorque / yawInertia();
-			yawRate += angularAcceleration * dt;
+			float yawRate = prevYawRate + angularAcceleration * dt;
 			yawRate -= yawRate * (yawDamping * 0.1f) * dt;
-			if (getSpeed() < 0.05f && stepInput.throttle <= 0.0f)
+			if (velM.getModule() < 0.05f && stepInput.throttle <= 0.0f)
 				yawRate = moveToward(yawRate, 0.0f, yawDamping * 2.0f * dt);
 
-			transform->position += velocity * (PIXELS_PER_METER * dt);
-			transform->direction = clockLimit(transform->direction + yawRate * toDeg * dt, 0.0f, 360.0f);
-			transform->velocity = velocity * PIXELS_PER_METER;
-			transform->angularVelocity = yawRate * toDeg;
+			transform->acceleration = accM * PIXELS_PER_METER;
+			transform->velocity = velM * PIXELS_PER_METER;
+			transform->position += transform->velocity * dt;
 
-			previousAcceleration = acceleration;
+			transform->angularAcceleration = ((yawRate - prevYawRate) / dt) * toDeg;
+			transform->angularVelocity = yawRate * toDeg;
+			transform->direction = clockLimit(transform->direction + transform->angularVelocity * dt, 0.0f, 360.0f);
 		}
 
-		VehicleControl getInput() {
+		VehicleControl getInput(float frameDt) {
 			VehicleControl ctrl;
+			Vector2D f = forward();
+			Vector2D velM = velocityMeters();
+			float forwardSpeed = velM.dot(f);
+			float speed = velM.getModule();
+			float maxBrakeDecel = std::max(1.0f, 0.65f * tireMu * GRAVITY);
+			float stoppingDistM = (forwardSpeed * forwardSpeed) / (2.0f * maxBrakeDecel);
+			float safeMaxSteer = std::max(1.0f, maxSteerAngle);
 
-			if (transform->turnIntent == TurnDirection::LEFT)
-				ctrl.steer = -1.0f;
-			else if (transform->turnIntent == TurnDirection::RIGHT)
-				ctrl.steer = 1.0f;
-			else
+			// 1. Steering control
+			if (angularCommand == AngularCommand::TURN_TO) {
+				float angleDiff = shortestAngleDiff(transform->getDirection(), targetDirection);
+				float steerSign = (forwardSpeed < -0.15f) ? -1.0f : 1.0f;
+				ctrl.steer = clamp((angleDiff * steerSign) / safeMaxSteer, -1.0f, 1.0f);
+			} else if (angularCommand == AngularCommand::HOLD_DIRECTION) {
 				ctrl.steer = 0.0f;
+			} else {
+				if (turnIntent == TurnDirection::LEFT)
+					ctrl.steer = -1.0f;
+				else if (turnIntent == TurnDirection::RIGHT)
+					ctrl.steer = 1.0f;
+				else
+					ctrl.steer = 0.0f;
+			}
 
-			if (transform->moveIntent == MovementDirection::STILL)
+			auto applyLongitudinalTarget = [&](float sMeters) {
+				if (std::abs(sMeters) <= 0.05f && std::abs(forwardSpeed) <= 0.15f) {
+					effectiveMoveIntent = (speed > 0.02f) ? MovementDirection::BRAKE : MovementDirection::STILL;
+					ctrl.brake = (speed > 0.02f) ? 1.0f : 0.0f;
+					return;
+				}
+				if (sMeters * forwardSpeed > 0.0f && std::abs(sMeters) <= stoppingDistM + std::abs(forwardSpeed) * frameDt) {
+					effectiveMoveIntent = MovementDirection::BRAKE;
+					ctrl.brake = 1.0f;
+					return;
+				}
+				if (sMeters > 0.05f) {
+					effectiveMoveIntent = MovementDirection::FORWARD;
+					if (forwardSpeed < -0.25f)
+						ctrl.brake = 1.0f;
+					else
+						ctrl.throttle = clamp(sMeters / 2.0f, 0.25f, 1.0f);
+				} else if (sMeters < -0.05f) {
+					effectiveMoveIntent = MovementDirection::BACKWARD;
+					if (gearbox.gear == 0 || (speed < 0.5f && forwardSpeed <= 0.25f))
+						ctrl.throttle = clamp(-sMeters / 2.0f, 0.25f, 1.0f);
+					else
+						ctrl.brake = 1.0f;
+				} else {
+					effectiveMoveIntent = MovementDirection::BRAKE;
+					ctrl.brake = 1.0f;
+				}
+			};
+
+			// 2. Longitudinal control
+			if (linearCommand == LinearCommand::HOLD_POSITION) {
+				effectiveMoveIntent = (speed > 0.05f) ? MovementDirection::BRAKE : MovementDirection::STILL;
+				ctrl.throttle = 0.0f;
+				ctrl.brake = (speed > 0.05f) ? 1.0f : 0.0f;
+				return ctrl;
+			}
+
+			if (linearCommand == LinearCommand::WALK_TO) {
+				float sMeters = ((targetPosition - transform->getPosition()).dot(f)) / PIXELS_PER_METER;
+				applyLongitudinalTarget(sMeters);
+				return ctrl;
+			}
+
+			if (linearCommand == LinearCommand::MOVE_TO) {
+				Vector2D toTargetPx = targetPosition - transform->getPosition();
+				float distM = toTargetPx.getModule() / PIXELS_PER_METER;
+				if (distM <= 0.08f) {
+					ctrl.steer = 0.0f;
+					effectiveMoveIntent = (speed > 0.05f) ? MovementDirection::BRAKE : MovementDirection::STILL;
+					ctrl.brake = (speed > 0.05f) ? 1.0f : 0.0f;
+					return ctrl;
+				}
+
+				float angleDiff = shortestAngleDiff(transform->getDirection(), targetDirection);
+				if (std::abs(angleDiff) <= 105.0f) {
+					ctrl.steer = clamp(angleDiff / safeMaxSteer, -1.0f, 1.0f);
+					applyLongitudinalTarget(distM);
+				} else if (std::abs(angleDiff) >= 150.0f && distM < 15.0f) {
+					float rearAngle = clockLimit(transform->getDirection() + 180.0f, 0.0f, 360.0f);
+					float rearAngleDiff = shortestAngleDiff(rearAngle, targetDirection);
+					ctrl.steer = clamp(rearAngleDiff / safeMaxSteer, -1.0f, 1.0f);
+					applyLongitudinalTarget(-distM);
+				} else {
+					// 3-point turn: reverse with opposite lock to swing nose toward targetDirection
+					ctrl.steer = (angleDiff > 0.0f) ? -1.0f : 1.0f;
+					effectiveMoveIntent = MovementDirection::BACKWARD;
+					if (gearbox.gear == 0 || (speed < 0.5f && forwardSpeed <= 0.25f))
+						ctrl.throttle = 0.6f;
+					else
+						ctrl.brake = 1.0f;
+				}
+				return ctrl;
+			}
+
+			// Default: LinearCommand::INTENT
+			effectiveMoveIntent = moveIntent;
+			if (effectiveMoveIntent == MovementDirection::STILL)
 				return ctrl;
 
-			float forwardSpeed = velocity.dot(forward());
-			float speed = getSpeed();
-
-			if (transform->moveIntent == MovementDirection::BRAKE) {
+			if (effectiveMoveIntent == MovementDirection::BRAKE) {
 				ctrl.brake = 1.0f;
-			} else if (transform->moveIntent == MovementDirection::FORWARD) {
+			} else if (effectiveMoveIntent == MovementDirection::FORWARD) {
 				if (forwardSpeed < -0.25f)
 					ctrl.brake = 1.0f;
 				else
 					ctrl.throttle = 1.0f;
-			} else if (transform->moveIntent == MovementDirection::BACKWARD) {
+			} else if (effectiveMoveIntent == MovementDirection::BACKWARD) {
 				if (gearbox.gear == 0 || (speed < 0.5f && forwardSpeed <= 0.25f))
 					ctrl.throttle = 1.0f;
 				else
@@ -359,9 +458,10 @@ class CarMovementComponent : public Component {
 		}
 
 		void updateSteering(float dt, float steerInput) {
-			float speed = getSpeed();
-			float forwardSpeed = velocity.dot(forward());
-			float lateralSpeed = velocity.dot(right());
+			Vector2D velM = velocityMeters();
+			float speed = velM.getModule();
+			float forwardSpeed = velM.dot(forward());
+			float lateralSpeed = velM.dot(right());
 
 			float highSpeedScale = 1.0f / (1.0f + 0.11f * std::max(0.0f, speed - 3.0f));
 			float baseMaxSteer = maxSteerAngle * std::max(0.16f, highSpeedScale);
@@ -442,22 +542,23 @@ class CarMovementComponent : public Component {
 			else
 				coastTime = 0.0f;
 
-			float forwardSpeed = velocity.dot(forward());
-			float speed = getSpeed();
+			Vector2D velM = velocityMeters();
+			float forwardSpeed = velM.dot(forward());
+			float speed = velM.getModule();
 
-			if ((transform->moveIntent == MovementDirection::STILL || transform->moveIntent == MovementDirection::BRAKE) && speed < 0.15f) {
+			if ((effectiveMoveIntent == MovementDirection::STILL || effectiveMoveIntent == MovementDirection::BRAKE) && speed < 0.15f) {
 				gearbox.setGear(1);
 				shiftClutchTimer = 0.0f;
 				return;
 			}
 
-			if (transform->moveIntent == MovementDirection::BACKWARD && (gearbox.gear == 0 || (speed < 0.5f && forwardSpeed <= 0.25f))) {
+			if (effectiveMoveIntent == MovementDirection::BACKWARD && (gearbox.gear == 0 || (speed < 0.5f && forwardSpeed <= 0.25f))) {
 				gearbox.setGear(0);
 				shiftClutchTimer = 0.0f;
 				return;
 			}
 
-			if (transform->moveIntent == MovementDirection::FORWARD && gearbox.gear < 2 && forwardSpeed >= -0.25f) {
+			if (effectiveMoveIntent == MovementDirection::FORWARD && gearbox.gear < 2 && forwardSpeed >= -0.25f) {
 				gearbox.setGear(2);
 				shiftClutchTimer = 0.0f;
 			}
@@ -512,8 +613,9 @@ class CarMovementComponent : public Component {
 
 			Vector2D f = forward();
 			Vector2D r = right();
-			float longAcc = clamp(previousAcceleration.dot(f), -1.5f * GRAVITY, 1.5f * GRAVITY);
-			float latAcc = clamp(previousAcceleration.dot(r), -1.5f * GRAVITY, 1.5f * GRAVITY);
+			Vector2D prevAccM = accelerationMeters();
+			float longAcc = clamp(prevAccM.dot(f), -1.5f * GRAVITY, 1.5f * GRAVITY);
+			float latAcc = clamp(prevAccM.dot(r), -1.5f * GRAVITY, 1.5f * GRAVITY);
 
 			float wb = wheelBaseMeters();
 			float tw = trackWidthMeters();
@@ -625,7 +727,7 @@ class CarMovementComponent : public Component {
 
 		Vector2D pointVelocity(Vector2D offsetMeters) const {
 			Vector2D tangent = offsetMeters.perpendicular();
-			return velocity + tangent * yawRate;
+			return velocityMeters() + tangent * yawRateRad();
 		}
 
 		void addTireForces(
@@ -831,7 +933,9 @@ class CarMovementComponent : public Component {
 				wheelTransform.position = wheels[i].localPosition;
 				wheelTransform.direction = wheels[i].steerAngle;
 				wheelTransform.velocity = transform->velocity;
+				wheelTransform.acceleration = transform->acceleration;
 				wheelTransform.angularVelocity = transform->angularVelocity;
+				wheelTransform.angularAcceleration = transform->angularAcceleration;
 			}
 		}
 };
