@@ -3,6 +3,7 @@
 #include "EntityComponentSystem.hpp"
 #include "TransformComponent.hpp"
 #include "SpriteComponent.hpp"
+#include "MovementComponent.hpp"
 #include "SimpleMovementComponent.hpp"
 #include "TankMovementComponent.hpp"
 #include "CarMovementComponent.hpp"
