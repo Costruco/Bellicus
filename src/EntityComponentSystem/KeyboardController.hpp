@@ -3,30 +3,31 @@
 #include "Components.hpp"
 #include "Game.hpp"
 #include "Input.hpp"
+#include "MovementComponent.hpp"
 
 class KeyboardController : public Component {
 	public:
-		TransformComponent * transform;
+		MovementComponent * movement;
 		
 		void init() override {
-			transform = &entity->getComponent<TransformComponent>();
+			movement = &entity->getComponent<MovementComponent>();
 		}
 		
 		void update() override {
 			const Uint8* keystate = Game::keystate;
 	
 			//direction
-			transform->turnIntent = TurnDirection::STRAIGHT;
+			movement->turnIntent = TurnDirection::STRAIGHT;
 			if (keystate[SDL_SCANCODE_A])
-				transform->turnIntent = transform->turnIntent | TurnDirection::LEFT;
+				movement->turnIntent = movement->turnIntent | TurnDirection::LEFT;
 			if (keystate[SDL_SCANCODE_D])
-				transform->turnIntent = transform->turnIntent | TurnDirection::RIGHT;
+				movement->turnIntent = movement->turnIntent | TurnDirection::RIGHT;
 		        
 			//movement
-			transform->moveIntent = MovementDirection::STILL;
+			movement->moveIntent = MovementDirection::STILL;
 			if (keystate[SDL_SCANCODE_S])
-				transform->moveIntent = transform->moveIntent | MovementDirection::BACKWARD;
+				movement->moveIntent = movement->moveIntent | MovementDirection::BACKWARD;
 			if (keystate[SDL_SCANCODE_W])
-				transform->moveIntent = transform->moveIntent | MovementDirection::FORWARD;
+				movement->moveIntent = movement->moveIntent | MovementDirection::FORWARD;
 		}
 };
