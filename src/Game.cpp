@@ -40,15 +40,6 @@ auto& reloadBar(manager.addEntity());
 int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
 
-enum GroupLabels : std::size_t {
-	groupMap,
-	groupGround,
-	groupPlayers,
-	groupEnemies,
-	groupColliders,
-	groupUI
-};
-
 Game::Game() {
 	updateCounter = 0;
 }
@@ -98,6 +89,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	Map::loadMap("../assets/maps/map1.map",mapSizeX,mapSizeY);
 	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
 	
+	//inicializa especificacoes de projeteis e armas
+	ProjectileComponent::addSpec("cannon_shell",800.0f,1200.0f,3000.0f,"../assets/textures/projectiles/municao.png");
+	ProjectileComponent::addSpec("mg_bullet",1000.0f,900.0f,2000.0f,"../assets/textures/projectiles/municao_metralhadora.png");
+	ProjectileComponent::addSpec("soldier_bullet",600.0f,700.0f,2000.0f,"../assets/textures/projectiles/balaSoldado.png");
+
+	WeaponComponent::addSpec("tank_cannon",1,0.5f,2000,1.0f,"cannon_shell");
+	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet");
 
 	//inicializa entidades
 	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
@@ -110,6 +108,9 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
 	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
 	tankTurret.addComponent<ColliderComponent>("player",138,60);
+	auto& turretWeapons = tankTurret.addComponent<WeaponComponent>();
+	turretWeapons.addGun("tank_cannon", {105.0f, 0.0f});
+	turretWeapons.addGun("machine_gun", {42.0f, 7.5f});
 	tankTurret.addGroup(groupPlayers);
 
 	tankTurret.setFather(&tankChassis);
@@ -196,10 +197,18 @@ void Game::update() {
 													   {gear}});
 	
 	camera.offset = {WINDOW_WIDTH/2,WINDOW_HEIGHT/2};
-	camera.angle = 90+tankChassis.getComponent<TransformComponent>().getDirection();
+	camera.angle = 0;//90+tankChassis.getComponent<TransformComponent>().getDirection();
 	SDL_FPoint playerPos = tankChassis.getComponent<TransformComponent>().getPosition();
 
-	reloadBar.getComponent<ProgressBar>().setProgress(reload.progress()*reloadBar.getComponent<ProgressBar>().getCapacity());
+	if (tankTurret.isActive() && tankTurret.hasComponent<WeaponComponent>()) {
+		auto& weapons = tankTurret.getComponent<WeaponComponent>();
+		weapons.shootAll();
+		if (!weapons.gunSlots.empty()) {
+			const auto& cannon = weapons.gunSlots[0];
+			float progress = cannon.reloading ? cannon.reloadTimer.progress() : cannon.fireTimer.progress();
+			reloadBar.getComponent<ProgressBar>().setProgress(progress*reloadBar.getComponent<ProgressBar>().getCapacity());
+		}
+	}
 	reloadBar.getComponent<TransformComponent>().position = {mouse.x,mouse.y};
 
 	//destroi o carro para testar fim de jogo e destruicao de entidades
@@ -246,6 +255,7 @@ auto& tiles(manager.getGroup(groupMap));
 auto& ground(manager.getGroup(groupGround));
 auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
+auto& projectiles(manager.getGroup(groupProjectiles));
 auto& ui(manager.getGroup(groupUI));
 
 void Game::render() {
@@ -264,6 +274,9 @@ void Game::render() {
 	for (auto& e : enemies) {
 		e->draw();
 	}
+	for (auto& pr : projectiles) {
+		pr->draw();
+	}
 	
 	SDL_SetRenderTarget(ren, NULL);
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
@@ -276,6 +289,8 @@ void Game::render() {
 }
 
 void Game::clean() {
+	ProjectileComponent::clearSpecs();
+	WeaponComponent::clearSpecs();
 	ResourceManager::clear();
 	manager.clear();
 	SDL_DestroyRenderer(ren);

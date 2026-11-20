@@ -2,11 +2,25 @@
 
 #include <SDL2/SDL.h>
 
+#include <cstddef>
 #include <vector>
 
 #include "Camera.hpp"
 
 class ColliderComponent;
+class Manager;
+
+extern Manager manager;
+
+enum GroupLabels : std::size_t {
+	groupMap,
+	groupGround,
+	groupPlayers,
+	groupEnemies,
+	groupProjectiles,
+	groupColliders,
+	groupUI
+};
 
 class Game {
 	private:
