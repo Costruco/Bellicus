@@ -75,6 +75,8 @@ public:
             return;
         float dt = FrameManager::getDeltaTime();
         Vector2D velocity = Vector2D::fromPolar(transform->getDirection(), spec->speed);
+        transform->velocity = velocity;
+        transform->acceleration = Vector2D();
         Vector2D step = velocity * dt;
         transform->position += step;
         distanceTraveled += step.getModule();
