@@ -1,5 +1,6 @@
 # ---- Sources ----
 SRCS = src/main.cpp \
+       src/Camera.cpp \
        src/Game.cpp \
        src/FrameManager.cpp \
        src/ResourceManager.cpp \
