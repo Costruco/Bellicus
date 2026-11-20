@@ -273,6 +273,13 @@ void Game::render() {
 	for (auto& pr : projectiles) {
 		pr->draw();
 	}
+
+	//desenhar colisoes SE debug
+	if (manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW)) {
+		for (auto* c : colliders)
+			if (c->entity->isActive() && c->entity->isComponentEnabled<ColliderComponent>(EnableMode::DRAW))
+				c->drawDebug();
+	}
 	
 	SDL_SetRenderTarget(ren, NULL);
 	SDL_SetRenderDrawColor(ren,0,0,0,255);

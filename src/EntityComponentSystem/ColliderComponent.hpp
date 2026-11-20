@@ -62,7 +62,7 @@ class ColliderComponent : public Component {
 			return Polygon(result);
 		}
 		
-		void draw() override {
+		void drawDebug() {
 			Polygon trueCollider = this->getWorldPoints();
 			size_t size = trueCollider.points.size();
 			for (size_t i = 0; i < size; i++) {
