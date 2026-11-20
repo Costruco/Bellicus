@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 class Component;
@@ -40,10 +41,25 @@ inline ComponentID getNewComponentTypeID() {
 	return lastID++;
 }
 
-template <typename T> inline ComponentID getComponentTypeID() noexcept {
-	static_assert (std::is_base_of<Component, T>::value, "");
+template <typename T, typename = void>
+struct ComponentTypeResolver {
+	using type = T;
+};
+
+template <typename T>
+struct ComponentTypeResolver<T, std::void_t<typename T::ComponentInterface>> {
+	using type = typename T::ComponentInterface;
+};
+
+template <typename BaseType> inline ComponentID getBaseComponentTypeID() noexcept {
+	static_assert (std::is_base_of<Component, BaseType>::value, "");
 	static ComponentID typeID = getNewComponentTypeID();
 	return typeID;
+}
+
+template <typename T> inline ComponentID getComponentTypeID() noexcept {
+	static_assert (std::is_base_of<Component, T>::value, "");
+	return getBaseComponentTypeID<typename ComponentTypeResolver<T>::type>();
 }
 
 constexpr std::size_t maxComponents = 32;
@@ -151,11 +167,23 @@ class Entity {
 		void delGroup(Group mGroup);
 		
 		template <typename T> bool hasComponent() const {
-			return componentBitSet[getComponentTypeID<T>()];
+			ComponentID id = getComponentTypeID<T>();
+			if (!componentBitSet[id])
+				return false;
+			return dynamic_cast<const T*>(componentArray[id]) != nullptr;
 		}
 		
 		template <typename T, typename... Targs> T& addComponent(Targs&&... mArgs) {
 			ComponentID id = getComponentTypeID<T>();
+			if (componentBitSet[id]) {
+				components.erase(
+					std::remove_if(components.begin(), components.end(),
+						[id](const std::unique_ptr<Component>& comp) {
+							return comp && comp->getTypeID() == id;
+						}),
+					components.end()
+				);
+			}
 			T * c(new T(std::forward<Targs>(mArgs)...));
 			c->entity = this;
 			c->typeID = id;
