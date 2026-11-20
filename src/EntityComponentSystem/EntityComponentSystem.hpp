@@ -244,16 +244,16 @@ class Manager {
 		void update() {
 			if (!globalUpdateEnabled)
 				return;
-			for (auto& e : entities) {
-				e->update();
+			for (std::size_t i = 0; i < entities.size(); i++) {
+				entities[i]->update();
 			}
 		}
 		
 		void draw() {
 			if (!globalDrawEnabled)
 				return;
-			for (auto& e : entities) {
-				e->draw();
+			for (std::size_t i = 0; i < entities.size(); i++) {
+				entities[i]->draw();
 			}
 		}
 
