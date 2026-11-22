@@ -18,13 +18,18 @@ std::unordered_map<std::string,std::weak_ptr<SDL_Texture>> ResourceManager::text
 std::unordered_map<std::string,std::weak_ptr<TTF_Font>> ResourceManager::fontCache;
 std::unordered_map<std::string,std::weak_ptr<Mix_Chunk>> ResourceManager::soundCache;
 
-ResourceManager::TexturePtr ResourceManager::loadTexture(const std::string& fileName) {
+ResourceManager::TexturePtr ResourceManager::loadTexture(const std::string& fileName, bool isLinear) {
     auto it = textureCache.find(fileName);
     if (it != textureCache.end())
         if (auto tex = it->second.lock())
             return tex;
 
-    SDL_Texture* raw = IMG_LoadTexture(Game::ren, fileName.c_str());
+    if (isLinear)
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_Texture * raw = IMG_LoadTexture(Game::ren, fileName.c_str());
+    if (isLinear)
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
     if (!raw) {
         SDL_Log("Failed to load texture: %s",IMG_GetError());
         return nullptr;
@@ -243,6 +248,10 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
         drawText(center,1);
         drawText(right,2);
     }
+}
+
+void ResourceManager::unloadTextTexture(const std::string& key) {
+    textTextureCache.erase(key);
 }
 
 void ResourceManager::unloadTexture(const std::string& path) {

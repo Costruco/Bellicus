@@ -22,7 +22,7 @@ class ResourceManager {
 		using FontPtr = std::shared_ptr<TTF_Font>;
 		using SoundPtr = std::shared_ptr<Mix_Chunk>;
 	
-		static TexturePtr loadTexture(const std::string& fileName);
+		static TexturePtr loadTexture(const std::string& fileName, bool isLinear = false);
 		static FontPtr loadFont(const std::string& fileName, int fontSize);
 		static SoundPtr loadSound(const std::string& fileName);
 		static void drawTexture(const TexturePtr& tex, const SDL_Rect * src, const SDL_FRect * dst, 
@@ -32,6 +32,7 @@ class ResourceManager {
 		static void drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
 			int padding, int lineSpacing, const std::vector<std::string>& lines, 
 			SDL_Color text, SDL_Color border, SDL_Color background, float scale = 1.0f);
+		static void unloadTextTexture(const std::string& key);
 		static void unloadTexture(const std::string& path);
 		static void unloadFont(const std::string& path);
 		static void unloadSound(const std::string& path);
