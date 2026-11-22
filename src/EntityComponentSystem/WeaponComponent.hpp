@@ -8,6 +8,7 @@
 
 #include "Game.hpp"
 #include "Components.hpp"
+#include "ParticleComponent.hpp"
 #include "Utils/Math.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Vector2D.hpp"
@@ -18,6 +19,7 @@ struct WeaponSpec {
     int reloadTime;
     float shootingSpeed;
     std::string projectileID;
+    std::string muzzleParticleID;
     std::unordered_map<std::string,ResourceManager::SoundPtr> sound;
 };
 
@@ -27,6 +29,7 @@ struct GunSlot {
     float angleOffset = 0.0f;
     const WeaponSpec * spec = nullptr;
     std::string projectileID;
+    std::string muzzleParticleID;
     Timer fireTimer;
     Timer reloadTimer;
     int currentAmmo = 0;
@@ -45,8 +48,9 @@ public:
     std::vector<GunSlot> gunSlots;
 
     WeaponComponent() = default;
-    WeaponComponent(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1) {
-        addGun(specID, offset, angleOffset, ammoReserve);
+    WeaponComponent(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1,
+        const std::string& muzzleParticleID = "") {
+        addGun(specID, offset, angleOffset, ammoReserve, muzzleParticleID);
     }
 
     static WeaponSpec * getSpec(const std::string& id) {
@@ -58,13 +62,15 @@ public:
     }
 
     static void addSpec(const std::string& id, int magazineSize, float precisionError, int reloadTime, float shootingSpeed, 
-        const std::string& projectileID, const std::vector<std::pair<std::string,std::string>>& soundFiles) {
+        const std::string& projectileID, const std::vector<std::pair<std::string,std::string>>& soundFiles = {},
+        const std::string& muzzleParticleID = "") {
         WeaponSpec newSpec;
         newSpec.magazineSize = magazineSize;
         newSpec.precisionError = precisionError;
         newSpec.reloadTime = reloadTime;
         newSpec.shootingSpeed = shootingSpeed;
         newSpec.projectileID = projectileID;
+        newSpec.muzzleParticleID = muzzleParticleID;
         for (const auto& pair : soundFiles) {
             newSpec.sound[pair.first] = ResourceManager::loadSound(pair.second);
         }
@@ -75,7 +81,8 @@ public:
         specs.clear();
     }
 
-    void addGun(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1) {
+    void addGun(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1,
+        const std::string& muzzleParticleID = "") {
         const WeaponSpec * spec = getSpec(specID);
         if (!spec)
             return;
@@ -90,6 +97,7 @@ public:
         slot.angleOffset = angleOffset;
         slot.spec = spec;
         slot.projectileID = spec->projectileID;
+        slot.muzzleParticleID = muzzleParticleID.empty() ? spec->muzzleParticleID : muzzleParticleID;
         slot.fireTimer = Timer(fireCooldown, false);
         slot.reloadTimer = Timer(static_cast<Uint32>(spec->reloadTime), false);
         slot.currentAmmo = spec->magazineSize;
@@ -189,6 +197,11 @@ public:
             newBullet.addComponent<ProjectileComponent>(projID);
             newBullet.addComponent<SpriteComponent>(projSpec->texture);
             newBullet.addGroup(groupProjectiles);
+
+            const std::string& partID = slot.muzzleParticleID.empty() ? slot.spec->muzzleParticleID : slot.muzzleParticleID;
+            if (!partID.empty()) {
+                ParticleComponent::spawn(partID, slot.offset, slot.angleOffset, entity);
+            }
 
             sound->playSound(slot.specID+"_fire");
             slot.currentAmmo--;

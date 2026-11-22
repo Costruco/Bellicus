@@ -7,6 +7,7 @@
 
 #include "Components.hpp"
 #include "FrameManager.hpp"
+#include "ParticleComponent.hpp"
 #include "ResourceManager.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Vector2D.hpp"
@@ -15,6 +16,7 @@ struct ProjectileSpec {
     float speed;
     float range;
     float lifetime;
+    std::string destructionParticleID;
     ResourceManager::TexturePtr texture;
     std::unordered_map<std::string,ResourceManager::SoundPtr> sound;
 };
@@ -44,11 +46,13 @@ public:
     }
 
     static void addSpec(const std::string& id, float speed, float range, float lifetime, const std::string& texturePath, 
-        const std::vector<std::pair<std::string,std::string>>& soundFiles, bool isLinear = false) {
+        const std::vector<std::pair<std::string,std::string>>& soundFiles = {}, bool isLinear = false,
+        const std::string& destructionParticleID = "") {
         ProjectileSpec newSpec;
         newSpec.speed = speed;
         newSpec.range = range;
         newSpec.lifetime = lifetime;
+        newSpec.destructionParticleID = destructionParticleID;
         newSpec.texture = ResourceManager::loadTexture(texturePath,isLinear);
         for (const auto& pair : soundFiles) {
             newSpec.sound[pair.first] = ResourceManager::loadSound(pair.second);
@@ -92,6 +96,9 @@ public:
         transform->position += step;
         distanceTraveled += step.getModule();
         if (distanceTraveled >= spec->range || !lifetimeTimer.isRunning()) {
+            if (!spec->destructionParticleID.empty()) {
+                ParticleComponent::spawn(spec->destructionParticleID, transform->getPosition(), transform->getDirection());
+            }
             sound->playSound("destruction");
             this->entity->destroy();
         }
