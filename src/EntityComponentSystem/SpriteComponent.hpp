@@ -49,12 +49,7 @@ class SpriteComponent : public Component {
 		}
 		
 		void setTexture(const std::string& path, bool isLinear = false) {
-			linear = isLinear;
-			if (linear)
-				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-			texture = ResourceManager::loadTexture(path);
-			if (linear)
-				SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+			texture = ResourceManager::loadTexture(path,isLinear);
 		}
 
 		void setTexture(const ResourceManager::TexturePtr& tex) {
