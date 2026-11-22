@@ -16,11 +16,13 @@ struct ProjectileSpec {
     float range;
     float lifetime;
     ResourceManager::TexturePtr texture;
+    std::unordered_map<std::string,ResourceManager::SoundPtr> sound;
 };
 
 class ProjectileComponent : public Component {
 private:
-    TransformComponent * transform;
+    TransformComponent * transform = nullptr;
+    SoundComponent * sound = nullptr;
     inline static std::unordered_map<std::string,ProjectileSpec> specs;
     const ProjectileSpec * spec;
     float distanceTraveled;
@@ -41,16 +43,16 @@ public:
         return nullptr;
     }
 
-    static void addSpec(const std::string& id, float speed, float range, float lifetime, const std::string& texturePath, bool isLinear = false) {
+    static void addSpec(const std::string& id, float speed, float range, float lifetime, const std::string& texturePath, 
+        const std::vector<std::pair<std::string,std::string>>& soundFiles, bool isLinear = false) {
         ProjectileSpec newSpec;
         newSpec.speed = speed;
         newSpec.range = range;
         newSpec.lifetime = lifetime;
-        if (isLinear)
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-        newSpec.texture = ResourceManager::loadTexture(texturePath);
-        if (isLinear)
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+        newSpec.texture = ResourceManager::loadTexture(texturePath,isLinear);
+        for (const auto& pair : soundFiles) {
+            newSpec.sound[pair.first] = ResourceManager::loadSound(pair.second);
+        }
         specs[id] = newSpec;
     }
 
@@ -60,6 +62,15 @@ public:
 
     void init() override {
         transform = &entity->getComponent<TransformComponent>();
+        if (!entity->hasComponent<SoundComponent>())
+            sound = &entity->addComponent<SoundComponent>();
+        else
+            sound = &entity->getComponent<SoundComponent>();
+        
+        if (spec) {
+            sound->addSounds(spec->sound);
+        }
+
         if (spec && spec->texture && (transform->width == 0.0f || transform->height == 0.0f)) {
             int w = 0, h = 0;
             SDL_QueryTexture(spec->texture.get(), nullptr, nullptr, &w, &h);
@@ -81,6 +92,7 @@ public:
         transform->position += step;
         distanceTraveled += step.getModule();
         if (distanceTraveled >= spec->range || !lifetimeTimer.isRunning()) {
+            sound->playSound("destruction");
             this->entity->destroy();
         }
     }
