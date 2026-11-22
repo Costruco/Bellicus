@@ -483,6 +483,7 @@ inline void Entity::draw() {
 inline void Entity::destroy() {
 	active = false;
 	manager.requestRefresh();
+	removeFromFather();
 	destroySonsRecursive();
 }
 
