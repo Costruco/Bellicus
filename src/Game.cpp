@@ -95,12 +95,34 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	camera.setMapSize(mapSizeX,mapSizeY);
 	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
 	
-	//inicializa especificacoes de projeteis e armas
+	//inicializa especificacoes de particulas, geradores, projeteis e armas
+	ParticleComponent::addSpec("exhaust_smoke",
+		"../assets/textures/particles/fumaca.png",
+		200.0f, 8, 8, 0.5f, {0.0f, 0.0f}, 150.0f, 10.0f, 12.0f, true, false);
+	ParticleComponent::addSpec("cannon_blast",
+		"../assets/textures/particles/blast.png",
+		400.0f, 25, 5, 1.0f, {-90.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
+	ParticleComponent::addSpec("coaxial_mg_flash",
+		"../assets/textures/particles/flash_metralhadora_coaxial.png",
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
+	ParticleComponent::addSpec("hull_mg_flash",
+		"../assets/textures/particles/flash_metralhadora_chassi.png",
+		16.0f, 1, 1, 1.0f, {-2.5f, -0.5f}, 0.0f, 0.0f, 0.0f, false, true);
+	ParticleComponent::addSpec("cupola_flash",
+		"../assets/textures/particles/flash_cupola_chassi.png",
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
+	ParticleComponent::addSpec("cannon_explosion",
+		"../assets/textures/particles/explosao.png",
+		1000.0f, 25, 5, 2.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, false);
+
+	EntityGeneratorComponent::addSpec("exhaust_smoke_gen", "exhaust_smoke", 7, -1, true, false);
+
 	ProjectileComponent::addSpec("cannon_shell",800.0f,1200.0f,3000.0f,
 		"../assets/textures/projectiles/municao.png",
 		{
 			{"destruction","../assets/sound/bala_destruida.mp3"}
-		});
+		},
+		false, "cannon_explosion");
 	ProjectileComponent::addSpec("mg_bullet",1000.0f,900.0f,2000.0f,
 		"../assets/textures/projectiles/municao_metralhadora.png",
 		{
@@ -115,12 +137,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		{
 			{"fire","../assets/sound/disparo_canhao.ogg"},
 			{"reload","../assets/sound/recarregamento.mp3"}
-		});
+		},
+		"cannon_blast");
 	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet",
 		{
 			{"fire","../assets/sound/disparo_metralhadora.ogg"},
 			{"reload","../assets/sound/recarregamento.mp3"}
-		});
+		},
+		"coaxial_mg_flash");
 
 	//inicializa entidades
 	//tanque
@@ -129,6 +153,9 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addComponent<ColliderComponent>("player",195,96);
 	tankChassis.addComponent<TankMovementComponent>(54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-100,0},{0,0},{0,100},{100,208},{208,346},{346,750}});
 	tankChassis.addComponent<KeyboardController>();
+	auto& tankExhaust = tankChassis.addComponent<EntityGeneratorComponent>();
+	tankExhaust.addGenerator("exhaust_smoke_gen", {-93.0f, -15.0f}, 180.0f);
+	tankExhaust.addGenerator("exhaust_smoke_gen", {-93.0f, 15.0f}, 180.0f);
 	tankChassis.addGroup(groupPlayers);
 	camera.setTarget(tankChassis);
 
@@ -136,7 +163,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankMachineGun.addComponent<SpriteComponent>("../assets/textures/entities/T-34/metralhadora_chassi.png",false,true);
 	tankMachineGun.addComponent<ColliderComponent>("player",14,8);
 	auto& machineGun = tankMachineGun.addComponent<WeaponComponent>();
-	machineGun.addGun("machine_gun", {11.0f, 0.0f});
+	machineGun.addGun("machine_gun", {11.0f, 0.0f}, 0.0f, -1, "hull_mg_flash");
 	tankMachineGun.setFather(&tankChassis);
 	tankMachineGun.addGroup(groupPlayers);
 
@@ -274,6 +301,7 @@ auto& ground(manager.getGroup(groupGround));
 auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
 auto& projectiles(manager.getGroup(groupProjectiles));
+auto& particles(manager.getGroup(groupParticles));
 auto& ui(manager.getGroup(groupUI));
 
 void Game::render() {
@@ -295,6 +323,9 @@ void Game::render() {
 	for (auto& pr : projectiles) {
 		pr->draw();
 	}
+	for (auto& pt : particles) {
+		pt->draw();
+	}
 
 	//desenhar colisoes SE debug
 	if (manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW)) {
@@ -314,6 +345,8 @@ void Game::render() {
 }
 
 void Game::clean() {
+	EntityGeneratorComponent::clearSpecs();
+	ParticleComponent::clearSpecs();
 	ProjectileComponent::clearSpecs();
 	WeaponComponent::clearSpecs();
 	ResourceManager::clear();

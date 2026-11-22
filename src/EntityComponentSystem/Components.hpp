@@ -13,5 +13,7 @@
 #include "MessageBox.hpp"
 #include "ProgressBar.hpp"
 #include "SoundComponent.hpp"
+#include "ParticleComponent.hpp"
 #include "ProjectileComponent.hpp"
 #include "WeaponComponent.hpp"
+#include "EntityGeneratorComponent.hpp"
