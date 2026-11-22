@@ -18,9 +18,11 @@ struct WeaponSpec {
     int reloadTime;
     float shootingSpeed;
     std::string projectileID;
+    std::unordered_map<std::string,ResourceManager::SoundPtr> sound;
 };
 
 struct GunSlot {
+    std::string specID;
     Vector2D offset;
     float angleOffset = 0.0f;
     const WeaponSpec * spec = nullptr;
@@ -35,7 +37,8 @@ struct GunSlot {
 
 class WeaponComponent : public Component {
 private:
-    TransformComponent * transform;
+    TransformComponent * transform = nullptr;
+    SoundComponent * sound = nullptr;
     inline static std::unordered_map<std::string,WeaponSpec> specs;
 
 public:
@@ -54,13 +57,17 @@ public:
         return nullptr;
     }
 
-    static void addSpec(const std::string& id, int magazineSize, float precisionError, int reloadTime, float shootingSpeed, const std::string& projectileID) {
+    static void addSpec(const std::string& id, int magazineSize, float precisionError, int reloadTime, float shootingSpeed, 
+        const std::string& projectileID, const std::vector<std::pair<std::string,std::string>>& soundFiles) {
         WeaponSpec newSpec;
         newSpec.magazineSize = magazineSize;
         newSpec.precisionError = precisionError;
         newSpec.reloadTime = reloadTime;
         newSpec.shootingSpeed = shootingSpeed;
         newSpec.projectileID = projectileID;
+        for (const auto& pair : soundFiles) {
+            newSpec.sound[pair.first] = ResourceManager::loadSound(pair.second);
+        }
         specs[id] = newSpec;
     }
 
@@ -78,6 +85,7 @@ public:
             : 0;
 
         GunSlot slot;
+        slot.specID = specID;
         slot.offset = offset;
         slot.angleOffset = angleOffset;
         slot.spec = spec;
@@ -88,11 +96,22 @@ public:
         slot.ammoReserve = ammoReserve;
         slot.reloading = false;
         slot.readToShoot = true;
+        if (sound)
+            sound->addSounds(spec->sound,specID+"_");
         gunSlots.push_back(slot);
     }
 
     void init() override {
         transform = &entity->getComponent<TransformComponent>();
+        if (!entity->hasComponent<SoundComponent>())
+            sound = &entity->addComponent<SoundComponent>();
+        else
+            sound = &entity->getComponent<SoundComponent>();
+        
+        for (const auto& slot : gunSlots) {
+            if (slot.spec)
+                sound->addSounds(slot.spec->sound,slot.specID+"_");
+        }
     }
 
     void reload(int slotIndex) {
@@ -102,6 +121,7 @@ public:
         if (!slot.spec)
             return;
         if (!slot.reloading && slot.currentAmmo < slot.spec->magazineSize && slot.ammoReserve != 0) {
+            sound->playSound(slot.specID+"_reload");
             slot.reloading = true;
             slot.reloadTimer.reset();
         }
@@ -162,7 +182,7 @@ public:
             }
 
             Vector2D rotatedOffset = (slot.offset * entityScale).rotate({0, 0}, entityAngle);
-            Vector2D spawnPos = transform->getPosition() + rotatedOffset + Vector2D::fromPolar(bulletAngle, texW * 0.5f * entityScale);
+            Vector2D spawnPos = transform->getPosition()+rotatedOffset+Vector2D::fromPolar(bulletAngle,texW*0.5f*entityScale);
 
             Entity& newBullet = manager.addEntity();
             newBullet.addComponent<TransformComponent>(spawnPos, bulletAngle, static_cast<float>(texW), static_cast<float>(texH), entityScale);
@@ -170,6 +190,7 @@ public:
             newBullet.addComponent<SpriteComponent>(projSpec->texture);
             newBullet.addGroup(groupProjectiles);
 
+            sound->playSound(slot.specID+"_fire");
             slot.currentAmmo--;
             slot.fireTimer.reset();
             slot.readToShoot = false;

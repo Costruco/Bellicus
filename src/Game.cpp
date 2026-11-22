@@ -60,11 +60,14 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 0 && 
 		IMG_Init(IMG_INIT_PNG) == IMG_INIT_PNG && 
 		TTF_Init() == 0 && 
-		Mix_Init(MIX_INIT_MP3) == MIX_INIT_MP3) {
+		Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == (MIX_INIT_MP3 | MIX_INIT_OGG)) {
+		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+		Mix_AllocateChannels(32);
+		Mix_Volume(-1, 10);
+		Mix_VolumeMusic(10);
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
-		
 		
 		if (win) {
 			SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
@@ -93,12 +96,31 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	manager.setGroupEnable(groupMap, false, EnableMode::UPDATE);
 	
 	//inicializa especificacoes de projeteis e armas
-	ProjectileComponent::addSpec("cannon_shell",800.0f,1200.0f,3000.0f,"../assets/textures/projectiles/municao.png");
-	ProjectileComponent::addSpec("mg_bullet",1000.0f,900.0f,2000.0f,"../assets/textures/projectiles/municao_metralhadora.png");
-	ProjectileComponent::addSpec("soldier_bullet",600.0f,700.0f,2000.0f,"../assets/textures/projectiles/balaSoldado.png");
-
-	WeaponComponent::addSpec("tank_cannon",1,0.5f,2000,1.0f,"cannon_shell");
-	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet");
+	ProjectileComponent::addSpec("cannon_shell",800.0f,1200.0f,3000.0f,
+		"../assets/textures/projectiles/municao.png",
+		{
+			{"destruction","../assets/sound/bala_destruida.mp3"}
+		});
+	ProjectileComponent::addSpec("mg_bullet",1000.0f,900.0f,2000.0f,
+		"../assets/textures/projectiles/municao_metralhadora.png",
+		{
+			{"destruction","../assets/sound/bala_destruida.mp3"}
+		});
+	ProjectileComponent::addSpec("soldier_bullet",600.0f,700.0f,2000.0f,
+		"../assets/textures/projectiles/balaSoldado.png",
+		{
+			{"destruction","../assets/sound/bala_destruida.mp3"}
+		});
+	WeaponComponent::addSpec("tank_cannon",1,0.5f,2000,1.0f,"cannon_shell",
+		{
+			{"fire","../assets/sound/disparo_canhao.ogg"},
+			{"reload","../assets/sound/recarregamento.mp3"}
+		});
+	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet",
+		{
+			{"fire","../assets/sound/disparo_metralhadora.ogg"},
+			{"reload","../assets/sound/recarregamento.mp3"}
+		});
 
 	//inicializa entidades
 	//tanque
@@ -298,6 +320,7 @@ void Game::clean() {
 	manager.clear();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
+	Mix_Quit();
 	IMG_Quit();
 	TTF_Quit();
 	SDL_Quit();
