@@ -13,8 +13,8 @@ int main(int argc, char * argv[]) {
 	game = new Game();
 	game->init("Bellicus",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1280,720,true);
 	
-	//inicializa o frameManager
-	FrameManager::init(60);
+	//inicializa o frameManager (0 = sem limite de FPS)
+	FrameManager::init(0);
 	
 	while (game->running()) {
 		if (FrameManager::frameDue()) {

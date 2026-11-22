@@ -1,16 +1,17 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 class FrameManager {
 	private:
 		static int targetFPS;
-		static int trueWait;
-		static int currentWait;
-		static int wait;
-		static int frameStart;
-		static int deltaTime;
+		static Uint64 frameStart;
+		static Uint64 frequency;
+		static Uint64 targetTicks;
+		static float deltaTime;
 		
 	public:
-		static void init(int targetFPS);		
+		static void init(int targetFPS = 0);		
 		static bool frameDue();
 		
 		static float getDeltaTime(); 

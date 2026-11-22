@@ -2,32 +2,31 @@
 
 #include "FrameManager.hpp"
 
-int FrameManager::targetFPS = 0,
-	FrameManager::trueWait = 0,
-	FrameManager::currentWait = 0,
-    FrameManager::wait = 0,
-    FrameManager::frameStart = 0,
-    FrameManager::deltaTime = 0;
+int FrameManager::targetFPS = 0;
+Uint64 FrameManager::frameStart = 0;
+Uint64 FrameManager::frequency = 0;
+Uint64 FrameManager::targetTicks = 0;
+float FrameManager::deltaTime = 0.0f;
 
 void FrameManager::init(int targetFPS) {
 	FrameManager::targetFPS = targetFPS;
-	trueWait = currentWait = 1000000/targetFPS;
-	wait = currentWait/1000;
-	frameStart = SDL_GetTicks();
+	frequency = SDL_GetPerformanceFrequency();
+	targetTicks = (targetFPS > 0) ? (frequency / static_cast<Uint64>(targetFPS)) : 0;
+	frameStart = SDL_GetPerformanceCounter();
+	deltaTime = 0.0f;
 }
 
 float FrameManager::getDeltaTime() {
-	return static_cast<float>(deltaTime)/1000;
+	return deltaTime;
 }
 
 bool FrameManager::frameDue() {
-	int dt = SDL_GetTicks()-frameStart;
-	if (dt >= wait) {
-		deltaTime = dt;
-		frameStart = SDL_GetTicks();
-		currentWait += trueWait-wait*1000;
-		wait = currentWait/1000;
+	Uint64 now = SDL_GetPerformanceCounter();
+	Uint64 elapsed = now - frameStart;
+	if (elapsed >= targetTicks) {
+		deltaTime = static_cast<float>(elapsed) / static_cast<float>(frequency);
+		frameStart = now;
 		return true;
-	} else
-		return false;
+	}
+	return false;
 }
