@@ -15,6 +15,7 @@ class Camera {
         bool followAngle = false;
         int mapSizeX = 0;
         int mapSizeY = 0;
+        int maxAudioDistance = 1000;
 
         Camera() : angle(0.0f), offset(), scale(1.0f,1.0f), focus(), mouseOffset() {}
 
@@ -54,6 +55,10 @@ class Camera {
         void setMapSize(int sizeX, int sizeY) {
             mapSizeX = sizeX;
             mapSizeY = sizeY;
+        }
+
+        void setMaxAudioDistance(int distance) {
+            maxAudioDistance = distance;
         }
 
         void update();

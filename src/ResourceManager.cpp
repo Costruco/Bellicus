@@ -10,6 +10,7 @@
 
 #include "Utils/Collision.hpp"
 #include "Game.hpp"
+#include "Camera.hpp"
 #include "ResourceManager.hpp"
 #include "ScreenAlignment.hpp"
 #include "Utils/Vector2D.hpp"
@@ -110,6 +111,18 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
     SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
 
     SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
+}
+
+void ResourceManager::playSound(const SoundPtr& sound, const Vector2D& position, int loops, int channel) {
+    if (!sound.get())
+        return;
+    float distance = position.getDistance(Game::camera.focus)/Game::camera.maxAudioDistance;
+    if (distance > 1.0f)
+        return;
+    int playedChannel = Mix_PlayChannel(channel, sound.get(), loops);
+    if (playedChannel != -1) {
+        Mix_SetDistance(playedChannel, static_cast<Uint8>(distance*255));
+    }
 }
 
 void ResourceManager::drawThickRectangle(Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Uint8 thickness, SDL_Color color) {
