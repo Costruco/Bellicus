@@ -18,6 +18,7 @@ enum GroupLabels : std::size_t {
 	groupPlayers,
 	groupEnemies,
 	groupProjectiles,
+	groupParticles,
 	groupColliders,
 	groupUI
 };
