@@ -49,6 +49,7 @@ class SpriteComponent : public Component {
 		}
 		
 		void setTexture(const std::string& path, bool isLinear = false) {
+			linear = isLinear;
 			texture = ResourceManager::loadTexture(path,isLinear);
 		}
 
