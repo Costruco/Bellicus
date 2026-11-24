@@ -23,6 +23,7 @@ SDL_Renderer * Game::ren = nullptr;
 SDL_Texture * Game::canva = nullptr;
 int Game::WINDOW_WIDTH = 0;
 int Game::WINDOW_HEIGHT = 0;
+float Game::renderScale = 1.0f;
 SDL_Event Game::evt;
 std::vector<ColliderComponent*> Game::colliders;
 const Uint8* Game::keystate = nullptr;
@@ -70,15 +71,19 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
 		
 		if (win) {
-			SDL_GetWindowSize(win,&WINDOW_WIDTH,&WINDOW_HEIGHT);
+			int realW = 0, realH = 0;
+			SDL_GetWindowSize(win,&realW,&realH);
 			std::cout << "Window created with screen logical size "<< width<<"x"<<height << "..." << std::endl;
-			std::cout << "Window created with screen real size "<< WINDOW_WIDTH<<"x"<<WINDOW_HEIGHT << "..." << std::endl;
-			logicalScale = {static_cast<float>(width)/WINDOW_WIDTH, static_cast<float>(height)/WINDOW_HEIGHT};
+			std::cout << "Window created with screen real size "<< realW<<"x"<<realH << "..." << std::endl;
 			WINDOW_WIDTH = width; WINDOW_HEIGHT = height;
+			renderScale = std::min(static_cast<float>(realW)/WINDOW_WIDTH, static_cast<float>(realH)/WINDOW_HEIGHT);
+			int viewW = static_cast<int>(std::round(WINDOW_WIDTH*renderScale));
+			int viewH = static_cast<int>(std::round(WINDOW_HEIGHT*renderScale));
+			viewport = {(realW-viewW)/2, (realH-viewH)/2, viewW, viewH};
 			//cria renderizador
 			ren = SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED);
 			SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"0");
-			canva = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,WINDOW_WIDTH,WINDOW_HEIGHT);
+			canva = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,viewport.w,viewport.h);
 			if (ren) {
 				SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
 				SDL_SetRenderDrawColor(ren,0,0,0,255);
@@ -212,13 +217,13 @@ void Game::handleEvents() {
 
 	int mouseX,mouseY;
 	SDL_GetMouseState(&mouseX,&mouseY);
-	mouse = {mouseX,mouseY};
+	mouse = {static_cast<float>(mouseX-viewport.x)/renderScale,static_cast<float>(mouseY-viewport.y)/renderScale};
 
 	if (tankTurret.isActive() && tankTurret.isComponentEnabled<TransformComponent>(EnableMode::UPDATE)) {
 		auto turret = &tankTurret.getComponent<TransformComponent>();
 		auto chassis = &tankChassis.getComponent<TransformComponent>();
 
-		double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse*logicalScale));
+		double targetAngle = angleBetweenPoints(turret->getPosition(),camera.screenToWorld(mouse));
 		turret->direction = 180+targetAngle-chassis->getDirection();
 	}
 	
@@ -235,9 +240,9 @@ void Game::handleEvents() {
 				isRunning = false;
 				break;
 			case SDL_MOUSEWHEEL:
-				if (evt.wheel.y > 0 && camera.scale.x+0.1f <= 2.0f)
+				if (evt.wheel.y > 0 && camera.scale.x+0.1f <= 3.0f)
 					camera.scale += {0.1f,0.1f};
-				else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.5f)
+				else if (evt.wheel.y < 0 && camera.scale.x-0.1f >= 0.1f)
 					camera.scale -= {0.1f,0.1f};
 				break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -333,14 +338,14 @@ void Game::render() {
 			if (c->entity->isActive() && c->entity->isComponentEnabled<ColliderComponent>(EnableMode::DRAW))
 				c->drawDebug();
 	}
+	for(auto& u : ui) {
+		u->draw();
+	}
 	
 	SDL_SetRenderTarget(ren, NULL);
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_RenderClear(ren);
-	SDL_RenderCopy(ren, canva, NULL, NULL);
-	for(auto& u : ui) {
-		u->draw();
-	}
+	SDL_RenderCopy(ren, canva, NULL, &viewport);
 	SDL_RenderPresent(ren);
 }
 

@@ -25,11 +25,12 @@ public:
 
     void draw() override {
         if (transform) {
-            float barHeight = transform->height;
-            float barWidth = transform->width;
+            float rs = Game::renderScale;
+            float barHeight = transform->height * transform->getScale() * rs;
+            float barWidth = transform->width * transform->getScale() * rs;
             float progress = barWidth*(progressValue/capacityValue);
-            float xpos = transform->position.x-barWidth/2.0f;
-            float ypos = transform->position.y-barHeight/2.0f;
+            float xpos = transform->position.x * rs - barWidth/2.0f;
+            float ypos = transform->position.y * rs - barHeight/2.0f;
             SDL_Color * p = &progressColor;
             SDL_Color * b = &backgroundColor;
             boxRGBA(Game::ren,xpos,ypos,xpos+barWidth,ypos+barHeight,b->r,b->g,b->b,b->a);

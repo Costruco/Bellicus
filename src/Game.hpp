@@ -39,7 +39,8 @@ class Game {
 
 		static int WINDOW_WIDTH;
 		static int WINDOW_HEIGHT;
-	    Vector2D logicalScale;
+		static float renderScale;
+		SDL_Rect viewport{};
 		
 		Game();
 		~Game();

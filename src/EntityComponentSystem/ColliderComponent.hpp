@@ -65,12 +65,14 @@ class ColliderComponent : public Component {
 		void drawDebug() {
 			Polygon trueCollider = this->getWorldPoints();
 			size_t size = trueCollider.points.size();
+			float rs = Game::renderScale;
+			Uint8 thickness = static_cast<Uint8>(std::max(1, static_cast<int>(std::round(2.0f * rs))));
 			for (size_t i = 0; i < size; i++) {
 				Vector2D line1 = {trueCollider.points[i].x,trueCollider.points[i].y};
 				Vector2D line2 = {trueCollider.points[(i+1)%size].x,trueCollider.points[(i+1)%size].y};
-				line1 = Game::camera.worldToScreen(line1);
-				line2 = Game::camera.worldToScreen(line2);
-				thickLineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,2,255,0,0,255);
+				line1 = Game::camera.worldToScreen(line1) * rs;
+				line2 = Game::camera.worldToScreen(line2) * rs;
+				thickLineRGBA(Game::ren,line1.x,line1.y,line2.x,line2.y,thickness,255,0,0,255);
 			}
 		}
 };

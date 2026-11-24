@@ -105,10 +105,11 @@ void ResourceManager::drawTexture(const TexturePtr& tex, const SDL_Rect* src, co
     }
 
     Vector2D scaledCenter = Game::camera.worldSizeToScreen(localCenter);
-    SDL_FRect screenDst = {screenCenter.x-scaledCenter.x,
-                           screenCenter.y-scaledCenter.y,
-                           screenSize.x,screenSize.y};
-    SDL_FPoint fscaledCenter = {scaledCenter.x,scaledCenter.y};
+    float rs = Game::renderScale;
+    SDL_FRect screenDst = {(screenCenter.x-scaledCenter.x)*rs,
+                           (screenCenter.y-scaledCenter.y)*rs,
+                           screenSize.x*rs,screenSize.y*rs};
+    SDL_FPoint fscaledCenter = {scaledCenter.x*rs,scaledCenter.y*rs};
 
     SDL_RenderCopyExF(Game::ren,tex.get(),src,&screenDst,angle-Game::camera.angle,&fscaledCenter,flip);
 }
@@ -153,20 +154,18 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
     int padding, int lineSpacing, const std::vector<std::string>& lines, 
     SDL_Color text, SDL_Color border, SDL_Color background, float scale) {
     
-    int outW, outH;
-    SDL_GetRendererOutputSize(Game::ren, &outW, &outH);
-    float scaleX, scaleY;
-    SDL_RenderGetScale(Game::ren, &scaleX, &scaleY);
-    float screenW = outW / scaleX;
-    float screenH = outH / scaleY;
+    float rs = Game::renderScale;
+    float effectiveScale = scale * rs;
+    float screenW = Game::WINDOW_WIDTH * rs;
+    float screenH = Game::WINDOW_HEIGHT * rs;
 
-    float scaledPadding = padding * scale;
-    float scaledLineSpacing = lineSpacing * scale;
-    int borderThickness = std::max(1, static_cast<int>(scale));
+    float scaledPadding = padding * effectiveScale;
+    float scaledLineSpacing = lineSpacing * effectiveScale;
+    int borderThickness = std::max(1, static_cast<int>(std::round(effectiveScale)));
 
-    SDL_FRect boxDst = *dst;
-    boxDst.w = boxDst.w * scale + 2.0f * scaledPadding;
-    boxDst.h = boxDst.h * scale + 2.0f * scaledPadding + scaledLineSpacing * (lines.size() - 1);
+    SDL_FRect boxDst = {dst->x * rs, dst->y * rs, dst->w, dst->h};
+    boxDst.w = boxDst.w * effectiveScale + 2.0f * scaledPadding;
+    boxDst.h = boxDst.h * effectiveScale + 2.0f * scaledPadding + scaledLineSpacing * (lines.size() - 1);
 
     ScreenAlignment h = alignment & ScreenAlignment::HORIZONTAL;
     ScreenAlignment v = alignment & ScreenAlignment::VERTICAL;
@@ -248,8 +247,8 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
             }
 
             const auto& cached = it->second;
-            float texW = cached.w * scale;
-            float texH = cached.h * scale;
+            float texW = cached.w * effectiveScale;
+            float texH = cached.h * effectiveScale;
             float x = scaledPadding+boxDst.x+(boxDst.w-scaledPadding*2.0f-texW)*alignment/2.0f;
             float lineHeight = (boxDst.h-scaledPadding*2.0f+scaledLineSpacing)/lines.size()-scaledLineSpacing;
             float y = scaledPadding+boxDst.y+(lineHeight+scaledLineSpacing)*i+(lineHeight-texH)/2.0f;
