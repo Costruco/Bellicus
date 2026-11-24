@@ -26,8 +26,8 @@ private:
     TransformComponent * transform = nullptr;
     SoundComponent * sound = nullptr;
     inline static std::unordered_map<std::string,ProjectileSpec> specs;
-    const ProjectileSpec * spec;
-    float distanceTraveled;
+    const ProjectileSpec * spec = nullptr;
+    float distanceTraveled = 0.0f;
     Timer lifetimeTimer;
     
 public:
@@ -43,6 +43,10 @@ public:
             return &it->second;
         }
         return nullptr;
+    }
+
+    const ProjectileSpec * getSpec() const {
+        return spec;
     }
 
     static void addSpec(const std::string& id, float speed, float range, float lifetime, const std::string& texturePath, 

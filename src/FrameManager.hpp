@@ -9,10 +9,14 @@ class FrameManager {
 		static Uint64 frequency;
 		static Uint64 targetTicks;
 		static float deltaTime;
+		static float frameTimes[10];
+		static int frameCount;
+		static float fps;
 		
 	public:
 		static void init(int targetFPS = 0);		
 		static bool frameDue();
 		
-		static float getDeltaTime(); 
+		static float getDeltaTime();
+		static float getFPS();
 };
