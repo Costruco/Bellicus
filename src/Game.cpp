@@ -122,13 +122,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 
 	EntityGeneratorComponent::addSpec("exhaust_smoke_gen", "exhaust_smoke", 7, -1, true, false);
 
-	ProjectileComponent::addSpec("cannon_shell",800.0f,1200.0f,3000.0f,
+	ProjectileComponent::addSpec("cannon_shell",680.0f*PIXELS_PER_METER,2000.0f*PIXELS_PER_METER,4000.0f,
 		"../assets/textures/projectiles/municao.png",
 		{
 			{"destruction","../assets/sound/bala_destruida.mp3"}
 		},
 		false, "cannon_explosion");
-	ProjectileComponent::addSpec("mg_bullet",1000.0f,900.0f,2000.0f,
+	ProjectileComponent::addSpec("mg_bullet",840.0f*PIXELS_PER_METER,800.0f*PIXELS_PER_METER,2000.0f,
 		"../assets/textures/projectiles/municao_metralhadora.png",
 		{
 			{"destruction","../assets/sound/bala_destruida.mp3"}
@@ -138,13 +138,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		{
 			{"destruction","../assets/sound/bala_destruida.mp3"}
 		});
-	WeaponComponent::addSpec("tank_cannon",1,0.5f,2000,1.0f,"cannon_shell",
+	WeaponComponent::addSpec("tank_cannon",1,0.5f,8000,7.5f/60.0f,"cannon_shell",
 		{
 			{"fire","../assets/sound/disparo_canhao.ogg"},
 			{"reload","../assets/sound/recarregamento.mp3"}
 		},
 		"cannon_blast");
-	WeaponComponent::addSpec("machine_gun",50,2.5f,3000,10.0f,"mg_bullet",
+	WeaponComponent::addSpec("machine_gun",47,2.5f,5500,550.0f/60.0f,"mg_bullet",
 		{
 			{"fire","../assets/sound/disparo_metralhadora.ogg"},
 			{"reload","../assets/sound/recarregamento.mp3"}
@@ -168,7 +168,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankMachineGun.addComponent<SpriteComponent>("../assets/textures/entities/T-34/metralhadora_chassi.png",false,true);
 	tankMachineGun.addComponent<ColliderComponent>("player",14,8);
 	auto& machineGun = tankMachineGun.addComponent<WeaponComponent>();
-	machineGun.addGun("machine_gun", {11.0f, 0.0f}, 0.0f, -1, "hull_mg_flash");
+	machineGun.addGun("machine_gun", {11.0f, 0.0f}, 0.0f, 3*47, "hull_mg_flash");
 	tankMachineGun.setFather(&tankChassis);
 	tankMachineGun.addGroup(groupPlayers);
 
@@ -182,8 +182,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
 	tankTurret.addComponent<ColliderComponent>("player",138,60);
 	auto& turretWeapons = tankTurret.addComponent<WeaponComponent>();
-	turretWeapons.addGun("tank_cannon", {105.0f, 0.0f});
-	turretWeapons.addGun("machine_gun", {42.0f, 7.5f});
+	turretWeapons.addGun("tank_cannon", {105.0f, 0.0f}, 0.0f, 99);
+	turretWeapons.addGun("machine_gun", {42.0f, 7.5f}, 0.0f, 3*47);
 	tankTurret.setFather(&tankChassis);
 	tankTurret.addGroup(groupPlayers);
 	//fim do tanque
@@ -268,6 +268,10 @@ void Game::update() {
 													   {transform.getDirection()},
 													   {speed},
 													   {gear}});
+
+	if (tankMachineGun.isActive() && tankMachineGun.hasComponent<WeaponComponent>()) {
+		tankMachineGun.getComponent<WeaponComponent>().shootAll();
+	}
 
 	if (tankTurret.isActive() && tankTurret.hasComponent<WeaponComponent>()) {
 		auto& weapons = tankTurret.getComponent<WeaponComponent>();
