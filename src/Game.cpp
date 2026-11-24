@@ -156,7 +156,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addComponent<TransformComponent>(0,0,0.0f,203,104,1);
 	tankChassis.addComponent<SpriteComponent>("../assets/textures/entities/T-34/chassi_com_sombra.png",false,true);
 	tankChassis.addComponent<ColliderComponent>("player",195,96);
-	tankChassis.addComponent<TankMovementComponent>(54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-100,0},{0,0},{0,100},{100,208},{208,346},{346,750}});
+	tankChassis.addComponent<TankMovementComponent>(54.0f,370000,36250,94000,0.095f,6,std::vector<Vector2D>{{-65,0},{0,0},{0,65},{65,135},{135,225},{225,487}});
 	tankChassis.addComponent<KeyboardController>();
 	auto& tankExhaust = tankChassis.addComponent<EntityGeneratorComponent>();
 	tankExhaust.addGenerator("exhaust_smoke_gen", {-93.0f, -15.0f}, 180.0f);

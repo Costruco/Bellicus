@@ -9,7 +9,7 @@
 #include "Math.hpp"
 #include "Vector2D.hpp"
 
-constexpr float PIXELS_PER_METER = 50.0f;
+constexpr float PIXELS_PER_METER = 32.5f;
 constexpr float GRAVITY = 9.81f;
 
 struct TorqueCurve {
