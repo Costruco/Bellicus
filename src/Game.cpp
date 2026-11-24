@@ -120,13 +120,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		400.0f, 25, 5, 1.0f, {-90.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
 	ParticleComponent::addSpec("coaxial_mg_flash",
 		"../assets/textures/particles/flash_metralhadora_coaxial.png",
-		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
 	ParticleComponent::addSpec("hull_mg_flash",
 		"../assets/textures/particles/flash_metralhadora_chassi.png",
-		16.0f, 1, 1, 1.0f, {-2.5f, -0.5f}, 0.0f, 0.0f, 0.0f, false, true);
+		16.0f, 1, 1, 1.0f, {-3.0f, -0.5f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
 	ParticleComponent::addSpec("cupola_flash",
 		"../assets/textures/particles/flash_cupola_chassi.png",
-		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
 	ParticleComponent::addSpec("cannon_explosion",
 		"../assets/textures/particles/explosao.png",
 		1000.0f, 25, 5, 2.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, false);
@@ -175,17 +175,17 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankChassis.addGroup(groupPlayers);
 	camera.setTarget(tankChassis);
 
-	tankMachineGun.addComponent<TransformComponent>(64.5f,18.0f,0.0f,14,8,1,-4,0);
+	tankMachineGun.addComponent<TransformComponent>(65.0f,18.0f,0.0f,13,7,1,-4,0);
 	tankMachineGun.addComponent<SpriteComponent>("../assets/textures/entities/T-34/metralhadora_chassi.png",false,true);
-	tankMachineGun.addComponent<ColliderComponent>("player",14,8);
+	tankMachineGun.addComponent<ColliderComponent>("player",13,7);
 	auto& machineGun = tankMachineGun.addComponent<WeaponComponent>();
-	machineGun.addGun("machine_gun", {11.0f, 0.0f}, 0.0f, 3*47, "hull_mg_flash");
+	machineGun.addGun("machine_gun", {10.5f, 0.0f}, 0.0f, 3*47, "hull_mg_flash");
 	tankMachineGun.setFather(&tankChassis);
 	tankMachineGun.addGroup(groupPlayers);
 
-	tankCupola.addComponent<TransformComponent>(62.0f,18.0f,0.0f,11,12,1);
+	tankCupola.addComponent<TransformComponent>(62.0f,18.0f,0.0f,11,11,1);
 	tankCupola.addComponent<SpriteComponent>("../assets/textures/entities/T-34/cupola_metralhadora_chassi.png",false,true);
-	tankCupola.addComponent<ColliderComponent>("player",11,12);
+	tankCupola.addComponent<ColliderComponent>("player",11,11);
 	tankCupola.setFather(&tankChassis);
 	tankCupola.addGroup(groupPlayers);
 	
@@ -194,7 +194,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankTurret.addComponent<ColliderComponent>("player",138,60);
 	auto& turretWeapons = tankTurret.addComponent<WeaponComponent>();
 	turretWeapons.addGun("tank_cannon", {105.0f, 0.0f}, 0.0f, 99);
-	turretWeapons.addGun("machine_gun", {42.0f, 7.5f}, 0.0f, 3*47);
+	turretWeapons.addGun("machine_gun", {42.5f, 7.5f}, 0.0f, 3*47);
 	tankTurret.setFather(&tankChassis);
 	tankTurret.addGroup(groupPlayers);
 	//fim do tanque
