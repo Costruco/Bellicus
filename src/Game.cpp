@@ -38,7 +38,18 @@ auto& tankMachineGun(manager.addEntity());
 auto& wall(manager.addEntity());
 auto& vaga(manager.addEntity());
 auto& info(manager.addEntity());
+auto& turretInfo(manager.addEntity());
+auto& debugKeys(manager.addEntity());
+auto& debugInfo(manager.addEntity());
 auto& reloadBar(manager.addEntity());
+
+auto& tiles(manager.getGroup(groupMap));
+auto& ground(manager.getGroup(groupGround));
+auto& players(manager.getGroup(groupPlayers));
+auto& enemies(manager.getGroup(groupEnemies));
+auto& projectiles(manager.getGroup(groupProjectiles));
+auto& particles(manager.getGroup(groupParticles));
+auto& ui(manager.getGroup(groupUI));
 
 int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
@@ -64,8 +75,8 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == (MIX_INIT_MP3 | MIX_INIT_OGG)) {
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 		Mix_AllocateChannels(32);
-		Mix_Volume(-1, 10);
-		Mix_VolumeMusic(10);
+		Mix_Volume(-1, 5);
+		Mix_VolumeMusic(5);
 		std::cout << "Subsystem initialized..." << std::endl;
 		//cria janela
 		win = SDL_CreateWindow(title,xpos,ypos,width,height,flags);
@@ -199,13 +210,46 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 
 	info.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
 											std::vector<std::string>{
-											"x,y: /right[:1.0f],[:1.0f]",
+											"x: /right[:1.0f]",
+											"y: /right[:1.0f]",
 											"Angulo: /right[:1.2f]",
 											"Velocidade: /right[:5.1f]",
-											"Gear: /right[:1.0f]"},
-											ScreenAlignment::TOP_CENTER,2.0f);
+											"Pontos: /right[:1.0f]"},
+											ScreenAlignment::TOP_LEFT,1.0f);
 	info.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
 	info.addGroup(groupUI);
+
+	turretInfo.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
+												  std::vector<std::string>{
+												  "angulo da torre: /right[:6.2f]",
+												  "angulo alvo: /right[:6.2f]"},
+												  ScreenAlignment::BOTTOM_LEFT,1.0f);
+	turretInfo.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
+	turretInfo.addGroup(groupUI);
+
+	debugKeys.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
+												 std::vector<std::string>{
+												 "[:1.0f] [:1.0f] [:1.0f] [:1.0f]"},
+												 ScreenAlignment::TOP_CENTER,1.0f);
+	debugKeys.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
+	debugKeys.setEnable(false,EnableMode::DRAW);
+	debugKeys.addGroup(groupUI);
+
+	debugInfo.addComponent<MessageBoxComponent>("../assets/fonts/sdl2_gfx_8x8.ttf",8,
+												 std::vector<std::string>{
+												 "N Soldados: /right[:5.0f]",
+												 "N Particulas: /right[:5.0f]",
+												 "N BalasMetra: /right[:5.0f]",
+												 "N BalasSoldado: /right[:5.0f]",
+												 "N Sangue: /right[:5.0f]",
+												 "FPS: /right[:5.0f]",
+												 "Marcha: ",
+												 "Movimento: ",
+												 "Direcao: "},
+												 ScreenAlignment::TOP_RIGHT,1.0f);
+	debugInfo.getComponent<MessageBoxComponent>().setColor({255,255,255,255},{255,255,255,255},{0,0,0,255});
+	debugInfo.setEnable(false,EnableMode::DRAW);
+	debugInfo.addGroup(groupUI);
 
 	reloadBar.addComponent<TransformComponent>(0,0,0.0f,100,20);
 	reloadBar.addComponent<ProgressBar>(0,100);
@@ -232,9 +276,12 @@ void Game::handleEvents() {
 			case SDL_KEYDOWN:
 				if (evt.key.keysym.sym == SDLK_ESCAPE)
 					camera.mouseOffset = Vector2D();
-				if (evt.key.keysym.sym == SDLK_F1)
-					manager.setComponentEnable<ColliderComponent>(
-					!manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW), EnableMode::DRAW);
+				if (evt.key.keysym.sym == SDLK_F1) {
+					bool debugDraw = !manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW);
+					manager.setComponentEnable<ColliderComponent>(debugDraw, EnableMode::DRAW);
+					debugKeys.setEnable(debugDraw, EnableMode::DRAW);
+					debugInfo.setEnable(debugDraw, EnableMode::DRAW);
+				}
 				break;
 			case SDL_QUIT:
 				isRunning = false;
@@ -260,14 +307,66 @@ void Game::update() {
 	manager.update();
 
 	const auto& transform = tankChassis.getComponent<TransformComponent>();
-	const auto& tank = tankChassis.getComponent<TankMovementComponent>();
-	float speed = transform.getForwardSpeed()/PIXELS_PER_METER*3.6f;
-	float gear = tank.currentGear;
+	float forwardSpeed = transform.getForwardSpeed();
+	float speed = forwardSpeed/PIXELS_PER_METER*3.6f;
+	Uint8 speedChannel = static_cast<Uint8>(clamp(250.0f-0.50f*std::abs(forwardSpeed),0.0f,255.0f));
+	SDL_Color speedColor = {255,speedChannel,speedChannel,255};
 	info.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
-													   {transform.getPosition().x,transform.getPosition().y},
+													   {transform.getPosition().x},
+													   {transform.getPosition().y},
 													   {transform.getDirection()},
 													   {speed},
-													   {gear}});
+													   {0.0f}});
+	info.getComponent<MessageBoxComponent>().setTextColors({
+		{},
+		{},
+		{},
+		{{255,255,255,255},speedColor},
+		{}
+	});
+
+	float turretAngle = 0.0f;
+	float targetAngle = 0.0f;
+	if (tankTurret.isActive() && tankTurret.hasComponent<TransformComponent>()) {
+		const auto& turretTransform = tankTurret.getComponent<TransformComponent>();
+		turretAngle = turretTransform.getDirection();
+		targetAngle = clockLimit(180.0f+angleBetweenPoints(turretTransform.getPosition(),camera.screenToWorld(mouse)),0.0f,360.0f);
+	}
+	turretInfo.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
+															 {turretAngle},
+															 {targetAngle}});
+
+	if (keystate) {
+		debugKeys.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
+			{static_cast<float>(keystate[SDL_SCANCODE_W]),
+			 static_cast<float>(keystate[SDL_SCANCODE_A]),
+			 static_cast<float>(keystate[SDL_SCANCODE_S]),
+			 static_cast<float>(keystate[SDL_SCANCODE_D])}});
+	}
+
+	float nMgBullets = 0.0f;
+	float nSoldierBullets = 0.0f;
+	const ProjectileSpec * mgSpec = ProjectileComponent::getSpec("mg_bullet");
+	const ProjectileSpec * soldierSpec = ProjectileComponent::getSpec("soldier_bullet");
+	for (const auto* pr : projectiles) {
+		if (pr->isActive() && pr->hasComponent<ProjectileComponent>()) {
+			const ProjectileSpec * s = pr->getComponent<ProjectileComponent>().getSpec();
+			if (s == mgSpec)
+				nMgBullets += 1.0f;
+			else if (s == soldierSpec)
+				nSoldierBullets += 1.0f;
+		}
+	}
+	debugInfo.getComponent<MessageBoxComponent>().setValues(std::vector<std::vector<float>>{
+															{static_cast<float>(enemies.size())},
+															{static_cast<float>(particles.size())},
+															{nMgBullets},
+															{nSoldierBullets},
+															{0.0f},
+															{FrameManager::getFPS()},
+															{},
+															{},
+															{}});
 
 	if (tankMachineGun.isActive() && tankMachineGun.hasComponent<WeaponComponent>()) {
 		tankMachineGun.getComponent<WeaponComponent>().shootAll();
@@ -304,14 +403,6 @@ void Game::update() {
 		}
 	}
 }
-
-auto& tiles(manager.getGroup(groupMap));
-auto& ground(manager.getGroup(groupGround));
-auto& players(manager.getGroup(groupPlayers));
-auto& enemies(manager.getGroup(groupEnemies));
-auto& projectiles(manager.getGroup(groupProjectiles));
-auto& particles(manager.getGroup(groupParticles));
-auto& ui(manager.getGroup(groupUI));
 
 void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
