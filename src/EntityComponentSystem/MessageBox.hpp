@@ -15,11 +15,12 @@
 
 class MessageBoxComponent : public Component {
     private:
-        TransformComponent * transform;
+        TransformComponent * transform = nullptr;
         ResourceManager::FontPtr font;
-        ScreenAlignment alignment;
+        ScreenAlignment alignment = ScreenAlignment::CENTER;
         std::vector<std::string> lines;
         std::vector<std::vector<float>> values;
+        std::vector<std::vector<SDL_Color>> textColors;
         SDL_Color textColor = {255,255,255,255};
         SDL_Color borderColor = {0,0,0,255};
         SDL_Color backgroundColor = {0,0,0,128};
@@ -41,6 +42,10 @@ class MessageBoxComponent : public Component {
             textColor = text;
             borderColor = border;
             backgroundColor = background;
+        }
+
+        void setTextColors(const std::vector<std::vector<SDL_Color>>& textColors) {
+            this->textColors = textColors;
         }
 
         void setScale(float scale) {
@@ -86,16 +91,18 @@ class MessageBoxComponent : public Component {
             std::vector<std::string> linesCopy;
             for (size_t i = 0; i < lines.size(); i++) {
                 std::string line = lines[i];
-                for (const auto& value : values[i]) {
-                    safeReplace(line,"[","{");
-                    safeReplace(line,"]","}");
-                    line = std::vformat(line,std::make_format_args(value));
+                if (i < values.size()) {
+                    for (const auto& value : values[i]) {
+                        safeReplace(line,"[","{");
+                        safeReplace(line,"]","}");
+                        line = std::vformat(line,std::make_format_args(value));
+                    }
                 }
                 linesCopy.push_back(line);
             }
             Vector2D pos = transform->getPosition();
             SDL_FRect dst = {pos.x,pos.y,transform->width,transform->height};
             ResourceManager::drawMessageBox(font,&dst,alignment,padding,lineSpacing,linesCopy,
-                textColor,borderColor,backgroundColor,transform->getScale());
+                textColor,borderColor,backgroundColor,transform->getScale(),textColors);
         }
 };

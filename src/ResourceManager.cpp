@@ -152,7 +152,8 @@ void ResourceManager::drawThickRectangle(const SDL_FRect * dst, Uint8 thickness,
 
 void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
     int padding, int lineSpacing, const std::vector<std::string>& lines, 
-    SDL_Color text, SDL_Color border, SDL_Color background, float scale) {
+    SDL_Color text, SDL_Color border, SDL_Color background, float scale,
+    const std::vector<std::vector<SDL_Color>>& textColors) {
     
     float rs = Game::renderScale;
     float effectiveScale = scale * rs;
@@ -219,20 +220,36 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
         std::string center = (c?line.substr(centerPos+7,(r?rightPos-(centerPos+7):std::string::npos)):"");
         std::string right = (r?line.substr(rightPos+6):"");
 
-        auto drawText = [&](const std::string& s, int alignment) {
+        SDL_Color leftColor = text, centerColor = text, rightColor = text;
+        if (i < textColors.size() && !textColors[i].empty()) {
+            const auto& lc = textColors[i];
+            if (lc.size() == 1) {
+                leftColor = centerColor = rightColor = lc[0];
+            } else if (lc.size() == 2) {
+                leftColor = lc[0];
+                if (c && !r)
+                    centerColor = lc[1];
+                else
+                    rightColor = lc[1];
+            } else {
+                leftColor = lc[0];
+                centerColor = lc[1];
+                rightColor = lc[2];
+            }
+        }
+
+        auto drawText = [&](const std::string& s, int alignment, SDL_Color color) {
             if (s.empty())
                 return;
             std::string key;
             key.reserve(s.size() + 16);
-            key.append(reinterpret_cast<const char*>(&font), sizeof(TTF_Font*));
-            key.push_back(static_cast<char>(text.r));
-            key.push_back(static_cast<char>(text.g));
-            key.push_back(static_cast<char>(text.b));
+            TTF_Font* rawFont = font.get();
+            key.append(reinterpret_cast<const char*>(&rawFont), sizeof(TTF_Font*));
             key.append(s);
 
             auto it = textTextureCache.find(key);
             if (it == textTextureCache.end()) {
-                SDL_Surface* surface = TTF_RenderUTF8_Solid(font.get(),s.c_str(),text);
+                SDL_Surface* surface = TTF_RenderUTF8_Solid(rawFont,s.c_str(),{255,255,255,255});
                 if (!surface)
                     return;
                 SDL_Texture* rawTex = SDL_CreateTextureFromSurface(Game::ren,surface);
@@ -253,12 +270,13 @@ void ResourceManager::drawMessageBox(const FontPtr& font, const SDL_FRect * dst,
             float lineHeight = (boxDst.h-scaledPadding*2.0f+scaledLineSpacing)/lines.size()-scaledLineSpacing;
             float y = scaledPadding+boxDst.y+(lineHeight+scaledLineSpacing)*i+(lineHeight-texH)/2.0f;
             SDL_FRect textDst = {x,y,texW,texH};
-            SDL_SetTextureAlphaMod(cached.texture.get(),text.a);
+            SDL_SetTextureColorMod(cached.texture.get(),color.r,color.g,color.b);
+            SDL_SetTextureAlphaMod(cached.texture.get(),color.a);
             SDL_RenderCopyF(Game::ren,cached.texture.get(),nullptr,&textDst);
         };
-        drawText(left,0);
-        drawText(center,1);
-        drawText(right,2);
+        drawText(left,0,leftColor);
+        drawText(center,1,centerColor);
+        drawText(right,2,rightColor);
     }
 }
 

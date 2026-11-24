@@ -33,7 +33,8 @@ class ResourceManager {
 		static void drawThickRectangle(const SDL_FRect * dst, Uint8 thickness, SDL_Color color);
 		static void drawMessageBox(const FontPtr& font, const SDL_FRect * dst, ScreenAlignment alignment, 
 			int padding, int lineSpacing, const std::vector<std::string>& lines, 
-			SDL_Color text, SDL_Color border, SDL_Color background, float scale = 1.0f);
+			SDL_Color text, SDL_Color border, SDL_Color background, float scale = 1.0f,
+			const std::vector<std::vector<SDL_Color>>& textColors = {});
 		static void unloadTextTexture(const std::string& key);
 		static void unloadTexture(const std::string& path);
 		static void unloadFont(const std::string& path);
