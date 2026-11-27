@@ -116,13 +116,13 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		400.0f, 25, 5, 1.0f, {-90.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true);
 	ParticleComponent::addSpec("coaxial_mg_flash",
 		"../assets/textures/particles/flash_metralhadora_coaxial.png",
-		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, false);
 	ParticleComponent::addSpec("hull_mg_flash",
 		"../assets/textures/particles/flash_metralhadora_chassi.png",
-		16.0f, 1, 1, 1.0f, {-3.0f, -0.5f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
+		16.0f, 1, 1, 1.0f, {-3.0f, -0.5f}, 0.0f, 0.0f, 0.0f, false, true, {}, false);
 	ParticleComponent::addSpec("cupola_flash",
 		"../assets/textures/particles/flash_cupola_chassi.png",
-		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, true);
+		16.0f, 1, 1, 1.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, true, {}, false);
 	ParticleComponent::addSpec("cannon_explosion",
 		"../assets/textures/particles/explosao.png",
 		1000.0f, 25, 5, 2.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, false);
