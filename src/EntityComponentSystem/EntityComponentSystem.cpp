@@ -48,10 +48,23 @@ void Entity::setFather(Entity * newFather) {
 		father->addSonOnly(this);
 }
 
+void Entity::setFather(Entity * newFather, ChildDrawOrder drawOrder) {
+	if (newFather == this || (newFather && newFather->hasFather(this)))
+		return;
+	childDrawOrder = drawOrder;
+	setFather(newFather);
+}
+
 void Entity::addSon(Entity * son) {
 	if (!son)
 		return;
 	son->setFather(this);
+}
+
+void Entity::addSon(Entity * son, ChildDrawOrder drawOrder) {
+	if (!son)
+		return;
+	son->setFather(this, drawOrder);
 }
 
 const Entity * Entity::getFather() const {

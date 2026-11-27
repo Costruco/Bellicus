@@ -24,6 +24,12 @@ enum class EnableMode : std::uint8_t {
 	BOTH   = UPDATE | DRAW
 };
 
+enum class ChildDrawOrder : std::uint8_t {
+	UNDER_FATHER,
+	OVER_FATHER,
+	INDEPENDENT
+};
+
 constexpr EnableMode operator|(EnableMode a, EnableMode b) {
 	return static_cast<EnableMode>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
 }
@@ -138,6 +144,7 @@ class Entity {
 
 		Entity * father = nullptr;
 		std::vector<Entity*> sons;
+		ChildDrawOrder childDrawOrder = ChildDrawOrder::OVER_FATHER;
 		
 		void addSonOnly(Entity * son);
 		void removeSonOnly(Entity * son);
@@ -219,7 +226,18 @@ class Entity {
 		bool isComponentEnabled(EnableMode mode = EnableMode::BOTH) const;
 
 		void setFather(Entity * newFather);
+		void setFather(Entity * newFather, ChildDrawOrder drawOrder);
 		void addSon(Entity * son);
+		void addSon(Entity * son, ChildDrawOrder drawOrder);
+		void setChildDrawOrder(ChildDrawOrder drawOrder) {
+			childDrawOrder = drawOrder;
+		}
+		ChildDrawOrder getChildDrawOrder() const {
+			return childDrawOrder;
+		}
+		bool isDrawnByFather() const {
+			return father != nullptr && childDrawOrder != ChildDrawOrder::INDEPENDENT;
+		}
 		const Entity * getFather() const;
 		const std::vector<Entity*>& getSons() const;
 		void removeSon(Entity * son);
@@ -281,7 +299,19 @@ class Manager {
 			if (!globalDrawEnabled)
 				return;
 			for (std::size_t i = 0; i < entities.size(); i++) {
-				entities[i]->draw();
+				if (!entities[i]->isDrawnByFather()) {
+					entities[i]->draw();
+				}
+			}
+		}
+
+		void drawGroup(Group mGroup) {
+			if (!globalDrawEnabled || !groupDrawMask.test(mGroup))
+				return;
+			for (Entity * e : groupedEntities[mGroup]) {
+				if (e && !e->isDrawnByFather()) {
+					e->draw();
+				}
 			}
 		}
 
@@ -470,12 +500,27 @@ inline void Entity::update() {
 }
 
 inline void Entity::draw() {
-	if (!active || !isDrawEnabled())
+	if (!active || !manager.isEnabled(EnableMode::DRAW))
 		return;
-	ComponentBitSet drawMask = manager.getEffectiveComponentDrawMask(groupBitSet);
-	for (auto& c : components) {
-		if (c->isDrawEnabled() && drawMask.test(c->getTypeID())) {
-			c->draw();
+
+	for (Entity * son : sons) {
+		if (son && son->isActive() && son->childDrawOrder == ChildDrawOrder::UNDER_FATHER) {
+			son->draw();
+		}
+	}
+
+	if (isDrawEnabled()) {
+		ComponentBitSet drawMask = manager.getEffectiveComponentDrawMask(groupBitSet);
+		for (auto& c : components) {
+			if (c->isDrawEnabled() && drawMask.test(c->getTypeID())) {
+				c->draw();
+			}
+		}
+	}
+
+	for (Entity * son : sons) {
+		if (son && son->isActive() && son->childDrawOrder == ChildDrawOrder::OVER_FATHER) {
+			son->draw();
 		}
 	}
 }

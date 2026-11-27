@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -28,6 +29,7 @@ struct ParticleSpec {
     int columns = 0;
     bool randomRotation = false;
     bool followEmitter = false;
+    ChildDrawOrder childDrawOrder = ChildDrawOrder::OVER_FATHER;
     ResourceManager::TexturePtr texture;
     std::unordered_map<std::string, ResourceManager::SoundPtr> sound;
 };
@@ -59,7 +61,8 @@ public:
         int frames = 1, int columns = 0, float scale = 1.0f, Vector2D centerOffset = Vector2D(),
         float speed = 0.0f, float spreadAngle = 0.0f, float spawnRadius = 0.0f,
         bool randomRotation = false, bool followEmitter = false,
-        const std::vector<std::pair<std::string, std::string>>& soundFiles = {}, bool isLinear = false) {
+        const std::vector<std::pair<std::string, std::string>>& soundFiles = {}, bool isLinear = false,
+        ChildDrawOrder childDrawOrder = ChildDrawOrder::OVER_FATHER) {
         ParticleSpec newSpec;
         newSpec.lifetime = lifetime;
         newSpec.speed = speed;
@@ -71,6 +74,7 @@ public:
         newSpec.columns = columns;
         newSpec.randomRotation = randomRotation;
         newSpec.followEmitter = followEmitter;
+        newSpec.childDrawOrder = childDrawOrder;
         newSpec.texture = ResourceManager::loadTexture(texturePath, isLinear);
         for (const auto& pair : soundFiles) {
             newSpec.sound[pair.first] = ResourceManager::loadSound(pair.second);
@@ -83,7 +87,8 @@ public:
     }
 
     static Entity * spawn(const std::string& specID, Vector2D offsetOrPos = Vector2D(),
-        float angleOffsetOrAngle = 0.0f, Entity * emitter = nullptr, int overrideFollowEmitter = -1) {
+        float angleOffsetOrAngle = 0.0f, Entity * emitter = nullptr, int overrideFollowEmitter = -1,
+        std::optional<ChildDrawOrder> overrideChildDrawOrder = std::nullopt) {
         const ParticleSpec * spec = getSpec(specID);
         if (!spec)
             return nullptr;
@@ -125,7 +130,8 @@ public:
             auto& t = particle.addComponent<TransformComponent>(
                 localPos, localVisualAngle, frameW, frameH, spec->scale, spec->centerOffset);
             t.velocity = Vector2D::fromPolar(localMoveAngle, spec->speed);
-            particle.setFather(emitter);
+            ChildDrawOrder drawOrder = overrideChildDrawOrder.value_or(spec->childDrawOrder);
+            particle.setFather(emitter, drawOrder);
         } else {
             Vector2D worldPos = offsetOrPos;
             float worldMoveAngle = clockLimit(angleOffsetOrAngle + spread, 0.0f, 360.0f);
