@@ -43,13 +43,9 @@ auto& debugKeys(manager.addEntity());
 auto& debugInfo(manager.addEntity());
 auto& reloadBar(manager.addEntity());
 
-auto& tiles(manager.getGroup(groupMap));
-auto& ground(manager.getGroup(groupGround));
-auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
 auto& projectiles(manager.getGroup(groupProjectiles));
 auto& particles(manager.getGroup(groupParticles));
-auto& ui(manager.getGroup(groupUI));
 
 int mapSizeX,mapSizeY;
 const std::string mapfile = "../assets/textures/tiles/tile_map_1.png";
@@ -132,6 +128,7 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 		1000.0f, 25, 5, 2.0f, {0.0f, 0.0f}, 0.0f, 0.0f, 0.0f, false, false);
 
 	EntityGeneratorComponent::addSpec("exhaust_smoke_gen", "exhaust_smoke", 7, -1, true, false);
+	EntityGeneratorComponent::addSpec("cupola_flash_gen", "cupola_flash", 0, -1, false, true);
 
 	ProjectileComponent::addSpec("cannon_shell",680.0f*PIXELS_PER_METER,2000.0f*PIXELS_PER_METER,4000.0f,
 		"../assets/textures/projectiles/municao.png",
@@ -179,15 +176,21 @@ void Game::init(const char * title, int xpos, int ypos, int width, int height, b
 	tankMachineGun.addComponent<SpriteComponent>("../assets/textures/entities/T-34/metralhadora_chassi.png",false,true);
 	tankMachineGun.addComponent<ColliderComponent>("player",13,7);
 	auto& machineGun = tankMachineGun.addComponent<WeaponComponent>();
-	machineGun.addGun("machine_gun", {10.5f, 0.0f}, 0.0f, 3*47, "hull_mg_flash");
+	int hullMgSlot = machineGun.addGun("machine_gun", {10.5f, 0.0f}, 0.0f, 3*47, "hull_mg_flash");
 	tankMachineGun.setFather(&tankChassis);
 	tankMachineGun.addGroup(groupPlayers);
 
 	tankCupola.addComponent<TransformComponent>(62.0f,18.0f,0.0f,11,11,1);
 	tankCupola.addComponent<SpriteComponent>("../assets/textures/entities/T-34/cupola_metralhadora_chassi.png",false,true);
 	tankCupola.addComponent<ColliderComponent>("player",11,11);
+	auto& cupolaFlash = tankCupola.addComponent<EntityGeneratorComponent>();
+	int cupolaFlashSlot = cupolaFlash.addGenerator("cupola_flash_gen");
 	tankCupola.setFather(&tankChassis);
 	tankCupola.addGroup(groupPlayers);
+
+	if (hullMgSlot >= 0 && cupolaFlashSlot >= 0) {
+		machineGun.gunSlots[hullMgSlot].onFire.connect(&cupolaFlash, &EntityGeneratorComponent::generate, cupolaFlashSlot, true);
+	}
 	
 	tankTurret.addComponent<TransformComponent>(19,0,0.0f,146,68,1,-37,0);
 	tankTurret.addComponent<SpriteComponent>("../assets/textures/entities/T-34/torre_com_sombra.png",false,true);
@@ -408,24 +411,12 @@ void Game::render() {
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
 	SDL_SetRenderTarget(ren, canva);
 	SDL_RenderClear(ren);
-	for (auto& t : tiles) {
-		t->draw();
-	}
-	for (auto& g : ground) {
-		g->draw();
-	}
-	for (auto& p : players) {
-		p->draw();
-	}
-	for (auto& e : enemies) {
-		e->draw();
-	}
-	for (auto& pr : projectiles) {
-		pr->draw();
-	}
-	for (auto& pt : particles) {
-		pt->draw();
-	}
+	manager.drawGroup(groupMap);
+	manager.drawGroup(groupGround);
+	manager.drawGroup(groupPlayers);
+	manager.drawGroup(groupEnemies);
+	manager.drawGroup(groupProjectiles);
+	manager.drawGroup(groupParticles);
 
 	//desenhar colisoes SE debug
 	if (manager.isComponentEnabled<ColliderComponent>(EnableMode::DRAW)) {
@@ -433,9 +424,7 @@ void Game::render() {
 			if (c->entity->isActive() && c->entity->isComponentEnabled<ColliderComponent>(EnableMode::DRAW))
 				c->drawDebug();
 	}
-	for(auto& u : ui) {
-		u->draw();
-	}
+	manager.drawGroup(groupUI);
 	
 	SDL_SetRenderTarget(ren, NULL);
 	SDL_SetRenderDrawColor(ren,0,0,0,255);
