@@ -10,6 +10,7 @@
 #include "Components.hpp"
 #include "ParticleComponent.hpp"
 #include "Utils/Math.hpp"
+#include "Utils/Signal.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Vector2D.hpp"
 
@@ -36,6 +37,9 @@ struct GunSlot {
     int ammoReserve = 0;
     bool reloading = false;
     bool readToShoot = false;
+    Signal<> onFire;
+    Signal<> onReloadStart;
+    Signal<> onReloadComplete;
 };
 
 class WeaponComponent : public Component {
@@ -46,6 +50,9 @@ private:
 
 public:
     std::vector<GunSlot> gunSlots;
+    Signal<int> onFire;
+    Signal<int> onReloadStart;
+    Signal<int> onReloadComplete;
 
     WeaponComponent() = default;
     WeaponComponent(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1,
@@ -81,11 +88,11 @@ public:
         specs.clear();
     }
 
-    void addGun(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1,
+    int addGun(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f, int ammoReserve = -1,
         const std::string& muzzleParticleID = "") {
         const WeaponSpec * spec = getSpec(specID);
         if (!spec)
-            return;
+            return -1;
 
         Uint32 fireCooldown = (spec->shootingSpeed > 0.0f)
             ? static_cast<Uint32>(1000.0f / spec->shootingSpeed)
@@ -106,7 +113,8 @@ public:
         slot.readToShoot = true;
         if (sound)
             sound->addSounds(spec->sound,specID+"_");
-        gunSlots.push_back(slot);
+        gunSlots.push_back(std::move(slot));
+        return static_cast<int>(gunSlots.size()) - 1;
     }
 
     void init() override {
@@ -132,6 +140,8 @@ public:
             sound->playSound(slot.specID+"_reload");
             slot.reloading = true;
             slot.reloadTimer.reset();
+            slot.onReloadStart.emit();
+            onReloadStart.emit(slotIndex);
         }
     }
 
@@ -145,34 +155,44 @@ public:
                 reload(static_cast<int>(i));
             }
 
-            if (slot.reloading && !slot.reloadTimer.isRunning()) {
-                if (slot.ammoReserve < 0) {
-                    slot.currentAmmo = slot.spec->magazineSize;
+            if (i >= gunSlots.size())
+                break;
+
+            bool reloadFinished = false;
+            if (gunSlots[i].reloading && !gunSlots[i].reloadTimer.isRunning()) {
+                if (gunSlots[i].ammoReserve < 0) {
+                    gunSlots[i].currentAmmo = gunSlots[i].spec->magazineSize;
                 } else {
-                    int needed = slot.spec->magazineSize - slot.currentAmmo;
-                    int toLoad = std::min(needed, slot.ammoReserve);
-                    slot.currentAmmo += toLoad;
-                    slot.ammoReserve -= toLoad;
+                    int needed = gunSlots[i].spec->magazineSize - gunSlots[i].currentAmmo;
+                    int toLoad = std::min(needed, gunSlots[i].ammoReserve);
+                    gunSlots[i].currentAmmo += toLoad;
+                    gunSlots[i].ammoReserve -= toLoad;
                 }
-                slot.reloading = false;
+                gunSlots[i].reloading = false;
+                reloadFinished = true;
             }
 
-            if (slot.fireTimer.isRunning() || slot.currentAmmo <= 0 || slot.reloading)
-                slot.readToShoot = false;
+            if (gunSlots[i].fireTimer.isRunning() || gunSlots[i].currentAmmo <= 0 || gunSlots[i].reloading)
+                gunSlots[i].readToShoot = false;
             else
-                slot.readToShoot = true;
+                gunSlots[i].readToShoot = true;
+
+            if (reloadFinished) {
+                gunSlots[i].onReloadComplete.emit();
+                onReloadComplete.emit(static_cast<int>(i));
+            }
         }
     }
 
-    void shoot(int slotIndex) {
+    bool shoot(int slotIndex) {
         if (slotIndex < 0 || slotIndex >= static_cast<int>(gunSlots.size()))
-            return;
+            return false;
         GunSlot& slot = gunSlots[slotIndex];
         if (slot.readToShoot && slot.spec) {
             const std::string& projID = slot.projectileID.empty() ? slot.spec->projectileID : slot.projectileID;
             ProjectileSpec * projSpec = ProjectileComponent::getSpec(projID);
             if (!projSpec)
-                return;
+                return false;
 
             float errorAngle = 0.0f;
             if (slot.spec->precisionError > 0.0f) {
@@ -207,11 +227,17 @@ public:
             slot.currentAmmo--;
             slot.fireTimer.reset();
             slot.readToShoot = false;
+            bool shouldReload = (slot.currentAmmo <= 0 && slot.ammoReserve != 0);
 
-            if (slot.currentAmmo <= 0 && slot.ammoReserve != 0) {
+            slot.onFire.emit();
+            onFire.emit(slotIndex);
+
+            if (shouldReload) {
                 reload(slotIndex);
             }
+            return true;
         }
+        return false;
     }
 
     void shootAll() {

@@ -9,6 +9,7 @@
 #include "Components.hpp"
 #include "ParticleComponent.hpp"
 #include "ResourceManager.hpp"
+#include "Utils/Signal.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/Vector2D.hpp"
 
@@ -34,6 +35,7 @@ struct GeneratorSlot {
     int remainingGenerations = -1;
     bool autoGenerate = true;
     bool readyToGenerate = true;
+    Signal<Entity*> onGenerate;
 };
 
 class EntityGeneratorComponent : public Component {
@@ -45,6 +47,7 @@ private:
 
 public:
     std::vector<GeneratorSlot> generatorSlots;
+    Signal<int, Entity*> onGenerate;
 
     EntityGeneratorComponent() = default;
     EntityGeneratorComponent(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f,
@@ -86,11 +89,11 @@ public:
         entityFactories.clear();
     }
 
-    void addGenerator(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f,
+    int addGenerator(const std::string& specID, Vector2D offset = Vector2D(), float angleOffset = 0.0f,
         int maxGenerations = -2, int autoGenerateOverride = -1) {
         const GeneratorSpec * spec = getSpec(specID);
         if (!spec)
-            return;
+            return -1;
 
         GeneratorSlot slot;
         slot.specID = specID;
@@ -106,7 +109,8 @@ public:
         if (sound && !spec->sound.empty()) {
             sound->addSounds(spec->sound, specID + "_");
         }
-        generatorSlots.push_back(slot);
+        generatorSlots.push_back(std::move(slot));
+        return static_cast<int>(generatorSlots.size()) - 1;
     }
 
     void init() override {
@@ -149,6 +153,8 @@ public:
     }
 
     Entity * generate(int slotIndex, bool ignoreTimer = false) {
+        if (!entity || !entity->isActive())
+            return nullptr;
         if (slotIndex < 0 || slotIndex >= static_cast<int>(generatorSlots.size()))
             return nullptr;
         GeneratorSlot& slot = generatorSlots[slotIndex];
@@ -180,6 +186,9 @@ public:
         }
         slot.intervalTimer.reset();
         slot.readyToGenerate = false;
+
+        slot.onGenerate.emit(spawned);
+        onGenerate.emit(slotIndex, spawned);
         return spawned;
     }
 
